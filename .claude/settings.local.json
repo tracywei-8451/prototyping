@@ -24,7 +24,8 @@
       "mcp__meridian__search_components",
       "mcp__figma__get_libraries",
       "Bash(python3 *)",
-      "Bash(git -C /Users/t160029/repo/prototyping status)"
+      "Bash(git -C /Users/t160029/repo/prototyping status)",
+      "Bash(git -C /Users/t160029/repo/prototyping/keyword_bid status)"
     ]
   }
 }
