@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bid Management — Campaign Builder</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ─────────────── Meridian Design Tokens ───────────────
+       Token names mirror @meridian/core CSS custom properties so this stylesheet
+       is portable to the real bundle later (drop --mds-* var defs and load it). */
+    :root {
+      /* Color — ink */
+      --mds-color-ink-primary: #20203c;
+      --mds-color-ink-primary-hsl: 240, 30%, 18%;
+      --mds-color-ink-darker: #535665;
+      --mds-color-ink-dark: #898b9a;
+      --mds-color-ink-light: #b8bec6;
+      --mds-color-ink-lighter: #cdd0d6;
+
+      /* Color — surface */
+      --mds-color-surface-primary: #ffffff;
+      --mds-color-surface-lighter: #f8f9fa;
+      --mds-color-surface-light: #eff2f5;
+      --mds-color-surface-dark: #e9ecf1;
+      --mds-color-surface-overlay: hsla(var(--mds-color-ink-primary-hsl), 0.32);
+
+      /* Color — edge */
+      --mds-color-edge-lighter: #e7eaee;
+      --mds-color-edge-light: #dadde1;
+      --mds-color-edge-primary: #d1d5db;
+
+      /* Color — accent (blue) — used for Select Products / Keywords CTA */
+      --mds-color-accent-lightest: #f6fafe;
+      --mds-color-accent-lighter: #d2eafa;
+      --mds-color-accent-primary: #2874c1;
+      --mds-color-accent-dark: #0f52a2;
+
+      /* Color — brand (purple) */
+      --mds-color-brand-primary: #8451ec;
+      --mds-color-brand-dark: #522181;
+
+      /* Spacing scale */
+      --mds-size-xs: 0.25rem;   /*  4px */
+      --mds-size-sm: 0.5rem;    /*  8px */
+      --mds-size-md: 1rem;      /* 16px */
+      --mds-size-lg: 1.5rem;    /* 24px */
+      --mds-size-xl: 2rem;      /* 32px */
+      --mds-size-xxl: 2.5rem;   /* 40px */
+
+      /* Border radius */
+      --mds-border-radius-sm: 0.25rem;
+      --mds-border-radius-md: 0.5rem;
+      --mds-border-radius-lg: 1rem;
+      --mds-border-radius-xl: 2rem;
+
+      /* Shadows */
+      --mds-box-shadow-xs:
+        0 0 0 1px hsla(var(--mds-color-ink-primary-hsl), 0.02),
+        0 1px 1px hsla(var(--mds-color-ink-primary-hsl), 0.08),
+        0 0 1px hsla(var(--mds-color-ink-primary-hsl), 0.02);
+      --mds-box-shadow-sm:
+        0 1px 4px hsla(var(--mds-color-ink-primary-hsl), 0.08),
+        0 0 1px hsla(var(--mds-color-ink-primary-hsl), 0.04),
+        0 1px 1px 1px hsla(var(--mds-color-ink-primary-hsl), 0.04);
+      --mds-box-shadow-md:
+        0 0 2px 0 hsla(var(--mds-color-ink-primary-hsl), 0.2),
+        0 2px 12px 0 hsla(var(--mds-color-ink-primary-hsl), 0.06),
+        0 0 2px 0 hsla(var(--mds-color-ink-primary-hsl), 0.06),
+        0 1px 1px 0 hsla(var(--mds-color-ink-primary-hsl), 0.04);
+
+      /* Typography */
+      --mds-font-family-text:
+        "Limitless Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        system-ui, sans-serif;
+      --mds-font-family-headings: var(--mds-font-family-text);
+      --mds-font-size-text-sm: 0.75rem;     /* 12px */
+      --mds-font-size-text-md: 0.875rem;    /* 14px */
+      --mds-font-size-text-lg: 1rem;        /* 16px */
+      --mds-font-size-heading-xs: 1.125rem; /* 18px */
+      --mds-font-size-heading-sm: 1.375rem; /* 22px */
+      --mds-font-weight-regular: 400;
+      --mds-font-weight-bold: 500;
+      --mds-font-weight-heavy: 600;
+      --mds-line-height-sm: 1.25;
+      --mds-line-height-md: 1.5;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    /* `display: flex/grid` rules on classes will override the default
+       `[hidden] { display: none }` since they have equal specificity but
+       come later. Force hidden to win. */
+    [hidden] {
+      display: none !important;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--mds-font-family-text);
+      font-size: var(--mds-font-size-text-md);
+      line-height: var(--mds-line-height-md);
+      color: var(--mds-color-ink-primary);
+      background: var(--mds-color-surface-light);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: var(--mds-size-xxl) var(--mds-size-md);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* ─────────────── Panel (mds-panel) ─────────────── */
+    .mds-panel {
+      width: 746px;
+      max-width: 100%;
+      background: var(--mds-color-surface-primary);
+      border-radius: var(--mds-border-radius-lg);
+      padding: var(--mds-size-xl);
+      box-shadow: var(--mds-box-shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--mds-size-lg);
+    }
+
+    /* ─────────────── Panel header (title + help) ─────────────── */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: var(--mds-size-sm);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-family: var(--mds-font-family-headings);
+      font-size: var(--mds-font-size-heading-sm);
+      line-height: 1.272;
+      font-weight: var(--mds-font-weight-heavy);
+      letter-spacing: -0.5px;
+      color: var(--mds-color-ink-primary);
+    }
+
+    /* ─────────────── Icon button (mds-button icononly, tertiary) ─────────────── */
+    .mds-icon-button {
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: var(--mds-border-radius-md);
+      color: var(--mds-color-ink-darker);
+      transition:
+        background 120ms ease,
+        color 120ms ease;
+    }
+    .mds-icon-button:hover {
+      background: var(--mds-color-surface-light);
+      color: var(--mds-color-ink-primary);
+    }
+    .mds-icon-button:focus-visible {
+      outline: 2px solid var(--mds-color-accent-primary);
+      outline-offset: 2px;
+    }
+    .mds-icon-button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* ─────────────── View Toggle (mds-view-toggle) ─────────────── */
+    /* per Figma annotation: toggle should hug its content width, not stretch
+       to the panel — inline-flex alone is overridden by the parent flex
+       column's default align-items: stretch, so pin to start. */
+    .mds-view-toggle {
+      display: inline-flex;
+      align-self: flex-start;
+      width: fit-content;
+      align-items: center;
+      gap: var(--mds-size-xs);
+      background: var(--mds-color-surface-light);
+      padding: var(--mds-size-xs);
+      border-radius: var(--mds-border-radius-md);
+    }
+
+    .mds-view-toggle__item {
+      border: 0;
+      background: transparent;
+      padding: var(--mds-size-xs) var(--mds-size-sm);
+      border-radius: var(--mds-border-radius-sm);
+      font-family: inherit;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      letter-spacing: -0.14px;
+      color: var(--mds-color-ink-darker);
+      cursor: pointer;
+      font-weight: var(--mds-font-weight-regular);
+      transition:
+        background 120ms ease,
+        color 120ms ease,
+        box-shadow 120ms ease;
+    }
+    .mds-view-toggle__item:hover {
+      color: var(--mds-color-ink-primary);
+    }
+    .mds-view-toggle__item[aria-selected="true"] {
+      background: var(--mds-color-surface-primary);
+      color: var(--mds-color-ink-primary);
+      font-weight: var(--mds-font-weight-heavy);
+      box-shadow: var(--mds-box-shadow-sm);
+    }
+    .mds-view-toggle__item:focus-visible {
+      outline: 2px solid var(--mds-color-accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* ─────────────── Empty State (mds-empty-state, contained) ─────────────── */
+    .mds-empty-state {
+      background: var(--mds-color-surface-lighter);
+      border-radius: var(--mds-border-radius-lg);
+      padding: var(--mds-size-xxl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--mds-size-lg);
+    }
+
+    .mds-empty-state__description {
+      margin: 0;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      letter-spacing: -0.14px;
+      color: var(--mds-color-ink-dark);
+      text-align: center;
+    }
+
+    /* ─────────────── Buttons (mds-button) ─────────────── */
+    .mds-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--mds-size-xs);
+      font-family: inherit;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      letter-spacing: -0.14px;
+      font-weight: var(--mds-font-weight-heavy);
+      padding: 10px var(--mds-size-md);
+      border-radius: var(--mds-border-radius-md);
+      cursor: pointer;
+      transition:
+        background 120ms ease,
+        color 120ms ease,
+        border-color 120ms ease;
+      white-space: nowrap;
+    }
+    .mds-button:focus-visible {
+      outline: 2px solid var(--mds-color-accent-primary);
+      outline-offset: 2px;
+    }
+
+    .mds-button[data-type="primary"] {
+      border: 1px solid var(--mds-color-accent-primary);
+      background: var(--mds-color-accent-primary);
+      color: var(--mds-color-surface-primary);
+    }
+    .mds-button[data-type="primary"]:hover {
+      background: var(--mds-color-accent-dark);
+      border-color: var(--mds-color-accent-dark);
+    }
+
+    .mds-button[data-type="secondary"] {
+      border: 1px solid var(--mds-color-accent-primary);
+      background: transparent;
+      color: var(--mds-color-accent-primary);
+    }
+    .mds-button[data-type="secondary"]:hover {
+      background: var(--mds-color-accent-lightest);
+    }
+
+    .mds-button[data-type="tertiary"] {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--mds-color-ink-darker);
+    }
+    .mds-button[data-type="tertiary"]:hover {
+      background: var(--mds-color-surface-light);
+      color: var(--mds-color-ink-primary);
+    }
+
+    .mds-button[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ─────────────── Selection summary (post-empty state) ─────────────── */
+    .selection {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--mds-size-md);
+    }
+
+    .selection__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--mds-size-sm);
+    }
+
+    .selection__title {
+      margin: 0;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      letter-spacing: -0.14px;
+      font-weight: var(--mds-font-weight-heavy);
+      color: var(--mds-color-ink-primary);
+    }
+
+    /* ─────────────── Tag list (mds-tag) ─────────────── */
+    .mds-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--mds-size-sm);
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .mds-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--mds-size-xs);
+      padding: 4px 10px;
+      background: var(--mds-color-surface-primary);
+      border: 1px solid var(--mds-color-edge-primary);
+      border-radius: var(--mds-border-radius-xl);
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      letter-spacing: -0.14px;
+      color: var(--mds-color-ink-primary);
+    }
+    .mds-tag__remove {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      color: var(--mds-color-ink-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+    }
+    .mds-tag__remove:hover {
+      color: var(--mds-color-ink-primary);
+      background: var(--mds-color-surface-light);
+    }
+
+    /* ─────────────── Modal (mds-modal, size=md) ─────────────── */
+    .mds-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--mds-color-surface-overlay);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--mds-size-md);
+      z-index: 100;
+    }
+    .mds-modal-backdrop[data-open="true"] {
+      display: flex;
+    }
+
+    .mds-modal {
+      width: 520px;
+      max-width: 100%;
+      max-height: 80vh;
+      background: var(--mds-color-surface-primary);
+      border-radius: var(--mds-border-radius-lg);
+      box-shadow: var(--mds-box-shadow-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mds-modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--mds-size-lg) var(--mds-size-lg) var(--mds-size-sm);
+    }
+
+    .mds-modal__title {
+      margin: 0;
+      font-family: var(--mds-font-family-headings);
+      font-size: var(--mds-font-size-heading-xs);
+      line-height: 1.333;
+      font-weight: var(--mds-font-weight-heavy);
+      letter-spacing: -0.18px;
+    }
+
+    .mds-modal__body {
+      padding: var(--mds-size-sm) var(--mds-size-lg) var(--mds-size-lg);
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--mds-size-sm);
+    }
+
+    .mds-modal__footer {
+      padding: var(--mds-size-md) var(--mds-size-lg);
+      border-top: 1px solid var(--mds-color-edge-lighter);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--mds-size-sm);
+    }
+
+    /* ─────────────── Input (mds-input) ─────────────── */
+    .mds-input {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .mds-input__icon {
+      position: absolute;
+      left: 10px;
+      width: 16px;
+      height: 16px;
+      color: var(--mds-color-ink-dark);
+      pointer-events: none;
+    }
+    .mds-input__field {
+      width: 100%;
+      padding: 8px 12px 8px 32px;
+      font: inherit;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      border: 1px solid var(--mds-color-edge-primary);
+      border-radius: var(--mds-border-radius-md);
+      color: var(--mds-color-ink-primary);
+      background: var(--mds-color-surface-primary);
+    }
+    .mds-input__field::placeholder {
+      color: var(--mds-color-ink-dark);
+    }
+    .mds-input__field:focus {
+      outline: none;
+      border-color: var(--mds-color-accent-primary);
+      box-shadow: 0 0 0 3px hsla(210, 66%, 46%, 0.2);
+    }
+
+    /* ─────────────── Checkbox option rows (mds-checkbox) ─────────────── */
+    .option-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mds-checkbox {
+      display: flex;
+      align-items: center;
+      gap: var(--mds-size-sm);
+      padding: var(--mds-size-sm);
+      border-radius: var(--mds-border-radius-md);
+      cursor: pointer;
+      user-select: none;
+      font-size: var(--mds-font-size-text-md);
+      line-height: 1.4286;
+      color: var(--mds-color-ink-primary);
+    }
+    .mds-checkbox:hover {
+      background: var(--mds-color-surface-lighter);
+    }
+    .mds-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--mds-color-accent-primary);
+    }
+    .mds-checkbox__meta {
+      margin-left: auto;
+      color: var(--mds-color-ink-dark);
+      font-size: var(--mds-font-size-text-sm);
+    }
+  </style>
+  <style>
+    .back-to-library {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 9999;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px 5px 8px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(209,213,219,0.6);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #535665;
+      text-decoration: none;
+      box-shadow: 0 1px 3px rgba(33,35,44,0.08);
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: background 120ms, color 120ms, border-color 120ms;
+    }
+    .back-to-library:hover {
+      background: rgba(255,255,255,0.98);
+      color: #20203c;
+      border-color: rgba(209,213,219,0.9);
+    }
+  </style>
+</head>
+<body>
+  <a class="back-to-library" href="../index.html">← Library</a>
+  <main class="page">
+    <!-- mds-panel -->
+    <section
+      class="mds-panel"
+      aria-labelledby="bid-title"
+      data-node-id="6924:5713"
+    >
+      <header class="panel-header">
+        <h2 id="bid-title" class="panel-title">Bid Management</h2>
+        <!-- mds-button icononly type=tertiary -->
+        <button
+          class="mds-icon-button"
+          type="button"
+          aria-label="About bid management"
+          title="Choose what to bid on for this campaign"
+        >
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5" />
+            <path
+              d="M7.75 7.5a2.25 2.25 0 1 1 3.25 2.013c-.62.32-1 .907-1 1.487v.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <circle cx="10" cy="14.25" r="0.85" fill="currentColor" />
+          </svg>
+        </button>
+      </header>
+
+      <!-- mds-view-toggle -->
+      <div class="mds-view-toggle" role="tablist" aria-label="Bid type">
+        <button
+          class="mds-view-toggle__item"
+          role="tab"
+          type="button"
+          aria-selected="true"
+          data-view="products"
+          id="tab-products"
+          aria-controls="panel-products"
+        >
+          Products
+        </button>
+        <button
+          class="mds-view-toggle__item"
+          role="tab"
+          type="button"
+          aria-selected="false"
+          data-view="keywords"
+          id="tab-keywords"
+          aria-controls="panel-keywords"
+        >
+          Keywords
+        </button>
+      </div>
+
+      <!-- mds-empty-state (contained) -->
+      <div
+        class="mds-empty-state"
+        id="panel-products"
+        role="tabpanel"
+        aria-labelledby="tab-products"
+        data-view-panel="products"
+      ></div>
+      <div
+        class="mds-empty-state"
+        id="panel-keywords"
+        role="tabpanel"
+        aria-labelledby="tab-keywords"
+        data-view-panel="keywords"
+        hidden
+      ></div>
+    </section>
+  </main>
+
+  <!-- mds-modal -->
+  <div class="mds-modal-backdrop" id="modal" aria-hidden="true">
+    <div class="mds-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="mds-modal__header">
+        <h3 class="mds-modal__title" id="modal-title">Select items</h3>
+        <button class="mds-icon-button" type="button" data-action="close" aria-label="Close">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path
+              d="M5 5l10 10M15 5L5 15"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <div class="mds-modal__body">
+        <div class="mds-input">
+          <svg class="mds-input__icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5" />
+            <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <input
+            type="search"
+            class="mds-input__field"
+            placeholder="Search…"
+            id="modal-search"
+            aria-label="Search items"
+          />
+        </div>
+        <ul class="option-list" id="modal-options"></ul>
+      </div>
+
+      <footer class="mds-modal__footer">
+        <button class="mds-button" data-type="tertiary" type="button" data-action="close">
+          Cancel
+        </button>
+        <button class="mds-button" data-type="primary" type="button" data-action="confirm" id="modal-confirm">
+          Add selected
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ─────────── Data (mock catalog) ───────────
+    const CATALOG = {
+      products: [
+        { id: "p1", label: "Private Selection Italian Roast Coffee, 12 oz" },
+        { id: "p2", label: "Simple Truth Organic Whole Milk, 1 gal" },
+        { id: "p3", label: "Kroger Brand Sparkling Water, 12 pk" },
+        { id: "p4", label: "Murray's Cheese Aged Gouda, 6 oz" },
+        { id: "p5", label: "Home Chef Beef Stir Fry Kit" },
+        { id: "p6", label: "Smart Way Paper Towels, 8 rolls" },
+        { id: "p7", label: "Private Selection Sourdough Boule" },
+        { id: "p8", label: "Simple Truth Plant-Based Burger, 4 ct" },
+      ],
+      keywords: [
+        { id: "k1", label: "organic coffee", meta: "2.3M searches/mo" },
+        { id: "k2", label: "whole milk gallon", meta: "910K searches/mo" },
+        { id: "k3", label: "sparkling water", meta: "1.4M searches/mo" },
+        { id: "k4", label: "aged gouda", meta: "120K searches/mo" },
+        { id: "k5", label: "meal kit beef", meta: "340K searches/mo" },
+        { id: "k6", label: "paper towels", meta: "2.8M searches/mo" },
+        { id: "k7", label: "sourdough bread", meta: "1.1M searches/mo" },
+        { id: "k8", label: "plant based burger", meta: "770K searches/mo" },
+      ],
+    };
+
+    const COPY = {
+      products: {
+        empty: "No products have been selected",
+        cta: "Select Products",
+        modalTitle: "Select Products",
+        selectionTitle: (n) => `${n} product${n === 1 ? "" : "s"} selected`,
+      },
+      keywords: {
+        empty: "No keywords have been selected",
+        cta: "Select Keywords",
+        modalTitle: "Select Keywords",
+        selectionTitle: (n) => `${n} keyword${n === 1 ? "" : "s"} selected`,
+      },
+    };
+
+    const state = {
+      view: "products",
+      selected: { products: new Set(), keywords: new Set() },
+    };
+
+    // ─────────── Tab switching ───────────
+    const tabs = document.querySelectorAll('[role="tab"]');
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => setView(tab.dataset.view));
+      tab.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          const next = state.view === "products" ? "keywords" : "products";
+          setView(next);
+          document.getElementById(`tab-${next}`).focus();
+        }
+      });
+    });
+
+    function setView(view) {
+      state.view = view;
+      tabs.forEach((t) => {
+        const active = t.dataset.view === view;
+        t.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      document.querySelectorAll("[data-view-panel]").forEach((p) => {
+        p.hidden = p.dataset.viewPanel !== view;
+      });
+      renderSection(view);
+    }
+
+    // ─────────── Section renderer (empty state ↔ selection list) ───────────
+    function renderSection(view) {
+      const panel = document.querySelector(`[data-view-panel="${view}"]`);
+      const copy = COPY[view];
+      const selected = state.selected[view];
+      panel.innerHTML = "";
+      panel.classList.toggle("mds-empty-state", selected.size === 0);
+      if (selected.size === 0) panel.appendChild(makeEmptyState(view, copy));
+      else panel.appendChild(makeSelectionList(view, copy));
+    }
+
+    function makeEmptyState(view, copy) {
+      const frag = document.createDocumentFragment();
+
+      const text = document.createElement("p");
+      text.className = "mds-empty-state__description";
+      text.textContent = copy.empty;
+      frag.appendChild(text);
+
+      const button = document.createElement("button");
+      button.className = "mds-button";
+      button.dataset.type = "secondary";
+      button.type = "button";
+      button.textContent = copy.cta;
+      button.addEventListener("click", () => openModal(view));
+      frag.appendChild(button);
+
+      return frag;
+    }
+
+    function makeSelectionList(view, copy) {
+      const root = document.createElement("div");
+      root.className = "selection";
+
+      const header = document.createElement("div");
+      header.className = "selection__header";
+
+      const title = document.createElement("h3");
+      title.className = "selection__title";
+      title.textContent = copy.selectionTitle(state.selected[view].size);
+      header.appendChild(title);
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "mds-button";
+      editBtn.dataset.type = "secondary";
+      editBtn.type = "button";
+      editBtn.textContent = "Edit selection";
+      editBtn.addEventListener("click", () => openModal(view));
+      header.appendChild(editBtn);
+
+      root.appendChild(header);
+
+      const list = document.createElement("ul");
+      list.className = "mds-tag-list";
+      const items = CATALOG[view].filter((item) => state.selected[view].has(item.id));
+      items.forEach((item) => {
+        const tag = document.createElement("li");
+        tag.className = "mds-tag";
+        tag.textContent = item.label;
+        const remove = document.createElement("button");
+        remove.className = "mds-tag__remove";
+        remove.type = "button";
+        remove.setAttribute("aria-label", `Remove ${item.label}`);
+        remove.innerHTML =
+          '<svg viewBox="0 0 14 14" width="10" height="10" fill="none"><path d="M3 3l8 8M11 3L3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        remove.addEventListener("click", () => {
+          state.selected[view].delete(item.id);
+          renderSection(view);
+        });
+        tag.appendChild(remove);
+        list.appendChild(tag);
+      });
+      root.appendChild(list);
+      return root;
+    }
+
+    // ─────────── Modal ───────────
+    const modal = document.getElementById("modal");
+    const modalSearch = document.getElementById("modal-search");
+    const modalOptions = document.getElementById("modal-options");
+    const modalConfirm = document.getElementById("modal-confirm");
+    const modalTitleEl = document.getElementById("modal-title");
+    let modalDraft = new Set();
+    let modalView = "products";
+
+    function openModal(view) {
+      modalView = view;
+      modalDraft = new Set(state.selected[view]);
+      modalTitleEl.textContent = COPY[view].modalTitle;
+      modalSearch.value = "";
+      modalSearch.placeholder = `Search ${view}…`;
+      renderOptions("");
+      modal.dataset.open = "true";
+      modal.setAttribute("aria-hidden", "false");
+      setTimeout(() => modalSearch.focus(), 0);
+    }
+
+    function closeModal() {
+      modal.dataset.open = "false";
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderOptions(query) {
+      const items = CATALOG[modalView].filter((it) =>
+        it.label.toLowerCase().includes(query.toLowerCase())
+      );
+      modalOptions.innerHTML = "";
+      if (items.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "mds-empty-state__description";
+        empty.style.padding = "12px";
+        empty.textContent = "No matches.";
+        modalOptions.appendChild(empty);
+        return;
+      }
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        const label = document.createElement("label");
+        label.className = "mds-checkbox";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = modalDraft.has(item.id);
+        cb.addEventListener("change", () => {
+          if (cb.checked) modalDraft.add(item.id);
+          else modalDraft.delete(item.id);
+          updateConfirmLabel();
+        });
+        const text = document.createElement("span");
+        text.textContent = item.label;
+        label.appendChild(cb);
+        label.appendChild(text);
+        if (item.meta) {
+          const meta = document.createElement("span");
+          meta.className = "mds-checkbox__meta";
+          meta.textContent = item.meta;
+          label.appendChild(meta);
+        }
+        li.appendChild(label);
+        modalOptions.appendChild(li);
+      });
+      updateConfirmLabel();
+    }
+
+    function updateConfirmLabel() {
+      const n = modalDraft.size;
+      modalConfirm.textContent = n === 0 ? "Add selected" : `Add ${n} selected`;
+      modalConfirm.disabled = n === 0;
+    }
+
+    modalSearch.addEventListener("input", (e) => renderOptions(e.target.value));
+    modal.addEventListener("click", (e) => {
+      const action = e.target.closest("[data-action]")?.dataset.action;
+      if (action === "close" || e.target === modal) closeModal();
+      if (action === "confirm") {
+        state.selected[modalView] = new Set(modalDraft);
+        renderSection(modalView);
+        closeModal();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.dataset.open === "true") closeModal();
+    });
+
+    // ─────────── Init ───────────
+    renderSection("products");
+    renderSection("keywords");
+  </script>
+
+  <!-- Notes widget -->
+  <div id="__nw" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-family:'Inter',-apple-system,system-ui,sans-serif;">
+    <div id="__np" style="display:none;width:288px;background:#fff;border:1px solid #e7eaee;border-radius:12px;box-shadow:0 8px 24px rgba(33,35,44,.12),0 2px 6px rgba(33,35,44,.08);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;border-bottom:1px solid #f0f2f5;">
+        <span style="font-size:13px;font-weight:700;letter-spacing:-0.1px;color:#20203c;">Questions &amp; Notes</span>
+        <button id="__nc" style="border:none;background:none;cursor:pointer;padding:2px;display:flex;color:#888b9a;border-radius:4px;" aria-label="Close notes">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 3L3 11M3 3l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <textarea id="__nt" placeholder="Jot down questions…" style="width:100%;height:180px;padding:10px 12px;border:none;resize:none;font-family:inherit;font-size:13px;line-height:1.5;color:#20203c;background:#fff;outline:none;display:block;"></textarea>
+    </div>
+    <button id="__nb" aria-label="Open notes" style="width:40px;height:40px;border-radius:50%;background:#20203c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(33,35,44,.2);color:#fff;transition:background 120ms;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 11.5V13.5H4.5L12 6L10 4L2.5 11.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 4L12 6" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+  </div>
+  <script>
+  (function(){
+    if(window.self!==window.top)return;
+    var p=document.getElementById('__np'),b=document.getElementById('__nb'),c=document.getElementById('__nc'),t=document.getElementById('__nt');
+    var KEY='proto_notes';
+    t.value=localStorage.getItem(KEY)||'';
+    t.addEventListener('input',function(){localStorage.setItem(KEY,t.value);});
+    function openPanel(){p.style.display='block';b.style.background='#535665';t.focus();}
+    function closePanel(){p.style.display='none';b.style.background='#20203c';}
+    b.addEventListener('click',function(){p.style.display==='none'?openPanel():closePanel();});
+    c.addEventListener('click',closePanel);
+    b.addEventListener('mouseenter',function(){if(p.style.display==='none')b.style.background='#535665';});
+    b.addEventListener('mouseleave',function(){if(p.style.display==='none')b.style.background='#20203c';});
+  })();
+  </script>
+
+</body>
+</html>

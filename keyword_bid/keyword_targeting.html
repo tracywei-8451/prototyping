@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Keyword Targeting</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ─────────────────────────────────────────────────────────────────
+       Meridian Design Tokens
+       Token names mirror @meridian/core CSS custom properties so this
+       stylesheet is portable to the real bundle later — drop the :root
+       block and load @meridian/core instead.
+    ───────────────────────────────────────────────────────────────── */
+    :root {
+      /* Color — ink */
+      --mds-color-ink-primary: #20203c;
+      --mds-color-ink-primary-hsl: 240, 30%, 18%;
+      --mds-color-ink-darker: #535665;
+      --mds-color-ink-dark: #898b9a;
+      --mds-color-ink-light: #b8bec6;
+      --mds-color-ink-lighter: #cdd0d6;
+
+      /* Color — surface */
+      --mds-color-surface-primary: #ffffff;
+      --mds-color-surface-lighter: #f8f9fa;
+      --mds-color-surface-light: #eff2f5;
+      --mds-color-surface-dark: #e9ecf1;
+
+      /* Color — edge */
+      --mds-color-edge-lighter: #e7eaee;
+      --mds-color-edge-light: #dadde1;
+      --mds-color-edge-primary: #d1d5db;
+
+      /* Color — accent (blue) */
+      --mds-color-accent-lightest: #f6fafe;
+      --mds-color-accent-lighter: #d2eafa;
+      --mds-color-accent-primary: #2874c1;
+      --mds-color-accent-dark: #0f52a2;
+
+      /* Color — negative */
+      --mds-color-negative-primary: #c6254c;
+      --mds-color-negative-lighter: #fedcdc;
+
+      /* Color — brand */
+      --mds-color-brand-primary: #8451ec;
+
+      /* Spacing */
+      --mds-size-xs:   0.25rem;  /*  4px */
+      --mds-size-sm:   0.5rem;   /*  8px */
+      --mds-size-md:   1rem;     /* 16px */
+      --mds-size-lg:   1.5rem;   /* 24px */
+      --mds-size-xl:   2rem;     /* 32px */
+      --mds-size-xxl:  2.5rem;   /* 40px */
+
+      /* Border radius */
+      --mds-border-radius-sm: 0.25rem;
+      --mds-border-radius-md: 0.5rem;
+      --mds-border-radius-lg: 1rem;
+      --mds-border-radius-pill: 999px;
+
+      /* Shadows */
+      --mds-box-shadow-xs:
+        0 0 0 1px hsla(var(--mds-color-ink-primary-hsl), 0.02),
+        0 1px 1px hsla(var(--mds-color-ink-primary-hsl), 0.08),
+        0 0 1px  hsla(var(--mds-color-ink-primary-hsl), 0.02);
+      --mds-box-shadow-sm:
+        0 1px 4px hsla(var(--mds-color-ink-primary-hsl), 0.08),
+        0 0 1px   hsla(var(--mds-color-ink-primary-hsl), 0.04),
+        0 1px 1px 1px hsla(var(--mds-color-ink-primary-hsl), 0.04);
+
+      /* Typography */
+      --mds-font-family-text:
+        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --mds-font-family-headings: var(--mds-font-family-text);
+      --mds-font-size-text-caption: 0.6875rem; /* 11px */
+      --mds-font-size-text-sm:  0.75rem;   /* 12px */
+      --mds-font-size-text-md:  0.875rem;  /* 14px */
+      --mds-font-size-text-lg:  1rem;      /* 16px */
+      --mds-font-size-heading-xs: 1.125rem;
+      --mds-font-size-heading-sm: 1.375rem;
+      --mds-font-weight-regular: 400;
+      --mds-font-weight-bold:    500;
+      --mds-font-weight-heavy:   600;
+      --mds-line-height-sm: 1.25;
+      --mds-line-height-md: 1.5;
+
+      /* ── Widget-local tokens (Figma-exact values not in Meridian core) ── */
+      --kw-panel-border:      #a92d17; /* design-system red border on this widget */
+      --kw-tab-active:        #2373ac; /* active-tab underline */
+      --kw-link:              #0053ca; /* in-table link / Add button color */
+      --kw-checkbox-fill:     #1d608f; /* checked checkbox background */
+      --kw-row-alt:           #f7f7f7; /* alternating row stripe */
+      --kw-neutral-btn-bg:    #f5f3ef; /* filled-neutral button background */
+      --kw-neutral-btn-border:#676b6f; /* filled-neutral button border */
+      --kw-text-primary:      #161d26; /* main body text */
+      --kw-text-body:         #2d3239; /* secondary tab text */
+      --kw-text-secondary:    #454a4f; /* sub-labels */
+      --kw-text-muted:        #676b6f; /* muted / tooltip icons */
+      --kw-text-added:        #767676; /* "Added" state text */
+      --kw-error:             #a92d17; /* validation errors */
+      --kw-border-header:     #e7e6e4; /* panel header bottom border */
+      --kw-border-divider:    #bfbfbf; /* left/right pane divider */
+      --kw-border-row:        #d8d8d8; /* individual row bottom border */
+      --kw-border-section:    #bfbfbf; /* section sticky header border */
+      --kw-badge-bg:          #d7d7d6; /* Beta badge background */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: var(--mds-font-family-text);
+      font-size: var(--mds-font-size-text-sm);
+      line-height: var(--mds-line-height-md);
+      color: var(--kw-text-primary);
+      background: var(--mds-color-surface-light);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: var(--mds-size-xl);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       mds-panel  (keyword targeting card)
+    ═══════════════════════════════════════════════════════════════ */
+    .mds-panel {
+      width: 961px;
+      height: 867px;
+      background: var(--mds-color-surface-primary);
+      border: 0.5px solid var(--kw-panel-border);
+      border-radius: var(--mds-border-radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── panel header ── */
+    .mds-panel__header {
+      display: flex;
+      align-items: center;
+      padding: var(--mds-size-lg) var(--mds-size-lg) 25px;
+      border-bottom: 1px solid var(--kw-border-header);
+      flex-shrink: 0;
+    }
+    .mds-panel__title {
+      flex: 1;
+      margin: 0;
+      font-family: var(--mds-font-family-headings);
+      font-size: 1.5rem;           /* 24px — Figma Heading 3 */
+      font-weight: 200;            /* Extra Light as in design */
+      letter-spacing: 0.03125rem;  /* 0.5px */
+      line-height: 1;
+      color: var(--kw-text-primary);
+    }
+
+    /* ── panel body (two-pane flex) ── */
+    .mds-panel__body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      /* height: 0 forces flex children to respect overflow inside */
+      height: 0;
+    }
+
+    /* ── panel notice footer ── */
+    .mds-panel__notice {
+      border-top: 1px solid var(--kw-border-divider);
+      padding: 14px var(--mds-size-lg);
+      font-size: var(--mds-font-size-text-sm);
+      text-align: center;
+      color: var(--kw-text-primary);
+      flex-shrink: 0;
+    }
+    .mds-panel__notice a { color: var(--kw-link); text-decoration: underline; cursor: pointer; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Left pane
+    ═══════════════════════════════════════════════════════════════ */
+    .kw-pane--left {
+      width: 490px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--kw-border-divider);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       mds-tabs  (Suggested / Enter list / Upload file)
+    ═══════════════════════════════════════════════════════════════ */
+    .mds-tabs {
+      display: flex;
+      align-items: flex-end;
+      padding: 0 var(--mds-size-md);
+      border-bottom: 1px solid var(--kw-border-divider);
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    /* mds-tabs-label — individual tab button */
+    .mds-tabs-label {
+      position: relative;
+      top: 1px;                     /* sits on the bottom border */
+      padding: var(--mds-size-sm) 0 11px;
+      margin-right: 20px;
+      font-family: inherit;
+      font-size: var(--mds-font-size-text-md);
+      font-weight: var(--mds-font-weight-regular);
+      line-height: 1.4286;
+      color: var(--kw-text-body);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 120ms ease, border-color 120ms ease;
+    }
+    .mds-tabs-label:hover { color: var(--kw-text-primary); }
+    .mds-tabs-label[aria-selected="true"] {
+      font-weight: var(--mds-font-weight-heavy);
+      color: var(--kw-text-primary);
+      border-bottom-color: var(--kw-tab-active);
+    }
+    .mds-tabs-label:focus-visible {
+      outline: 2px solid var(--mds-color-accent-primary);
+      outline-offset: 2px;
+      border-radius: var(--mds-border-radius-sm) var(--mds-border-radius-sm) 0 0;
+    }
+
+    /* mds-tabs-content — content panel */
+    .mds-tabs-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .mds-tabs-content[hidden] { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Controls (Bid / Filter by / Sort By)
+    ═══════════════════════════════════════════════════════════════ */
+    .kw-controls {
+      border-bottom: 1px solid var(--kw-border-divider);
+      flex-shrink: 0;
+    }
+    .kw-control-row {
+      display: flex;
+      align-items: center;
+      gap: var(--mds-size-md);
+      padding: 10px var(--mds-size-md);
+      border-bottom: 1px solid var(--mds-color-edge-lighter);
+    }
+    .kw-control-row:last-child { border-bottom: none; }
+
+    .kw-control-label {
+      display: flex;
+      align-items: center;
+      gap: var(--mds-size-xs);
+      width: 80px;
+      flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      font-weight: var(--mds-font-weight-heavy);
+      color: var(--kw-text-primary);
+    }
+
+    /* ── mds-button  ──────────────────────────────────────────────
+       Meridian button component, mirrored in CSS.
+       data-type: primary | secondary | tertiary | neutral
+       data-size: md | sm | xs
+       data-icononly: <icon-name>  (renders only an icon)
+    ───────────────────────────────────────────────────────────── */
+    .mds-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--mds-size-xs);
+      font-family: inherit;
+      font-weight: var(--mds-font-weight-heavy);
+      border-radius: var(--mds-border-radius-md);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+      line-height: 1.4286;
+
+      /* md size defaults */
+      font-size: var(--mds-font-size-text-md);
+      padding: 10px var(--mds-size-md);
+      height: 40px;
+    }
+    .mds-button:focus-visible {
+      outline: 2px solid var(--mds-color-accent-primary);
+      outline-offset: 2px;
+    }
+    .mds-button[data-size="sm"] {
+      font-size: var(--mds-font-size-text-sm);
+      padding: 6px var(--mds-size-sm);
+      height: 32px;
+    }
+    .mds-button[data-size="xs"] {
+      font-size: var(--mds-font-size-text-sm);
+      padding: 2px var(--mds-size-xs);
+      height: 24px;
+    }
+
+    /* primary */
+    .mds-button[data-type="primary"] {
+      border: 1px solid var(--mds-color-accent-primary);
+      background: var(--mds-color-accent-primary);
+      color: var(--mds-color-surface-primary);
+    }
+    .mds-button[data-type="primary"]:hover {
+      background: var(--mds-color-accent-dark);
+      border-color: var(--mds-color-accent-dark);
+    }
+
+    /* secondary */
+    .mds-button[data-type="secondary"] {
+      border: 1px solid var(--mds-color-accent-primary);
+      background: transparent;
+      color: var(--mds-color-accent-primary);
+    }
+    .mds-button[data-type="secondary"]:hover {
+      background: var(--mds-color-accent-lightest);
+    }
+
+    /* tertiary — used for link-style actions: Add, Add All, Remove all, Apply all */
+    .mds-button[data-type="tertiary"] {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--kw-link);
+      font-weight: var(--mds-font-weight-regular);
+      padding-left: var(--mds-size-xs);
+      padding-right: var(--mds-size-xs);
+    }
+    .mds-button[data-type="tertiary"]:hover { text-decoration: underline; }
+
+    /* neutral — dropdown trigger buttons (Suggested bid, Orders) */
+    .mds-button[data-type="neutral"] {
+      border: 1px solid var(--kw-neutral-btn-border);
+      background: var(--kw-neutral-btn-bg);
+      color: var(--kw-text-primary);
+      font-weight: var(--mds-font-weight-regular);
+      padding: 6px 14px;
+    }
+    .mds-button[data-type="neutral"]:hover { background: #ece9e3; }
+
+    /* icononly button (X remove) */
+    .mds-button[data-icononly] {
+      width: 28px; height: 28px;
+      padding: 0;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--kw-text-muted);
+      font-size: 14px;
+      border-radius: var(--mds-border-radius-sm);
+    }
+    .mds-button[data-icononly]:hover {
+      background: var(--mds-color-surface-light);
+      color: var(--kw-text-primary);
+    }
+
+    /* "Added" pseudo-button (disabled state) */
+    .mds-button[disabled],
+    .mds-button[data-state="added"] {
+      pointer-events: none;
+      color: var(--kw-text-added);
+      font-style: italic;
+      font-weight: var(--mds-font-weight-regular);
+      border-color: transparent;
+      background: transparent;
+    }
+
+    /* ── mds-dropdown-menu ────────────────────────────────────────
+       Wraps the trigger button + content list.
+       data-type mirrors mds-button type for the trigger.
+       data-label sets the visible label.
+       data-buttonsize mirrors mds-button size.
+    ───────────────────────────────────────────────────────────── */
+    .mds-dropdown-menu { position: relative; display: inline-block; }
+    .mds-dropdown-menu__content {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 160px;
+      background: var(--mds-color-surface-primary);
+      border: 1px solid var(--mds-color-edge-primary);
+      border-radius: var(--mds-border-radius-md);
+      box-shadow: var(--mds-box-shadow-sm);
+      z-index: 100;
+      overflow: hidden;
+    }
+    .mds-dropdown-menu-item {
+      display: block;
+      width: 100%;
+      padding: var(--mds-size-sm) var(--mds-size-md);
+      font-family: inherit;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background 100ms ease;
+    }
+    .mds-dropdown-menu-item:hover { background: var(--mds-color-surface-lighter); }
+    .mds-dropdown-menu-item[aria-selected="true"] {
+      font-weight: var(--mds-font-weight-heavy);
+      color: var(--mds-color-accent-primary);
+    }
+
+    /* ── Icon SVG helpers ── */
+    .icon-chevron-down {
+      display: inline-block; width: 10px; height: 10px; flex-shrink: 0;
+    }
+    .icon-info {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.5px solid currentColor;
+      font-size: 9px; font-style: italic; font-weight: 700;
+      color: var(--kw-text-muted); cursor: default; flex-shrink: 0;
+    }
+    .icon-link {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; flex-shrink: 0;
+    }
+
+    /* ── mds-checkbox ─────────────────────────────────────────────
+       data-checked: true | false
+       data-size: md | lg
+       label is a sibling <span> inside .mds-checkbox
+    ───────────────────────────────────────────────────────────── */
+    .mds-checkbox {
+      display: inline-flex; align-items: center;
+      gap: var(--mds-size-sm);
+      cursor: pointer;
+      user-select: none;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+    }
+    .mds-checkbox__indicator {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border-radius: var(--mds-border-radius-sm);
+      border: 1px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    .mds-checkbox[data-checked="true"] .mds-checkbox__indicator {
+      background: var(--kw-checkbox-fill);
+    }
+    .mds-checkbox[data-checked="false"] .mds-checkbox__indicator {
+      background: var(--mds-color-surface-primary);
+      border-color: var(--kw-text-muted);
+    }
+    .mds-checkbox__indicator svg { display: block; }
+
+    /* ── mds-badge ────────────────────────────────────────────────
+       data-label: text content
+       data-size: sm | md | lg
+       data-color: default | positive | negative | warning | accent
+    ───────────────────────────────────────────────────────────── */
+    .mds-badge {
+      display: inline-flex; align-items: center;
+      padding: 1px var(--mds-size-sm);
+      border-radius: var(--mds-border-radius-pill);
+      font-size: var(--mds-font-size-text-sm);
+      font-weight: var(--mds-font-weight-regular);
+      line-height: 18px;
+      white-space: nowrap;
+    }
+    .mds-badge[data-color="default"] {
+      background: var(--kw-badge-bg);
+      color: var(--kw-text-primary);
+    }
+    .mds-badge[data-color="accent"] {
+      background: var(--mds-color-accent-lighter);
+      color: var(--mds-color-accent-dark);
+    }
+    .mds-badge[data-color="negative"] {
+      background: var(--mds-color-negative-lighter);
+      color: var(--mds-color-negative-primary);
+    }
+
+    /* ── mds-text ─────────────────────────────────────────────────
+       data-size: caption | sm | md
+       data-color: default | subtle | action | negative
+       data-fontweight: regular | bold | heavy
+    ───────────────────────────────────────────────────────────── */
+    .mds-text { display: inline; }
+    .mds-text[data-size="caption"] { font-size: var(--mds-font-size-text-caption); }
+    .mds-text[data-size="sm"]      { font-size: var(--mds-font-size-text-sm); }
+    .mds-text[data-size="md"]      { font-size: var(--mds-font-size-text-md); }
+    .mds-text[data-color="subtle"] { color: var(--kw-text-secondary); }
+    .mds-text[data-color="action"] { color: var(--kw-link); }
+    .mds-text[data-color="muted"]  { color: var(--kw-text-muted); }
+    .mds-text[data-color="negative"] { color: var(--kw-error); }
+    .mds-text[data-color="added"]  { color: var(--kw-text-added); font-style: italic; }
+    .mds-text[data-fontweight="bold"]  { font-weight: var(--mds-font-weight-bold); }
+    .mds-text[data-fontweight="heavy"] { font-weight: var(--mds-font-weight-heavy); }
+
+    /* ── mds-input ────────────────────────────────────────────────
+       Wraps a native <input> with prefix/suffix support.
+       data-type: text | number
+       data-error: true | false
+       data-size: md | sm
+    ───────────────────────────────────────────────────────────── */
+    .mds-input {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .mds-input__prefix {
+      position: absolute; left: 8px;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .mds-input__control {
+      width: 100%; height: 32px;
+      padding: 0 var(--mds-size-sm) 0 18px;
+      font-family: inherit;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+      background: var(--mds-color-surface-primary);
+      border: 1px solid var(--kw-border-divider);
+      border-radius: var(--mds-border-radius-sm);
+      outline: none;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      /* hide browser number spinners */
+      -moz-appearance: textfield;
+    }
+    .mds-input__control::-webkit-outer-spin-button,
+    .mds-input__control::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .mds-input__control:focus {
+      border-color: var(--kw-tab-active);
+      box-shadow: 0 0 0 2px rgba(35, 115, 172, 0.15);
+    }
+    .mds-input[data-error="true"] .mds-input__control {
+      border-color: var(--kw-error);
+    }
+    .mds-input[data-error="true"] .mds-input__control:focus {
+      box-shadow: 0 0 0 2px rgba(169, 45, 23, 0.15);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Keyword list (scrollable left-pane body)
+    ═══════════════════════════════════════════════════════════════ */
+    .kw-list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ── Section sticky header ── */
+    .kw-section-header {
+      position: sticky; top: 0; z-index: 2;
+      display: flex; align-items: center;
+      height: 66px;
+      padding: 12px var(--mds-size-lg) 12px var(--mds-size-md);
+      background: var(--kw-row-alt);
+      border-top: 1px solid var(--kw-border-section);
+      border-bottom: 1px solid var(--kw-border-section);
+    }
+    .kw-section-header__name {
+      flex: 1;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .kw-section-header__name-row {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .kw-section-header__sub {
+      font-size: var(--mds-font-size-text-caption);
+      color: var(--kw-text-secondary);
+    }
+    .kw-section-header__sugg {
+      width: 110px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 1px;
+      font-size: var(--mds-font-size-text-sm);
+    }
+    .kw-section-header__action {
+      width: 57px; flex-shrink: 0;
+      display: flex; justify-content: flex-end;
+    }
+
+    /* ── Keyword-group rows (Keyword groups section) ── */
+    .kw-row {
+      display: flex; align-items: center;
+      height: 45px;
+      padding: 0 var(--mds-size-lg) 0 var(--mds-size-md);
+      border-bottom: 1px solid var(--kw-border-row);
+    }
+    .kw-row--alt { background: var(--kw-row-alt); }
+    .kw-row__name {
+      flex: 1;
+      font-size: var(--mds-font-size-text-sm);
+      color: #111;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .kw-row--added .kw-row__name { color: var(--kw-text-added); }
+    .kw-row__sugg {
+      width: 110px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+    }
+    .kw-row--added .kw-row__sugg { color: var(--kw-text-added); }
+    .kw-row__action {
+      width: 57px; flex-shrink: 0;
+      display: flex; justify-content: flex-end;
+    }
+
+    /* ── Individual keyword sub-rows ── */
+    .kw-kw-group { border-bottom: 1px solid var(--kw-border-row); }
+    .kw-kw-group--alt { background: var(--kw-row-alt); }
+    .kw-kw-group__header {
+      padding: var(--mds-size-sm) var(--mds-size-lg) 0 var(--mds-size-md);
+    }
+    .kw-kw-group__name {
+      font-size: var(--mds-font-size-text-sm);
+      color: #111;
+    }
+    .kw-kw-group__meta {
+      font-size: var(--mds-font-size-text-caption);
+      color: var(--kw-text-secondary);
+      margin-top: 1px;
+    }
+    .kw-kw-match-row {
+      display: flex; align-items: center;
+      padding: 3px var(--mds-size-lg) 3px var(--mds-size-md);
+      min-height: 28px;
+    }
+    .kw-kw-match-row:last-child { padding-bottom: var(--mds-size-sm); }
+    .kw-kw-match-row__spacer { flex: 1; }
+    .kw-kw-match-row__type {
+      width: 75px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: #111;
+    }
+    .kw-kw-match-row__sugg {
+      width: 110px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+    }
+    .kw-kw-match-row__action {
+      width: 57px; flex-shrink: 0;
+      display: flex; justify-content: flex-end;
+    }
+
+    /* ── Keywords section header (wider: includes Match type col) ── */
+    .kw-kw-section-header {
+      position: sticky; top: 0; z-index: 2;
+      display: flex; align-items: flex-start;
+      padding: 12px var(--mds-size-lg) 12px var(--mds-size-md);
+      background: var(--kw-row-alt);
+      border-top: 1px solid var(--kw-border-section);
+      border-bottom: 1px solid var(--kw-border-section);
+      min-height: 66px;
+    }
+    .kw-kw-section-header__name {
+      flex: 1; display: flex; flex-direction: column; gap: 2px;
+    }
+    .kw-kw-section-header__match {
+      width: 75px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+      padding-top: 2px;
+    }
+    .kw-kw-section-header__sugg {
+      width: 110px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 1px;
+      font-size: var(--mds-font-size-text-sm);
+    }
+    .kw-kw-section-header__action {
+      width: 57px; flex-shrink: 0;
+      display: flex; justify-content: flex-end;
+    }
+
+    /* ── Filter chips (Broad / Phrase / Exact) ── */
+    .kw-filter-group {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Right pane (added keywords)
+    ═══════════════════════════════════════════════════════════════ */
+    .kw-pane--right {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .kw-right__header {
+      display: flex; align-items: center;
+      padding: 11px var(--mds-size-md);
+      border-bottom: 1px solid var(--kw-border-row);
+      flex-shrink: 0;
+    }
+    .kw-right__count {
+      flex: 1;
+      font-size: var(--mds-font-size-text-md);
+      font-weight: var(--mds-font-weight-heavy);
+      color: var(--kw-text-primary);
+    }
+
+    .kw-right__table-header {
+      display: flex; align-items: flex-start;
+      padding: var(--mds-size-sm) var(--mds-size-md);
+      border-bottom: 1px solid var(--kw-border-row);
+      flex-shrink: 0;
+    }
+    .kw-right__th-keyword {
+      flex: 1; display: flex; flex-direction: column; gap: 2px;
+    }
+    .kw-right__th-match {
+      width: 60px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+    }
+    .kw-right__th-sugg {
+      width: 90px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 2px;
+      font-size: var(--mds-font-size-text-sm);
+    }
+    .kw-right__th-bid {
+      width: 96px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-primary);
+    }
+
+    .kw-right__list {
+      flex: 1; overflow-y: auto;
+    }
+    .kw-right__empty {
+      padding: var(--mds-size-xl) var(--mds-size-md);
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-text-secondary);
+      text-align: center;
+    }
+
+    /* ── Added-keyword row ── */
+    .kw-added-row {
+      padding: 10px var(--mds-size-md);
+      border-bottom: 1px solid var(--kw-border-row);
+    }
+    .kw-added-row__top {
+      display: flex; align-items: flex-start; gap: 4px;
+    }
+    .kw-added-row__keyword { flex: 1; }
+    .kw-added-row__keyword-name {
+      font-size: var(--mds-font-size-text-sm); color: #111;
+    }
+    .kw-added-row__match {
+      width: 60px; flex-shrink: 0;
+      font-size: var(--mds-font-size-text-sm);
+      color: #111; padding-top: 2px;
+    }
+    .kw-added-row__sugg {
+      width: 90px; flex-shrink: 0;
+    }
+    .kw-added-row__sugg-price {
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-link);
+    }
+    .kw-added-row__sugg-range {
+      font-size: var(--mds-font-size-text-caption);
+      color: var(--kw-text-secondary);
+      margin-top: 2px;
+    }
+    .kw-added-row__bid-cell {
+      width: 96px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .kw-added-row__group-label {
+      margin-top: 3px;
+      font-size: var(--mds-font-size-text-caption);
+      color: var(--kw-text-secondary);
+    }
+    .kw-added-row__error {
+      margin-top: 3px;
+      font-size: var(--mds-font-size-text-sm);
+      color: var(--kw-error);
+    }
+
+    /* ── Right footer (error summary) ── */
+    .kw-right__footer {
+      border-top: 1px solid var(--kw-border-row);
+      padding: 12px var(--mds-size-md);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Enter list / Upload file tab content ── */
+    .kw-enter-list {
+      padding: var(--mds-size-md);
+      flex: 1; display: flex; flex-direction: column; gap: var(--mds-size-sm);
+    }
+    .kw-enter-list textarea {
+      flex: 1;
+      font-family: inherit; font-size: var(--mds-font-size-text-sm);
+      border: 1px solid var(--kw-border-divider);
+      border-radius: var(--mds-border-radius-sm);
+      padding: var(--mds-size-sm);
+      resize: none; outline: none;
+    }
+    .kw-enter-list textarea:focus { border-color: var(--kw-tab-active); }
+
+    .kw-upload {
+      flex: 1; margin: var(--mds-size-md);
+      border: 2px dashed var(--kw-border-divider);
+      border-radius: var(--mds-border-radius-md);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: var(--mds-size-sm);
+      color: var(--kw-text-secondary);
+      font-size: var(--mds-font-size-text-sm);
+      text-align: center;
+    }
+    .kw-upload a { color: var(--kw-link); text-decoration: underline; cursor: pointer; }
+  </style>
+  <style>
+    .back-to-library {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 9999;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px 5px 8px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(209,213,219,0.6);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #535665;
+      text-decoration: none;
+      box-shadow: 0 1px 3px rgba(33,35,44,0.08);
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: background 120ms, color 120ms, border-color 120ms;
+    }
+    .back-to-library:hover {
+      background: rgba(255,255,255,0.98);
+      color: #20203c;
+      border-color: rgba(209,213,219,0.9);
+    }
+  </style>
+</head>
+<body>
+<a class="back-to-library" href="../index.html">← Library</a>
+<div class="page">
+
+  <!-- mds-panel: Keyword targeting card -->
+  <div class="mds-panel" role="region" aria-label="Keyword targeting">
+
+    <!-- Panel header -->
+    <div class="mds-panel__header">
+      <h1 class="mds-panel__title">Keyword targeting</h1>
+      <a class="mds-button" data-type="tertiary" style="font-size:var(--mds-font-size-text-md);text-decoration:underline;color:var(--kw-link);" href="#">
+        <!-- mds-button iconleft="help-outline" in real component -->
+        <span class="icon-info" aria-hidden="true">i</span>
+        How to add keywords
+      </a>
+    </div>
+
+    <!-- Panel body: left + right panes -->
+    <div class="mds-panel__body">
+
+      <!-- ══ Left pane ══════════════════════════════════════════ -->
+      <div class="kw-pane--left">
+
+        <!-- mds-tabs navigation bar -->
+        <div class="mds-tabs" role="tablist" aria-label="Keyword source">
+          <button class="mds-tabs-label" role="tab" aria-selected="true"
+            aria-controls="tab-suggested" data-tabnum="1" id="tab-btn-1">Suggested</button>
+          <button class="mds-tabs-label" role="tab" aria-selected="false"
+            aria-controls="tab-enter-list" data-tabnum="2" id="tab-btn-2">Enter list</button>
+          <button class="mds-tabs-label" role="tab" aria-selected="false"
+            aria-controls="tab-upload" data-tabnum="3" id="tab-btn-3">Upload file</button>
+        </div>
+
+        <!-- mds-tabs-content: Suggested -->
+        <div class="mds-tabs-content" id="tab-suggested" role="tabpanel"
+             aria-labelledby="tab-btn-1" data-tabnum="1">
+
+          <!-- Controls section -->
+          <div class="kw-controls">
+
+            <!-- Bid row -->
+            <div class="kw-control-row">
+              <span class="kw-control-label">
+                Bid
+                <span class="icon-info" aria-label="Bid tooltip">i</span>
+              </span>
+              <!-- mds-dropdown-menu trigger: Suggested bid -->
+              <div class="mds-dropdown-menu" id="dd-bid">
+                <button class="mds-button" data-type="neutral" data-size="sm"
+                  aria-haspopup="listbox" aria-expanded="false"
+                  onclick="toggleDropdown('dd-bid')">
+                  <span id="dd-bid-label">Suggested bid</span>
+                  <svg class="icon-chevron-down" viewBox="0 0 10 6" fill="none">
+                    <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <div class="mds-dropdown-menu__content" id="dd-bid-content" hidden>
+                  <button class="mds-dropdown-menu-item" aria-selected="true"
+                    onclick="selectDropdown('dd-bid','Suggested bid')">Suggested bid</button>
+                  <button class="mds-dropdown-menu-item" aria-selected="false"
+                    onclick="selectDropdown('dd-bid','Custom bid')">Custom bid</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter by row -->
+            <div class="kw-control-row">
+              <span class="kw-control-label">
+                Filter by
+                <span class="icon-info" aria-label="Filter by tooltip">i</span>
+              </span>
+              <div class="kw-filter-group" role="group" aria-label="Match type filter">
+                <!-- mds-checkbox: Broad -->
+                <label class="mds-checkbox" data-checked="true" data-filter="broad">
+                  <span class="mds-checkbox__indicator" aria-hidden="true">
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <input type="checkbox" checked style="position:absolute;opacity:0;pointer-events:none;"
+                    aria-label="Broad">
+                  Broad
+                </label>
+                <!-- mds-checkbox: Phrase -->
+                <label class="mds-checkbox" data-checked="true" data-filter="phrase">
+                  <span class="mds-checkbox__indicator" aria-hidden="true">
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <input type="checkbox" checked style="position:absolute;opacity:0;pointer-events:none;"
+                    aria-label="Phrase">
+                  Phrase
+                </label>
+                <!-- mds-checkbox: Exact -->
+                <label class="mds-checkbox" data-checked="true" data-filter="exact">
+                  <span class="mds-checkbox__indicator" aria-hidden="true">
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <input type="checkbox" checked style="position:absolute;opacity:0;pointer-events:none;"
+                    aria-label="Exact">
+                  Exact
+                </label>
+              </div>
+            </div>
+
+            <!-- Sort By row -->
+            <div class="kw-control-row">
+              <span class="kw-control-label">
+                Sort By
+                <span class="icon-info" aria-label="Sort by tooltip">i</span>
+              </span>
+              <!-- mds-dropdown-menu: Orders -->
+              <div class="mds-dropdown-menu" id="dd-sort">
+                <button class="mds-button" data-type="neutral" data-size="sm"
+                  aria-haspopup="listbox" aria-expanded="false"
+                  onclick="toggleDropdown('dd-sort')">
+                  <span id="dd-sort-label">Orders</span>
+                  <svg class="icon-chevron-down" viewBox="0 0 10 6" fill="none">
+                    <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <div class="mds-dropdown-menu__content" id="dd-sort-content" hidden>
+                  <button class="mds-dropdown-menu-item" aria-selected="true"
+                    onclick="selectDropdown('dd-sort','Orders')">Orders</button>
+                  <button class="mds-dropdown-menu-item" aria-selected="false"
+                    onclick="selectDropdown('dd-sort','Clicks')">Clicks</button>
+                  <button class="mds-dropdown-menu-item" aria-selected="false"
+                    onclick="selectDropdown('dd-sort','Revenue')">Revenue</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /kw-controls -->
+
+          <!-- Scrollable keyword list -->
+          <div class="kw-list" id="kw-list">
+
+            <!-- ── Section: Keyword groups ── -->
+            <div class="kw-section-header" aria-label="Keyword groups section">
+              <div class="kw-section-header__name">
+                <div class="kw-section-header__name-row">
+                  <span class="mds-text" data-size="sm" data-fontweight="heavy">Keyword groups</span>
+                  <!-- mds-badge: Beta -->
+                  <span class="mds-badge" data-color="default" data-size="sm"
+                    aria-label="Beta feature">Beta</span>
+                </div>
+              </div>
+              <div class="kw-section-header__sugg">
+                <span class="mds-text" data-size="sm">Sugg. bid</span>
+                <span class="mds-text" data-size="caption" data-color="subtle">Regular days</span>
+              </div>
+              <div class="kw-section-header__action">
+                <button class="mds-button" data-type="tertiary" data-size="sm"
+                  data-section="groups">Add All</button>
+              </div>
+            </div>
+
+            <!-- Keyword group rows -->
+            <div class="kw-row" data-row-id="g1"
+              data-name="Keywords related to gifts" data-sugg="$0.38"
+              data-type="Keyword group">
+              <span class="kw-row__name">Keywords related to gifts</span>
+              <span class="kw-row__sugg">$0.38</span>
+              <span class="kw-row__action">
+                <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+              </span>
+            </div>
+
+            <div class="kw-row kw-row--alt kw-row--added" data-row-id="g2"
+              data-name="Keywords related to your product category"
+              data-sugg="$0.35" data-range="$0.32 - $0.40" data-type="Keyword group">
+              <span class="kw-row__name">Keywords related to your product category</span>
+              <span class="kw-row__sugg">$0.35</span>
+              <span class="kw-row__action">
+                <span class="mds-button" data-type="tertiary" data-size="sm"
+                  data-state="added">Added</span>
+              </span>
+            </div>
+
+            <div class="kw-row" data-row-id="g3"
+              data-name="Keywords related to your brand" data-sugg="$0.45"
+              data-type="Keyword group">
+              <span class="kw-row__name">Keywords related to your brand</span>
+              <span class="kw-row__sugg">$0.45</span>
+              <span class="kw-row__action">
+                <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+              </span>
+            </div>
+
+            <div class="kw-row kw-row--alt" data-row-id="g4"
+              data-name="Keywords from brands also considered by shoppers"
+              data-sugg="$0.35" data-type="Keyword group">
+              <span class="kw-row__name">Keywords from brands also considered by shoppers</span>
+              <span class="kw-row__sugg">$0.35</span>
+              <span class="kw-row__action">
+                <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+              </span>
+            </div>
+
+            <!-- ── Section: Individual keywords ── -->
+            <div class="kw-kw-section-header" aria-label="Individual keywords section">
+              <div class="kw-kw-section-header__name">
+                <div>
+                  <span class="mds-text" data-size="sm">Keyword</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <span class="mds-text" data-size="caption" data-color="subtle">IS | IR</span>
+                  <span class="icon-info" aria-label="IS IR tooltip" style="color:var(--kw-text-muted)">i</span>
+                </div>
+              </div>
+              <div class="kw-kw-section-header__match">
+                <span class="mds-text" data-size="sm">Match type</span>
+                <span class="icon-info" aria-label="Match type tooltip" style="color:var(--kw-text-muted);margin-left:3px;">i</span>
+              </div>
+              <div class="kw-kw-section-header__sugg">
+                <span class="mds-text" data-size="sm">Sugg. bid</span>
+                <span class="mds-text" data-size="caption" data-color="subtle">Regular days</span>
+              </div>
+              <div class="kw-kw-section-header__action">
+                <button class="mds-button" data-type="tertiary" data-size="sm"
+                  data-section="keywords">Add All</button>
+              </div>
+            </div>
+
+            <!-- Individual keyword groups -->
+            <div class="kw-kw-group" data-kw-id="kw1">
+              <div class="kw-kw-group__header">
+                <div class="kw-kw-group__name">theo of golden</div>
+                <div class="kw-kw-group__meta">IS: 0</div>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k1"
+                data-name="theo of golden" data-match="Broad" data-sugg="$0.12">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Broad</span>
+                <span class="kw-kw-match-row__sugg">$0.12</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k2"
+                data-name="theo of golden" data-match="Phrase" data-sugg="$0.20">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Phrase</span>
+                <span class="kw-kw-match-row__sugg">$0.20</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k3"
+                data-name="theo of golden" data-match="Exact" data-sugg="$0.35">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Exact</span>
+                <span class="kw-kw-match-row__sugg">$0.35</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="kw-kw-group kw-kw-group--alt" data-kw-id="kw2">
+              <div class="kw-kw-group__header">
+                <div class="kw-kw-group__name">the deal elle kennedy</div>
+                <div class="kw-kw-group__meta">IS: 0</div>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k4"
+                data-name="the deal elle kennedy" data-match="Broad" data-sugg="$0.57">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Broad</span>
+                <span class="kw-kw-match-row__sugg">$0.57</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k5"
+                data-name="the deal elle kennedy" data-match="Phrase" data-sugg="$0.53">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Phrase</span>
+                <span class="kw-kw-match-row__sugg">$0.53</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k6"
+                data-name="the deal elle kennedy" data-match="Exact" data-sugg="$0.53">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Exact</span>
+                <span class="kw-kw-match-row__sugg">$0.53</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="kw-kw-group" data-kw-id="kw3">
+              <div class="kw-kw-group__header">
+                <div class="kw-kw-group__name">theo of golden book paperback</div>
+                <div class="kw-kw-group__meta">IS: 0</div>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k7"
+                data-name="theo of golden book paperback" data-match="Broad" data-sugg="$0.12">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Broad</span>
+                <span class="kw-kw-match-row__sugg">$0.12</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k8"
+                data-name="theo of golden book paperback" data-match="Phrase" data-sugg="$0.20">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Phrase</span>
+                <span class="kw-kw-match-row__sugg">$0.20</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k9"
+                data-name="theo of golden book paperback" data-match="Exact" data-sugg="$0.35">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Exact</span>
+                <span class="kw-kw-match-row__sugg">$0.35</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="kw-kw-group kw-kw-group--alt" data-kw-id="kw4">
+              <div class="kw-kw-group__header">
+                <div class="kw-kw-group__name">pride and prejudice book</div>
+                <div class="kw-kw-group__meta">IS: 0</div>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k10"
+                data-name="pride and prejudice book" data-match="Broad" data-sugg="$0.50">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Broad</span>
+                <span class="kw-kw-match-row__sugg">$0.50</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k11"
+                data-name="pride and prejudice book" data-match="Phrase" data-sugg="$0.47">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Phrase</span>
+                <span class="kw-kw-match-row__sugg">$0.47</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k12"
+                data-name="pride and prejudice book" data-match="Exact" data-sugg="$0.46">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Exact</span>
+                <span class="kw-kw-match-row__sugg">$0.46</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="kw-kw-group" data-kw-id="kw5">
+              <div class="kw-kw-group__header">
+                <div class="kw-kw-group__name">the deal</div>
+                <div class="kw-kw-group__meta">IS: 0</div>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k13"
+                data-name="the deal" data-match="Broad" data-sugg="$0.95">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Broad</span>
+                <span class="kw-kw-match-row__sugg">$0.95</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k14"
+                data-name="the deal" data-match="Phrase" data-sugg="$0.90">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Phrase</span>
+                <span class="kw-kw-match-row__sugg">$0.90</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+              <div class="kw-kw-match-row" data-row-id="k15"
+                data-name="the deal" data-match="Exact" data-sugg="$0.88">
+                <span class="kw-kw-match-row__spacer"></span>
+                <span class="kw-kw-match-row__type">Exact</span>
+                <span class="kw-kw-match-row__sugg">$0.88</span>
+                <span class="kw-kw-match-row__action">
+                  <button class="mds-button" data-type="tertiary" data-size="sm">Add</button>
+                </span>
+              </div>
+            </div>
+
+          </div><!-- /kw-list -->
+        </div><!-- /tab-suggested -->
+
+        <!-- mds-tabs-content: Enter list -->
+        <div class="mds-tabs-content" id="tab-enter-list" role="tabpanel"
+             aria-labelledby="tab-btn-2" data-tabnum="2" hidden>
+          <div class="kw-enter-list">
+            <p class="mds-text" data-size="sm" data-color="subtle">
+              Enter keywords separated by a new line, comma, or semicolon.
+            </p>
+            <textarea placeholder="e.g. running shoes, athletic footwear"
+              aria-label="Enter keywords"></textarea>
+            <button class="mds-button" data-type="primary" data-size="sm"
+              style="align-self:flex-start;">Add keywords</button>
+          </div>
+        </div>
+
+        <!-- mds-tabs-content: Upload file -->
+        <div class="mds-tabs-content" id="tab-upload" role="tabpanel"
+             aria-labelledby="tab-btn-3" data-tabnum="3" hidden>
+          <div class="kw-upload">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect x="4" y="4" width="24" height="24" rx="4"
+                stroke="#bfbfbf" stroke-width="1.5"/>
+              <path d="M16 20V12M16 12L12 16M16 12L20 16"
+                stroke="#bfbfbf" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p>Drag and drop a CSV file here, or <a>browse</a></p>
+            <p class="mds-text" data-size="caption" data-color="muted">CSV files only · Max 5 MB</p>
+          </div>
+        </div>
+
+      </div><!-- /kw-pane--left -->
+
+      <!-- ══ Right pane ═════════════════════════════════════════ -->
+      <div class="kw-pane--right">
+
+        <!-- Added count + Remove all -->
+        <div class="kw-right__header">
+          <span class="kw-right__count" id="added-count">1 added</span>
+          <button class="mds-button" data-type="tertiary" data-size="sm"
+            id="btn-remove-all">Remove all</button>
+        </div>
+
+        <!-- Table header -->
+        <div class="kw-right__table-header">
+          <div class="kw-right__th-keyword">
+            <span class="mds-text" data-size="sm">Keyword</span><br>
+            <span class="mds-text" data-size="caption" data-color="subtle">IS | IR</span>
+          </div>
+          <div class="kw-right__th-match">
+            <span class="mds-text" data-size="sm">Match</span><br>
+            <span class="mds-text" data-size="sm">type</span>
+          </div>
+          <div class="kw-right__th-sugg">
+            <span class="mds-text" data-size="sm">Sugg. bid</span>
+            <button class="mds-button" data-type="tertiary" data-size="xs"
+              id="apply-all-btn" style="padding:0;">Apply all</button>
+          </div>
+          <div class="kw-right__th-bid">
+            <span class="mds-text" data-size="sm">Bid</span>
+          </div>
+        </div>
+
+        <!-- Added items list (rendered by JS) -->
+        <div class="kw-right__list" id="added-list"></div>
+
+        <!-- Error summary footer -->
+        <div class="kw-right__footer" id="right-footer" hidden>
+          <span class="mds-text" data-size="sm" data-color="negative">
+            You have one or more errors in this list
+          </span>
+        </div>
+
+      </div><!-- /kw-pane--right -->
+
+    </div><!-- /mds-panel__body -->
+
+    <!-- Panel notice -->
+    <div class="mds-panel__notice">
+      Some keywords are not eligible for targeting and will not show ads.
+      <a href="#">Learn More</a>
+    </div>
+
+  </div><!-- /mds-panel -->
+</div><!-- /page -->
+
+<script>
+  /* ── State ─────────────────────────────────────────────────── */
+  const added = new Map(); // rowId → { name, match, sugg, range, type, bid }
+
+  // Pre-seed g2 as "already added" to match the Figma design
+  added.set('g2', {
+    name: 'Keywords related to your product category',
+    match: '-', sugg: '$0.35', range: '$0.32 - $0.40',
+    type: 'Keyword group', bid: ''
+  });
+
+  /* ── mds-tabs tab switching ──────────────────────────────── */
+  document.querySelectorAll('.mds-tabs-label').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabnum = btn.dataset.tabnum;
+      document.querySelectorAll('.mds-tabs-label').forEach(b => {
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.mds-tabs-content').forEach(c => {
+        c.hidden = c.dataset.tabnum !== tabnum;
+      });
+      btn.setAttribute('aria-selected', 'true');
+    });
+  });
+
+  /* ── mds-checkbox toggle ─────────────────────────────────── */
+  document.querySelectorAll('.mds-checkbox').forEach(lbl => {
+    lbl.addEventListener('click', () => {
+      const checked = lbl.dataset.checked === 'true';
+      lbl.dataset.checked = checked ? 'false' : 'true';
+      const cb = lbl.querySelector('input[type=checkbox]');
+      if (cb) cb.checked = !checked;
+    });
+  });
+
+  /* ── mds-dropdown-menu ───────────────────────────────────── */
+  function toggleDropdown(id) {
+    const content = document.getElementById(id + '-content');
+    const btn = document.querySelector(`#${id} .mds-button`);
+    const isHidden = content.hidden;
+    // Close all dropdowns first
+    document.querySelectorAll('.mds-dropdown-menu__content').forEach(c => { c.hidden = true; });
+    document.querySelectorAll('.mds-dropdown-menu .mds-button').forEach(b => {
+      b.setAttribute('aria-expanded', 'false');
+    });
+    if (isHidden) {
+      content.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+  function selectDropdown(id, value) {
+    document.getElementById(id + '-label').textContent = value;
+    document.getElementById(id + '-content').hidden = true;
+    document.querySelector(`#${id} .mds-button`).setAttribute('aria-expanded', 'false');
+    document.querySelectorAll(`#${id + '-content'} .mds-dropdown-menu-item`).forEach(item => {
+      item.setAttribute('aria-selected', item.textContent.trim() === value ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.mds-dropdown-menu')) {
+      document.querySelectorAll('.mds-dropdown-menu__content').forEach(c => { c.hidden = true; });
+      document.querySelectorAll('.mds-dropdown-menu .mds-button').forEach(b => {
+        b.setAttribute('aria-expanded', 'false');
+      });
+    }
+  });
+
+  /* ── Add / Remove logic ──────────────────────────────────── */
+  function handleAdd(btn) {
+    const row = btn.closest('[data-row-id]');
+    if (!row) return;
+    const id   = row.dataset.rowId;
+    const name = row.dataset.name;
+    const match = row.dataset.match || '-';
+    const sugg  = row.dataset.sugg;
+    const range = row.dataset.range || '';
+    const type  = row.dataset.type || '';
+    added.set(id, { name, match, sugg, range, type, bid: '' });
+    markAdded(row, true);
+    renderRight();
+  }
+
+  function markAdded(row, isAdded) {
+    const action = row.querySelector('[data-type="tertiary"]');
+    if (!action) return;
+    if (isAdded) {
+      // kw-row (group)
+      if (row.classList.contains('kw-row')) {
+        row.classList.add('kw-row--added');
+      }
+      action.dataset.state = 'added';
+      action.textContent = 'Added';
+      action.disabled = true;
+    } else {
+      row.classList.remove('kw-row--added');
+      delete action.dataset.state;
+      action.textContent = 'Add';
+      action.disabled = false;
+    }
+  }
+
+  function addAll(section) {
+    const selector = section === 'groups'
+      ? '[data-row-id^="g"]:not(.kw-row--added)'
+      : '[data-row-id^="k"] .mds-button[data-type="tertiary"]:not([data-state="added"])';
+
+    if (section === 'groups') {
+      document.querySelectorAll('[data-row-id^="g"]').forEach(row => {
+        if (row.classList.contains('kw-row--added')) return;
+        const id = row.dataset.rowId;
+        added.set(id, {
+          name: row.dataset.name, match: '-',
+          sugg: row.dataset.sugg, range: row.dataset.range || '',
+          type: row.dataset.type || '', bid: ''
+        });
+        markAdded(row, true);
+      });
+    } else {
+      document.querySelectorAll('[data-row-id^="k"]').forEach(row => {
+        const btn = row.querySelector('.mds-button[data-type="tertiary"]');
+        if (!btn || btn.dataset.state === 'added') return;
+        const id = row.dataset.rowId;
+        added.set(id, {
+          name: row.dataset.name, match: row.dataset.match,
+          sugg: row.dataset.sugg, range: '',
+          type: '', bid: ''
+        });
+        markAdded(row, true);
+      });
+    }
+    renderRight();
+  }
+
+  /* ── Render right panel ──────────────────────────────────── */
+  function renderRight() {
+    const list   = document.getElementById('added-list');
+    const count  = document.getElementById('added-count');
+    const footer = document.getElementById('right-footer');
+    const n = added.size;
+
+    count.textContent = n === 0 ? '0 added' : `${n} added`;
+
+    if (n === 0) {
+      list.innerHTML = '<div class="kw-right__empty">No keywords added yet.</div>';
+      footer.hidden = true;
+      return;
+    }
+
+    let hasErrors = false;
+    list.innerHTML = '';
+
+    added.forEach((item, id) => {
+      const hasBid = item.bid.trim() !== '';
+      if (!hasBid) hasErrors = true;
+
+      const row = document.createElement('div');
+      row.className = 'kw-added-row';
+      row.dataset.addedId = id;
+      row.innerHTML = `
+        <div class="kw-added-row__top">
+          <div class="kw-added-row__keyword">
+            <div class="kw-added-row__keyword-name">${item.name}</div>
+          </div>
+          <div class="kw-added-row__match">${item.match}</div>
+          <div class="kw-added-row__sugg">
+            <div class="kw-added-row__sugg-price">${item.sugg}</div>
+            ${item.range ? `<div class="kw-added-row__sugg-range">${item.range}</div>` : ''}
+          </div>
+          <div class="kw-added-row__bid-cell">
+            <!-- mds-input: currency bid -->
+            <div class="mds-input" data-type="number" data-error="${hasBid ? 'false' : 'true'}"
+              style="flex:1;">
+              <span class="mds-input__prefix" aria-hidden="true">$</span>
+              <input class="mds-input__control" type="number" min="0.02" step="0.01"
+                placeholder="" value="${item.bid}"
+                aria-label="Bid for ${item.name}"
+                data-input-id="${id}">
+            </div>
+            <!-- mds-button icononly="close-sm" -->
+            <button class="mds-button" data-icononly="close-sm"
+              aria-label="Remove ${item.name}"
+              data-remove-id="${id}">&#x2715;</button>
+          </div>
+        </div>
+        ${item.type ? `<div class="kw-added-row__group-label mds-text" data-size="caption" data-color="subtle">${item.type}</div>` : ''}
+        ${!hasBid ? `<div class="kw-added-row__error mds-text" data-size="sm" data-color="negative" role="alert">Enter a bid</div>` : ''}
+      `;
+      list.appendChild(row);
+    });
+
+    footer.hidden = !hasErrors;
+
+    // Bid input → live update
+    list.querySelectorAll('.mds-input__control').forEach(input => {
+      input.addEventListener('input', () => {
+        const item = added.get(input.dataset.inputId);
+        if (!item) return;
+        item.bid = input.value;
+        renderRight();
+      });
+    });
+
+    // Remove button
+    list.querySelectorAll('[data-remove-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.removeId;
+        added.delete(id);
+        // Un-mark in left panel
+        const leftRow = document.querySelector(`[data-row-id="${id}"]`);
+        if (leftRow) markAdded(leftRow, false);
+        renderRight();
+      });
+    });
+  }
+
+  /* ── Remove all ──────────────────────────────────────────── */
+  document.getElementById('btn-remove-all').addEventListener('click', () => {
+    added.forEach((_, id) => {
+      const leftRow = document.querySelector(`[data-row-id="${id}"]`);
+      if (leftRow) markAdded(leftRow, false);
+    });
+    added.clear();
+    renderRight();
+  });
+
+  /* ── Apply all bids ──────────────────────────────────────── */
+  document.getElementById('apply-all-btn').addEventListener('click', () => {
+    const first = [...added.values()].find(i => i.bid.trim());
+    if (!first) return;
+    added.forEach(i => { i.bid = first.bid; });
+    renderRight();
+  });
+
+  /* ── Delegate Add / Add All clicks ──────────────────────── */
+  document.getElementById('kw-list').addEventListener('click', e => {
+    const addBtn = e.target.closest('.mds-button[data-type="tertiary"]:not([data-state="added"])');
+    if (!addBtn) return;
+
+    const section = addBtn.dataset.section;
+    if (section) {
+      addAll(section);
+    } else {
+      handleAdd(addBtn);
+    }
+  });
+
+  /* ── Initial render ──────────────────────────────────────── */
+  renderRight();
+</script>
+
+  <!-- Notes widget -->
+  <div id="__nw" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-family:'Inter',-apple-system,system-ui,sans-serif;">
+    <div id="__np" style="display:none;width:288px;background:#fff;border:1px solid #e7eaee;border-radius:12px;box-shadow:0 8px 24px rgba(33,35,44,.12),0 2px 6px rgba(33,35,44,.08);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;border-bottom:1px solid #f0f2f5;">
+        <span style="font-size:13px;font-weight:700;letter-spacing:-0.1px;color:#20203c;">Questions &amp; Notes</span>
+        <button id="__nc" style="border:none;background:none;cursor:pointer;padding:2px;display:flex;color:#888b9a;border-radius:4px;" aria-label="Close notes">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 3L3 11M3 3l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <textarea id="__nt" placeholder="Jot down questions…" style="width:100%;height:180px;padding:10px 12px;border:none;resize:none;font-family:inherit;font-size:13px;line-height:1.5;color:#20203c;background:#fff;outline:none;display:block;"></textarea>
+    </div>
+    <button id="__nb" aria-label="Open notes" style="width:40px;height:40px;border-radius:50%;background:#20203c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(33,35,44,.2);color:#fff;transition:background 120ms;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 11.5V13.5H4.5L12 6L10 4L2.5 11.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 4L12 6" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+  </div>
+  <script>
+  (function(){
+    if(window.self!==window.top)return;
+    var p=document.getElementById('__np'),b=document.getElementById('__nb'),c=document.getElementById('__nc'),t=document.getElementById('__nt');
+    var KEY='proto_notes';
+    t.value=localStorage.getItem(KEY)||'';
+    t.addEventListener('input',function(){localStorage.setItem(KEY,t.value);});
+    function openPanel(){p.style.display='block';b.style.background='#535665';t.focus();}
+    function closePanel(){p.style.display='none';b.style.background='#20203c';}
+    b.addEventListener('click',function(){p.style.display==='none'?openPanel():closePanel();});
+    c.addEventListener('click',closePanel);
+    b.addEventListener('mouseenter',function(){if(p.style.display==='none')b.style.background='#535665';});
+    b.addEventListener('mouseleave',function(){if(p.style.display==='none')b.style.background='#20203c';});
+  })();
+  </script>
+
+</body>
+</html>

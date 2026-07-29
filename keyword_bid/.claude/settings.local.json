@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma__get_metadata",
+      "mcp__meridian__search_components",
+      "mcp__figma__get_screenshot",
+      "mcp__meridian__get_design_tokens",
+      "Bash(curl *)",
+      "mcp__figma__get_libraries",
+      "mcp__meridian__get_component_api",
+      "mcp__figma__search_design_system",
+      "mcp__figma__use_figma",
+      "mcp__figma__get_design_context",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 *)",
+      "Bash(open *)",
+      "Bash(screencapture -x /tmp/kw_rendered.png)",
+      "Bash(pip3 show *)"
+    ]
+  }
+}
