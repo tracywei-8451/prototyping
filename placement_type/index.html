@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Placement Type</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --ink-primary:    #20203c;
+      --ink-darker:     #535665;
+      --edge-light:     #dadde1;
+      --edge-primary:   #d1d5db;
+      --accent-primary: #2874c1;
+      --surface-primary: #ffffff;
+      --surface-light:   #eff2f5;
+      --radius-md: 8px;
+      --radius-lg: 16px;
+      --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4286;
+      color: var(--ink-primary);
+      background: var(--surface-light);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+      padding: 0;
+    }
+
+    .panel {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 0 1px rgba(33,35,44,0.2), 0 2px 6px rgba(33,35,44,0.06), 0 0 1px rgba(33,35,44,0.06), 0 1px 0.5px rgba(33,35,44,0.04);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .panel-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 28px;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 24px; }
+
+    .option {
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md);
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 40px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .option.selected { border: 3px solid var(--accent-primary); }
+    .option:not(.selected):hover { background: #fafbfc; }
+
+    .option-left { display: flex; align-items: center; gap: 16px; }
+
+    .option-text { display: flex; flex-direction: column; gap: 8px; }
+
+    .option-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.16px;
+      line-height: 25px;
+    }
+
+    .option-desc {
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: -0.14px;
+      line-height: 20px;
+      color: var(--ink-darker);
+      width: 340px;
+    }
+
+    .mockup {
+      width: 200px;
+      height: 125px;
+      flex-shrink: 0;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--edge-light);
+    }
+
+    .mockup img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .mds-cb {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--edge-primary);
+      border-radius: 4px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mds-cb.checked {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+    .mds-cb svg { width: 12px; height: 12px; }
+
+  </style>
+</head>
+<body>
+
+<div class="panel">
+  <h2 class="panel-title">Placement Type</h2>
+  <div class="options">
+
+    <div class="option selected">
+      <div class="option-left">
+        <div class="option-text">
+          <div class="option-title">Search &amp; Browse</div>
+          <div class="option-desc">Drive consideration with ads related to searched products and to extend reach with new households.</div>
+        </div>
+        <div class="mockup"><img src="mockup-search.png" alt="Search & Browse placement preview" /></div>
+      </div>
+      <div class="mds-cb checked">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5L10 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
+    <div class="option">
+      <div class="option-left">
+        <div class="option-text">
+          <div class="option-title">Basket Builder</div>
+          <div class="option-desc">Encourage shoppers to add your products to their baskets through personalized, science-driven carousels across Kroger.com and the mobile app.</div>
+        </div>
+        <div class="mockup"><img src="mockup-basket.png" alt="Basket Builder placement preview" /></div>
+      </div>
+      <div class="mds-cb"></div>
+    </div>
+
+    <div class="option">
+      <div class="option-left">
+        <div class="option-text">
+          <div class="option-title">Savings</div>
+          <div class="option-desc">Deliver messages on pages that over index with price sensitive shoppers and amplify promotions.</div>
+        </div>
+        <div class="mockup"><img src="mockup-savings.png" alt="Savings placement preview" /></div>
+      </div>
+      <div class="mds-cb"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.option:not(.selected)').forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      window.parent.postMessage({ type: 'open-placement-modal' }, '*');
+    });
+  });
+</script>
+
+</body>
+</html>

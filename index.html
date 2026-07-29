@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracy Prototype Library</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: #eff2f5;
+      color: #20203c;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Body ── */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 48px 80px;
+    }
+
+    .page-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: #20203c;
+      margin-bottom: 4px;
+    }
+
+    .page-meta {
+      font-size: 12px;
+      color: #888b9a;
+      margin-bottom: 32px;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e7eaee;
+      border-radius: 12px;
+      padding: 20px 22px 18px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: box-shadow 150ms, transform 150ms, border-color 150ms;
+    }
+
+    .card:hover {
+      border-color: #d1d5db;
+      box-shadow:
+        0 4px 16px rgba(33,35,44,0.08),
+        0 1px 4px rgba(33,35,44,0.06);
+      transform: translateY(-2px);
+    }
+
+    .card-tag {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* Pastel per-card accents */
+    .card:nth-child(1) .card-tag { background: #fde8f0; color: #b83b6e; }
+    .card:nth-child(1):hover .card-arrow { color: #b83b6e; }
+
+    .card:nth-child(2) .card-tag { background: #ede8fb; color: #7048d0; }
+    .card:nth-child(2):hover .card-arrow { color: #7048d0; }
+
+    .card:nth-child(3) .card-tag { background: #e4f6ed; color: #2c7a52; }
+    .card:nth-child(3):hover .card-arrow { color: #2c7a52; }
+
+    .card:nth-child(4) .card-tag { background: #fef0e4; color: #c05c1a; }
+    .card:nth-child(4):hover .card-arrow { color: #c05c1a; }
+
+    .card:nth-child(5) .card-tag { background: #e4f1fb; color: #2165a8; }
+    .card:nth-child(5):hover .card-arrow { color: #2165a8; }
+
+    .card:nth-child(6) .card-tag { background: #fbe8f4; color: #9c3e8a; }
+    .card:nth-child(6):hover .card-arrow { color: #9c3e8a; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.14px;
+      line-height: 1.4;
+      color: #20203c;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 4px;
+    }
+
+    .card-path {
+      font-size: 11px;
+      color: #888b9a;
+      font-family: "SF Mono", "Fira Code", monospace;
+      letter-spacing: 0;
+    }
+
+    .card-arrow {
+      font-size: 14px;
+      color: #c7cad1;
+      transition: color 150ms, transform 150ms;
+      flex-shrink: 0;
+    }
+
+    .card:hover .card-arrow {
+      transform: translateX(3px);
+    }
+  </style>
+</head>
+<body>
+
+  <main>
+    <h1 class="page-title">Tracy Prototype Library</h1>
+    <p class="page-meta">Last updated: July 24, 2026</p>
+    <div class="grid">
+
+      <a class="card" href="keyword_bid/index.html">
+        <span class="card-tag">keyword_bid</span>
+        <span class="card-title">Bid Management — Reordering &amp; Bulk</span>
+        <div class="card-footer">
+          <span class="card-path">keyword_bid/index.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" href="keyword_bid/keyword_targeting.html">
+        <span class="card-tag">keyword_bid</span>
+        <span class="card-title">Keyword Targeting</span>
+        <div class="card-footer">
+          <span class="card-path">keyword_bid/keyword_targeting.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" href="keyword_selection/index.html">
+        <span class="card-tag">keyword_selection</span>
+        <span class="card-title">Bid Management — Campaign Builder</span>
+        <div class="card-footer">
+          <span class="card-path">keyword_selection/index.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" href="reordering_bulk/index.html">
+        <span class="card-tag">reordering_bulk</span>
+        <span class="card-title">Keywords — Selection</span>
+        <div class="card-footer">
+          <span class="card-path">reordering_bulk/index.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" href="match_type_bidding/index.html">
+        <span class="card-tag">match_type_bidding</span>
+        <span class="card-title">Match Type Bidding</span>
+        <div class="card-footer">
+          <span class="card-path">match_type_bidding/index.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <a class="card" href="campaign_screen/index.html">
+        <span class="card-tag">campaign_screen</span>
+        <span class="card-title">Create Ad Group — Campaign Screen</span>
+        <div class="card-footer">
+          <span class="card-path">campaign_screen/index.html</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+
+  <!-- Notes widget -->
+  <div id="__nw" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-family:'Inter',-apple-system,system-ui,sans-serif;">
+    <div id="__np" style="display:none;width:288px;background:#fff;border:1px solid #e7eaee;border-radius:12px;box-shadow:0 8px 24px rgba(33,35,44,.12),0 2px 6px rgba(33,35,44,.08);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;border-bottom:1px solid #f0f2f5;">
+        <span style="font-size:13px;font-weight:700;letter-spacing:-0.1px;color:#20203c;">Questions &amp; Notes</span>
+        <button id="__nc" style="border:none;background:none;cursor:pointer;padding:2px;display:flex;color:#888b9a;border-radius:4px;" aria-label="Close notes">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 3L3 11M3 3l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <textarea id="__nt" placeholder="Jot down questions…" style="width:100%;height:180px;padding:10px 12px;border:none;resize:none;font-family:inherit;font-size:13px;line-height:1.5;color:#20203c;background:#fff;outline:none;display:block;"></textarea>
+    </div>
+    <button id="__nb" aria-label="Open notes" style="width:40px;height:40px;border-radius:50%;background:#20203c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(33,35,44,.2);color:#fff;transition:background 120ms;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 11.5V13.5H4.5L12 6L10 4L2.5 11.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 4L12 6" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+  </div>
+  <script>
+  (function(){
+    if(window.self!==window.top)return;
+    var p=document.getElementById('__np'),b=document.getElementById('__nb'),c=document.getElementById('__nc'),t=document.getElementById('__nt');
+    var KEY='proto_notes';
+    t.value=localStorage.getItem(KEY)||'';
+    t.addEventListener('input',function(){localStorage.setItem(KEY,t.value);});
+    function openPanel(){p.style.display='block';b.style.background='#535665';t.focus();}
+    function closePanel(){p.style.display='none';b.style.background='#20203c';}
+    b.addEventListener('click',function(){p.style.display==='none'?openPanel():closePanel();});
+    c.addEventListener('click',closePanel);
+    b.addEventListener('mouseenter',function(){if(p.style.display==='none')b.style.background='#535665';});
+    b.addEventListener('mouseleave',function(){if(p.style.display==='none')b.style.background='#20203c';});
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma__get_design_context",
+      "mcp__figma__get_screenshot",
+      "Bash(curl -s -o /tmp/figma_screenshot.png \"https://www.figma.com/api/mcp/asset/d28a62a9-6694-42cc-8077-cde86d89b037\")",
+      "Read(//tmp/**)",
+      "mcp__meridian__get_design_tokens",
+      "Bash(node -e \"const fs=require\\('fs'\\);const html=fs.readFileSync\\('/Users/t160029/repo/prototyping/keyword_selection/index.html','utf8'\\);console.log\\('size:',html.length,'bytes'\\);console.log\\('script tags:',\\(html.match\\(/<script/g\\)||[]\\).length\\);console.log\\('style tags:',\\(html.match\\(/<style/g\\)||[]\\).length\\);\")",
+      "mcp__figma__get_metadata",
+      "Bash(curl -s -o /tmp/figma_custom.png \"https://www.figma.com/api/mcp/asset/6780ad0b-1222-499e-be65-2145ca79a385\")",
+      "Bash(curl -s -o /tmp/figma_items.png \"https://www.figma.com/api/mcp/asset/5b76b4f4-74e1-463f-a264-58adf61f506a\")",
+      "Bash(curl -s -o /tmp/figma_modal_orig.png \"https://www.figma.com/api/mcp/asset/62f432da-0bcc-48dc-8504-7fce1fbb4599\")",
+      "Bash(node --check /Users/t160029/repo/prototyping/keyword_selection/index.html)",
+      "Bash(node -e ' *)",
+      "Bash(kill 89411 *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/)",
+      "Bash(open *)",
+      "mcp__figma__download_assets",
+      "Bash(curl *)",
+      "mcp__figma__search_design_system",
+      "Bash(grep -n \"body {$\\\\|\\\\.page {\\\\|</style>\\\\|<body>\" /Users/t160029/repo/prototyping/match_type_bidding/index.html)",
+      "mcp__meridian__get_component_api",
+      "mcp__meridian__search_components",
+      "mcp__figma__get_libraries",
+      "Bash(python3 *)",
+      "Bash(git -C /Users/t160029/repo/prototyping status)"
+    ]
+  }
+}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Ad Group — PPC</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --ink-primary:   #20203c;
+      --ink-darker:    #535665;
+      --ink-dark:      #888b9a;
+      --surface-primary: #ffffff;
+      --surface-light:   #eff2f5;
+      --edge-lighter:  #e7eaee;
+      --accent-lightest: #f6fafe;
+      --accent-primary: #2874c1;
+      --radius-md: 8px;
+      --radius-lg: 16px;
+      --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4286;
+      color: var(--ink-primary);
+      background: var(--surface-light);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+    }
+
+    /* ── Version tab bar ── */
+    .version-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      z-index: 200;
+    }
+
+    .version-tab {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 12px;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+
+    .version-tab.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    .back-to-library {
+      position: absolute;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed;
+      top: 36px; left: 0; right: 0;
+      height: 72px;
+      background: var(--surface-primary);
+      box-shadow: 0 1px 0 var(--edge-lighter), 0 2px 12px rgba(33,35,44,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .top-bar-side {
+      display: flex;
+      align-items: center;
+      min-width: 120px;
+    }
+
+    .top-bar-side.right { justify-content: flex-end; }
+
+    .top-bar-title {
+      flex: 1;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 28px;
+    }
+
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      color: var(--ink-darker);
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--surface-light); }
+    .icon-btn svg { display: block; }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--accent-primary);
+      color: white;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.14px;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #1f5fa8; }
+
+    /* ── Page body ── */
+    .page-body {
+      margin-top: 108px;
+      display: flex;
+      align-items: flex-start;
+      gap: 41px;
+      padding: 40px 34px;
+      min-height: calc(100vh - 72px);
+    }
+
+    /* ── Stepper ── */
+    .stepper {
+      width: 352px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stepper-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      border-radius: var(--radius-md);
+    }
+
+    .stepper-section.adgroup {
+      background: rgba(32,32,60,0.02);
+      border-radius: var(--radius-lg);
+      padding-bottom: 16px;
+    }
+
+    .stepper-trigger {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 40px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      cursor: default;
+    }
+
+    .trigger-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--ink-darker);
+    }
+
+    .trigger-label {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.14px;
+      color: var(--ink-darker);
+    }
+
+    .stepper-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-left: 47px;
+    }
+
+    .stepper-summary.adgroup { padding-left: 40px; }
+
+    .summary-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      letter-spacing: -0.14px;
+      line-height: 20px;
+    }
+
+    .summary-label { flex: 1; color: var(--ink-dark); }
+    .summary-value { flex: 1; color: var(--ink-darker); }
+
+    .status-light {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      color: var(--ink-darker);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #c7cad1;
+      flex-shrink: 0;
+    }
+
+    .hide-summary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.14px;
+      color: var(--accent-primary);
+      padding: 0;
+    }
+
+    /* ── Divider ── */
+    .stepper-divider {
+      height: 1px;
+      background: var(--edge-lighter);
+      margin: 0 16px;
+    }
+
+    /* ── Step list ── */
+    .step-list {
+      background: var(--surface-primary);
+      border-radius: var(--radius-md);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.14px;
+      color: var(--ink-darker);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .step-item:hover { background: rgba(33,35,44,0.04); }
+
+    .step-item.active {
+      background: var(--accent-lightest);
+      color: var(--accent-primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="version-bar">
+    <a class="back-to-library" href="../index.html">← Library</a>
+    <a class="version-tab" href="index.html">PLA</a>
+    <a class="version-tab active" href="#">PPC</a>
+  </div>
+
+  <header class="top-bar">
+    <div class="top-bar-side">
+      <button class="icon-btn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="top-bar-title">Create Ad Group</div>
+    <div class="top-bar-side right">
+      <button class="btn-primary">Submit</button>
+    </div>
+  </header>
+
+  <div class="page-body">
+
+    <aside class="stepper">
+
+      <!-- Campaign -->
+      <div class="stepper-section">
+        <div class="stepper-trigger">
+          <div class="trigger-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4.5C2 3.67 2.67 3 3.5 3H6.17L7.67 4.5H12.5C13.33 4.5 14 5.17 14 6V12C14 12.83 13.33 13.5 12.5 13.5H3.5C2.67 13.5 2 12.83 2 12V4.5Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="trigger-label">Test PPC Campaign</span>
+        </div>
+        <div class="stepper-summary">
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span class="summary-label">Status</span>
+              <span class="status-light"><span class="status-dot"></span>Draft</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Start Date</span>
+              <span class="summary-value">11/19/2025</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">End Date</span>
+              <span class="summary-value">03/24/2026</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Budget</span>
+              <span class="summary-value">$2,500.00/Monthly</span>
+            </div>
+          </div>
+          <button class="hide-summary-btn">
+            Hide summary
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 10L8 6L12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="stepper-divider"></div>
+
+      <!-- Ad Group -->
+      <div class="stepper-section adgroup">
+        <div class="stepper-trigger">
+          <div class="trigger-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="9"   y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="1.5" y="9"   width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="9"   y="9"   width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <span class="trigger-label">Test Ad Group</span>
+        </div>
+        <div class="stepper-summary adgroup">
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span class="summary-label">Ad Group Status</span>
+              <span class="status-light"><span class="status-dot"></span>Draft</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Budget</span>
+              <span class="summary-value">$2,500.00</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Start Date</span>
+              <span class="summary-value">11/19/2025</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">End Date</span>
+              <span class="summary-value">03/24/2026</span>
+            </div>
+          </div>
+          <button class="hide-summary-btn">
+            Hide summary
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 10L8 6L12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="step-list">
+          <a class="step-item active" href="#">Bid Management</a>
+        </div>
+      </div>
+
+    </aside>
+
+    <main>
+      <img src="ppc-panel.png" alt="PPC Bid Management" style="width:746px; height:auto; display:block; border-radius:16px;" />
+    </main>
+
+  </div>
+
+</body>
+</html>

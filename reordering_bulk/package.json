@@ -1,0 +1,19 @@
+{
+  "name": "reordering-bulk",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@meridian/core": "16.9.4",
+    "@meridian/ui": "^16.9.4",
+    "@meridian/web": "^16.9.4"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

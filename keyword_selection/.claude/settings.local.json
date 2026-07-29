@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma__get_design_context",
+      "mcp__meridian__search_components",
+      "mcp__meridian__get_component_api",
+      "Bash(python3 *)",
+      "Bash(open *)",
+      "Bash(lsof -ti:8000)",
+      "Bash(curl *)",
+      "Bash(npm config *)",
+      "Bash(ln -s /Users/t160029/node_modules /Users/t160029/repo/prototyping/keyword_selection/node_modules)",
+      "Bash(grep -oE \"\\(class:[^,]{0,80}padding|padding:\\\\\"tooltip\\\\\"|padding:'tooltip'|--mds-color-popover[a-z-]*\\)\" /Users/t160029/node_modules/@meridian/web/dist/web/p-3b321879.js)"
+    ]
+  }
+}

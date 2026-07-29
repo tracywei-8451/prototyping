@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open *)",
+      "mcp__meridian__search_components",
+      "mcp__meridian__get_component_api",
+      "mcp__meridian__get_design_tokens",
+      "Read(//Users/t160029/**)",
+      "Read(//Users/t160029/repo/**)",
+      "Bash(npm show *)",
+      "Bash(npm install *)",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('main:', p.get\\('main'\\)\\); print\\('module:', p.get\\('module'\\)\\); print\\('exports:', list\\(p.get\\('exports', {}\\).keys\\(\\)\\)[:5]\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5179/)"
+    ]
+  }
+}
