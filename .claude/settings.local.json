@@ -25,7 +25,9 @@
       "mcp__figma__get_libraries",
       "Bash(python3 *)",
       "Bash(git -C /Users/t160029/repo/prototyping status)",
-      "Bash(git -C /Users/t160029/repo/prototyping/keyword_bid status)"
+      "Bash(git -C /Users/t160029/repo/prototyping/keyword_bid status)",
+      "Bash(mkdir /Users/t160029/repo/prototyping/fun)",
+      "Bash(touch /Users/t160029/repo/prototyping/fun/index.html)"
     ]
   }
 }
