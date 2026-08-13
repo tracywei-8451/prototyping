@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory — Internal View</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="stylesheet" href="../reordering_bulk/node_modules/@meridian/core/css/variables.css" />
+  <script src="../reordering_bulk/node_modules/@meridian/ui/index.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Version bar ── */
+    .version-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 36px; background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; z-index: 300;
+    }
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px;
+      border-radius: 4px; border: none;
+      background: transparent; color: rgba(255,255,255,0.5);
+      font-family: inherit; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+    .back-to-library {
+      position: absolute; left: 16px;
+      font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4);
+      text-decoration: none; letter-spacing: 0.02em;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.7); }
+
+    :root {
+      --brand-primary: #2874c1;
+      --brand-dark:    #0f52a2;
+      --ink-primary:   #20203c;
+      --ink-darker:    #535665;
+      --ink-dark:      #888b9a;
+      --ink-light:     #b8bec6;
+      --surface-primary: #fff;
+      --surface-lighter: #f8f9fa;
+      --edge-lighter:  #e7eaee;
+      --edge-primary:  #d1d5db;
+      --edge-dark:     #c7cad1;
+      --positive:      #36a824;
+      --warning:       #fab30f;
+      --radius-md: 8px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+      font-size: 14px;
+      color: var(--ink-primary);
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+      min-width: 1100px;
+    }
+
+    /* icon via background-image — immune to SVG intrinsic size */
+    .mds-img {
+      display: block; flex-shrink: 0;
+      width: 16px; height: 16px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .logo-img {
+      display: block;
+      width: 94px; height: 36px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: left center;
+    }
+
+    /* ─── Global Header ─── */
+    .global-header {
+      position: fixed; top: 36px; left: 0; right: 0;
+      z-index: 100;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-lighter);
+    }
+    .header-accent { height: 3px; background: var(--brand-dark); }
+    .header-row {
+      height: 69px; display: flex; align-items: center;
+      padding: 0 16px 0 24px; gap: 24px;
+    }
+    .header-left { flex: 1 0 0; min-width: 0; display: flex; align-items: center; }
+    .kroger-logo { display: flex; align-items: center; }
+    .kroger-logo img { height: 36px; width: auto; display: block; }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-icon-group { display: flex; gap: 4px; }
+    .icon-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border: none; background: none;
+      border-radius: var(--radius-md); cursor: pointer;
+      color: var(--ink-darker);
+    }
+    .icon-btn:hover { background: var(--surface-lighter); }
+
+    .user-trigger {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 12px; height: 40px;
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md);
+      background: var(--surface-primary); cursor: pointer;
+      min-width: 128px; max-width: 750px;
+      color: var(--ink-darker);
+    }
+    .user-name  { font-size: 14px; font-weight: 600; letter-spacing: -0.14px; white-space: nowrap; }
+    .user-acct  { font-size: 14px; font-weight: 400; letter-spacing: -0.14px; white-space: nowrap; }
+
+    /* ─── Global Side Nav ─── */
+    .global-sidenav {
+      position: fixed; top: 108px; left: 0; bottom: 0;
+      width: 80px;
+      background: var(--surface-primary);
+      border-right: 1px solid var(--edge-lighter);
+      z-index: 90; padding: 24px 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .nav-icon {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 32px; cursor: pointer;
+    }
+    .nav-icon-inner {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 32px;
+      border-radius: var(--radius-md);
+      color: var(--ink-darker);
+    }
+    .nav-icon:hover .nav-icon-inner { background: var(--surface-lighter); }
+    .nav-icon.active .nav-icon-inner { background: var(--surface-lighter); }
+    .nav-icon.active::before {
+      content: ''; position: absolute;
+      left: 0; top: 6px; bottom: 6px; width: 3px;
+      background: var(--brand-primary);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* ─── Page Banner ─── */
+    .page-banner {
+      position: fixed; top: 108px; left: 81px; right: 0;
+      height: 120px;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-lighter);
+      z-index: 80;
+      display: flex; align-items: center; padding: 38px 24px;
+    }
+    .page-title {
+      font-size: 34px; font-weight: 700;
+      color: var(--ink-primary); letter-spacing: -0.72px; line-height: 38px;
+    }
+
+    /* ─── Tertiary Nav ─── */
+    .tertiary-nav {
+      position: fixed; top: 228px; left: 81px; bottom: 0;
+      width: 240px;
+      background: var(--surface-primary);
+      border-right: 1px solid var(--edge-lighter);
+      z-index: 70; padding: 24px;
+      display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
+    }
+    .t-item {
+      display: flex; align-items: center;
+      height: 32px; padding: 0 8px;
+      border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 600;
+      color: var(--ink-darker); letter-spacing: -0.14px;
+      cursor: pointer; white-space: nowrap; user-select: none;
+    }
+    .t-item:hover { background: var(--surface-lighter); }
+    .t-item.active { background: var(--surface-lighter); color: var(--brand-primary); }
+
+    /* ─── Main ─── */
+    .main { margin-top: 228px; margin-left: 321px; padding: 32px 40px 60px; }
+
+    /* ─── Stat cards ─── */
+    .stat-row { display: flex; gap: 40px; margin-bottom: 32px; }
+    .stat-card {
+      flex: 1 0 0; min-width: 0; height: 160px;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-lg);
+      padding: 0 37px;
+      display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    }
+    .stat-label {
+      font-size: 11px; font-weight: 500; color: var(--ink-dark);
+      letter-spacing: 0.88px; text-transform: uppercase; line-height: 15px;
+    }
+    .stat-value {
+      font-size: 48px; font-weight: 800; color: var(--ink-primary);
+      letter-spacing: -1.5px; line-height: 52px;
+    }
+
+    /* ─── Tabs ─── */
+    .tab-list {
+      display: flex; gap: 24px;
+      border-bottom: 1px solid var(--edge-primary);
+      margin-bottom: 32px;
+    }
+    .tab {
+      display: flex; align-items: center;
+      height: 40px; padding-bottom: 16px;
+      font-size: 14px; letter-spacing: -0.14px;
+      cursor: pointer; border-bottom: 3px solid transparent;
+      margin-bottom: -1px; user-select: none;
+    }
+    .tab.active { font-weight: 700; color: var(--ink-primary); border-bottom-color: var(--brand-primary); }
+    .tab:not(.active) { font-weight: 400; color: var(--ink-darker); }
+
+    /* ─── Toolbar ─── */
+    .toolbar-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 12px;
+    }
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+    .chip-group { display: flex; align-items: center; gap: 8px; }
+    .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+
+    .search-wrap {
+      display: flex; align-items: center; gap: 8px;
+      width: 240px; height: 32px; padding: 6px 12px;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-dark);
+      border-radius: var(--radius-md);
+      color: var(--ink-dark);
+    }
+    .search-wrap input {
+      flex: 1; border: none; outline: none;
+      font-family: inherit; font-size: 14px; font-weight: 400;
+      color: var(--ink-darker); letter-spacing: -0.14px; background: transparent;
+    }
+    .search-wrap input::placeholder { color: var(--ink-dark); }
+
+    .export-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      border: none; background: none; cursor: pointer;
+      color: var(--brand-primary);
+    }
+    .export-btn:hover { background: var(--surface-lighter); }
+
+    /* ─── Filter chips ─── */
+    .chip-wrap { position: relative; display: inline-flex; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 32px; padding: 0 16px;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md);
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      color: var(--ink-darker); letter-spacing: -0.14px;
+      cursor: pointer; white-space: nowrap;
+      position: relative;
+      transition: background 120ms, border-color 120ms, color 120ms;
+    }
+    .chip:hover { background: var(--surface-lighter); }
+    .chip[aria-expanded="true"],
+    .chip.has-selection { border-color: var(--brand-primary); }
+    .chip-label { flex-shrink: 0; }
+    .chip-sep { width: 1px; height: 12px; background: var(--edge-primary); flex-shrink: 0; }
+    .chip-value { color: var(--ink-primary); font-size: 14px; font-weight: 600; letter-spacing: -0.14px; flex-shrink: 0; }
+    .chip-close {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; color: var(--ink-dark);
+    }
+    .chip-close svg { width: 10px; height: 10px; }
+    .chip-close:hover { color: var(--ink-primary); }
+    .chip-chevron { flex-shrink: 0; }
+    [hidden] { display: none !important; }
+
+    .chip-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0;
+      min-width: 200px; z-index: 100;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      padding: 4px 0; font-weight: 400;
+    }
+    .chip-dd-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+    }
+    .chip-dd-item:hover { background: var(--surface-lighter); }
+    .chip-dd-item input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-mds-check {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border: 1.5px solid var(--ink-light); border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-primary);
+      transition: background 120ms, border-color 120ms;
+    }
+    .chip-dd-item input[type="checkbox"]:checked + .chip-mds-check {
+      background: var(--brand-primary); border-color: var(--brand-primary);
+    }
+    .chip-dd-item input[type="checkbox"]:checked + .chip-mds-check svg { display: block; }
+    .chip-mds-check svg { display: none; width: 10px; height: 10px; }
+    .chip-dd-divider { height: 1px; background: var(--edge-lighter); margin: 4px 0; }
+    .chip-dd-footer { padding: 6px 16px; display: flex; justify-content: flex-end; }
+    .chip-dd-clear {
+      font-size: 13px; font-weight: 600; color: var(--brand-primary);
+      background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;
+    }
+    .chip-dd-clear:hover { text-decoration: underline; }
+
+    /* ── Range date picker ── */
+    .rdp { padding: 12px 12px 8px; user-select: none; }
+    .rdp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .rdp-month { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .rdp-nav { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: none; border-radius: var(--radius-md); cursor: pointer; color: var(--ink-darker); padding: 0; flex-shrink: 0; }
+    .rdp-nav:hover { background: var(--surface-lighter); }
+    .rdp-daynames { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
+    .rdp-dayname { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-dark); padding: 4px 0; letter-spacing: 0.04em; }
+    .rdp-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .rdp-day { position: relative; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .rdp-day.other-month { pointer-events: none; }
+    .rdp-day::before { content: ''; position: absolute; inset: 2px 0; background: transparent; z-index: 0; }
+    .rdp-day.in-range::before { background: rgba(40,116,193,0.1); }
+    .rdp-day.range-start::before { left: 50%; background: rgba(40,116,193,0.1); }
+    .rdp-day.range-end::before { right: 50%; background: rgba(40,116,193,0.1); }
+    .rdp-day.range-start.range-end::before { display: none; }
+    .rdp-day-inner { position: relative; z-index: 1; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; color: var(--ink-primary); }
+    .rdp-day.other-month .rdp-day-inner { color: var(--ink-light); }
+    .rdp-day:not(.other-month):not(.range-start):not(.range-end):hover .rdp-day-inner { background: var(--surface-lighter); }
+    .rdp-day.range-start .rdp-day-inner, .rdp-day.range-end .rdp-day-inner { background: var(--brand-primary); color: #fff; font-weight: 700; }
+    .rdp-day.today:not(.range-start):not(.range-end) .rdp-day-inner { color: var(--brand-primary); font-weight: 700; }
+
+    .clear-filters-btn {
+      display: inline-flex; align-items: center;
+      height: 32px; padding: 0 16px;
+      border: 1px solid transparent; border-radius: var(--radius-md);
+      background: transparent; font-family: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--ink-light); cursor: default; pointer-events: none;
+      transition: background 120ms, color 120ms;
+    }
+    .clear-filters-btn.active { color: var(--ink-darker); cursor: pointer; pointer-events: auto; }
+    .clear-filters-btn.active:hover { background: var(--surface-lighter); color: var(--ink-primary); }
+
+    /* ─── Table ─── */
+    .table-wrap { overflow-x: auto; }
+    .data-table { border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    .data-table th {
+      height: 49px; padding: 0 16px; text-align: left;
+      font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-dark); white-space: nowrap;
+    }
+    .data-table td {
+      padding: 14.5px 16px; font-size: 14px; font-weight: 400;
+      color: var(--ink-darker); letter-spacing: -0.14px;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-lighter);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 20px;
+    }
+    .data-table td.td-action {
+      white-space: nowrap; overflow: visible;
+      padding: 8px 16px; vertical-align: middle;
+    }
+    /* sticky left columns */
+    .col-dates  { width: 166px; position: sticky; left: 0; z-index: 3; background: #fff; box-shadow: 3px 0 0 0 #fff; }
+    .col-inv    { width: 130px; position: sticky; left: 166px; z-index: 2; background: #fff; box-shadow: 4px 0 6px -2px rgba(33,35,44,0.07); }
+    /* scrollable middle */
+    .col-focus  { width: 240px; }
+    .col-theme  { width: 280px; }
+    .col-cost   { width: 90px; }
+    .col-status { width: 130px; overflow: visible; }
+    .col-account { width: 110px; }
+    .col-brand  { width: 110px; }
+    .col-reqby  { width: 130px; }
+    /* sticky right column */
+    .col-action { width: 148px; position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -4px 0 6px -2px rgba(33,35,44,0.07); }
+
+    /* ─── Add Inventory button ─── */
+    .add-inv-btn {
+      display: inline-flex; align-items: center;
+      height: 40px; padding: 0 16px;
+      background: var(--brand-primary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer; white-space: nowrap;
+    }
+    .add-inv-btn:hover { background: var(--brand-dark); }
+
+    /* ─── Review Request button ─── */
+    .review-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 28px; padding: 4px 8px;
+      border: 1px solid var(--brand-primary); border-radius: var(--radius-md);
+      background: none; font-family: inherit; font-size: 14px; font-weight: 700;
+      color: var(--brand-primary); letter-spacing: -0.14px; cursor: pointer; white-space: nowrap;
+    }
+    .review-btn:hover { background: #d2eafa; }
+
+    /* ─── Status light ─── */
+    .status-light { display: inline-flex; align-items: center; gap: 8px; }
+    .s-dot {
+      flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block;
+    }
+    .s-dot.open      { border: 1.5px solid #a6adb9; background: transparent; }
+    .s-dot.requested { background: linear-gradient(to top, var(--warning) 50%, transparent 50%); border: 1.5px solid var(--warning); }
+    .s-dot.claimed   { background: var(--positive); }
+
+    /* ─── Request button ─── */
+    .req-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 28px; padding: 4px 8px;
+      border: 1px solid var(--brand-primary); border-radius: var(--radius-md);
+      background: none; font-family: inherit; font-size: 14px; font-weight: 700;
+      color: var(--brand-primary); letter-spacing: -0.14px; cursor: pointer;
+    }
+    .req-btn:hover { background: #d2eafa; }
+
+    /* ─── Modal ─── */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(33, 35, 44, 0.32);
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      width: 528px;
+      box-shadow:
+        0 2px 4px rgba(33, 35, 44, 0.08),
+        0 2px 4px rgba(33, 35, 44, 0.04),
+        0 8px 24px rgba(33, 35, 44, 0.08);
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 24px 24px 20px;
+    }
+    .modal-title {
+      font-size: 22px; font-weight: 700;
+      letter-spacing: -0.5px; line-height: 28px;
+      color: var(--ink-primary);
+    }
+    .modal-close {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border: none; background: none; cursor: pointer;
+      border-radius: var(--radius-md); color: var(--ink-darker); flex-shrink: 0;
+    }
+    .modal-close:hover { background: var(--surface-lighter); }
+    .modal-body { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-info { display: flex; flex-direction: column; gap: 8px; }
+    .modal-info-line { font-size: 14px; letter-spacing: -0.14px; line-height: 20px; color: var(--ink-darker); }
+    .modal-info-line strong { font-weight: 700; }
+    .modal-detail-card {
+      background: var(--surface-lighter);
+      border-radius: var(--radius-md);
+      padding: 8px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .modal-detail-row {
+      display: flex; gap: 8px; min-height: 24px; align-items: center;
+      font-size: 14px; letter-spacing: -0.14px; color: var(--ink-dark); line-height: 20px;
+    }
+    .modal-detail-key { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .modal-detail-val { flex: 1; }
+    .modal-footer {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 8px; padding: 16px 24px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 40px; padding: 0 20px;
+      border-radius: var(--radius-md);
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer;
+      border: none; transition: background 120ms;
+    }
+    .btn-cancel { background: none; color: var(--ink-darker); border: none; }
+    .btn-cancel:hover { background: var(--surface-lighter); }
+    .btn-secondary { background: none; color: var(--ink-darker); border: 1px solid var(--edge-primary); }
+    .btn-secondary:hover { background: var(--surface-lighter); }
+    .btn-primary { background: var(--brand-primary); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+
+    /* ─── Form fields (modal) ─── */
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .field-header { display: flex; align-items: center; gap: 8px; }
+    .field-label { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; line-height: 20px; }
+    .badge-optional {
+      display: inline-flex; align-items: center;
+      height: 20px; padding: 0 6px;
+      background: var(--surface-lighter); border: 1px solid var(--edge-primary);
+      border-radius: 4px; font-size: 12px; font-weight: 700;
+      color: var(--ink-dark); letter-spacing: -0.06px;
+    }
+    .modal-input {
+      height: 40px; padding: 0 16px; width: 100%;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); font-family: inherit;
+      font-size: 14px; font-weight: 400; color: var(--ink-darker);
+      letter-spacing: -0.14px; outline: none; display: block;
+    }
+    .modal-input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(40,116,193,0.12); }
+    .modal-input::placeholder { color: var(--ink-dark); }
+    /* single-select dropdown (Meridian trigger/popover pattern) */
+    .ss-wrap { position: relative; }
+    .ss-trigger {
+      display: flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 12px 0 16px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); cursor: pointer; user-select: none;
+    }
+    .ss-trigger.open,
+    .ss-trigger:focus-visible { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(40,116,193,0.12); outline: none; }
+    .ss-label { flex: 1; font-size: 14px; font-weight: 400; color: var(--ink-dark); letter-spacing: -0.14px; }
+    .ss-label.has-value { color: var(--ink-darker); }
+    .ss-clear {
+      display: none; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border: none; background: none;
+      border-radius: 4px; cursor: pointer; color: var(--ink-dark); flex-shrink: 0; padding: 0;
+    }
+    .ss-clear:hover { background: var(--surface-lighter); color: var(--ink-darker); }
+    .ss-clear.visible { display: flex; }
+    .ss-chevron { flex-shrink: 0; transition: transform 160ms; }
+    .ss-trigger.open .ss-chevron { transform: rotate(180deg); }
+    .ss-dropdown {
+      display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20;
+      background: #fff; border: 1px solid var(--edge-primary); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06); overflow: hidden;
+    }
+    .ss-dropdown.open { display: block; }
+    .ss-option {
+      display: flex; align-items: center;
+      height: 40px; padding: 0 16px; cursor: pointer;
+      font-size: 14px; font-weight: 400; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .ss-option:hover { background: var(--surface-lighter); }
+    .ss-option.selected { font-weight: 700; color: var(--ink-primary); }
+    /* date picker */
+    .dp-wrap { position: relative; }
+    .dp-trigger {
+      display: flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 12px 0 16px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); cursor: pointer; user-select: none;
+    }
+    .dp-trigger.open { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(40,116,193,0.12); }
+    .dp-value { flex: 1; font-size: 14px; color: var(--ink-dark); letter-spacing: -0.14px; }
+    .dp-value.has-date { color: var(--ink-darker); }
+    .dp-panel {
+      display: none; position: absolute; left: 0; top: calc(100% + 4px); z-index: 30;
+      background: #fff; border: 1px solid var(--edge-primary); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      padding: 16px; width: 272px;
+    }
+    .dp-panel.open { display: block; }
+    .dp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .dp-month-label { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .dp-nav {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border: none; background: none;
+      border-radius: var(--radius-md); cursor: pointer; color: var(--ink-darker); padding: 0;
+    }
+    .dp-nav:hover { background: var(--surface-lighter); }
+    .dp-daynames { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
+    .dp-dayname { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-dark); padding: 4px 0; letter-spacing: 0.04em; }
+    .dp-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+    .dp-day {
+      display: flex; align-items: center; justify-content: center;
+      height: 32px; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 400; color: var(--ink-primary);
+      cursor: pointer; border: none; background: none; font-family: inherit;
+    }
+    .dp-day:hover:not(.dp-other) { background: var(--surface-lighter); }
+    .dp-day.dp-other { color: var(--ink-light); cursor: default; }
+    .dp-day.dp-today { font-weight: 700; color: var(--brand-primary); }
+    .dp-day.dp-selected { background: var(--brand-primary) !important; color: #fff !important; font-weight: 700; }
+    .two-col { display: flex; gap: 24px; }
+    .two-col .form-field { flex: 1 1 0; min-width: 0; }
+    .currency-wrap {
+      display: flex; align-items: center; gap: 4px;
+      height: 40px; padding: 0 16px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+    }
+    .currency-wrap:focus-within { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(40,116,193,0.12); }
+    .currency-prefix { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; flex-shrink: 0; }
+    .currency-field {
+      flex: 1; border: none; outline: none;
+      font-family: inherit; font-size: 14px; font-weight: 400;
+      color: var(--ink-darker); letter-spacing: -0.14px; background: transparent;
+    }
+
+    /* ─── Calendar placeholder ─── */
+    .calendar-view {
+      display: none; height: 300px;
+      border: 1px dashed var(--edge-primary); border-radius: var(--radius-md);
+      align-items: center; justify-content: center;
+      font-size: 14px; color: var(--ink-dark);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Version Bar ─── -->
+<div class="version-bar">
+  <a class="back-to-library" href="../index.html">← Library</a>
+  <a class="version-tab" href="index.html">External</a>
+  <a class="version-tab active" href="internal.html">Internal</a>
+  <span style="width:1px;height:14px;background:rgba(255,255,255,0.2);margin:0 6px;"></span>
+  <a class="version-tab" href="figma.html">Figma</a>
+</div>
+
+<!-- ─── Global Header ─── -->
+<header class="global-header">
+  <div class="header-accent"></div>
+  <div class="header-row">
+    <div class="header-left">
+      <div class="kroger-logo">
+        <div class="logo-img" style="background-image: url('https://www.figma.com/api/mcp/asset/d440075d-b7d7-411a-9237-a94c7a8d050a.svg')"></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-icon-group">
+        <button class="icon-btn" title="Feedback">
+          <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/af7b8d7c-3893-48eb-94be-02e5bf11b1f7.svg')"></div>
+        </button>
+        <button class="icon-btn" title="Help">
+          <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/30005c0e-1062-4c91-805b-02931228f70a.svg')"></div>
+        </button>
+      </div>
+      <div class="user-trigger">
+        <span class="user-name">Firstname Lastname</span>
+        <span class="user-acct">Account</span>
+        <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/eb5403fc-47dc-46c2-8094-80b9451acb1f.svg')"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── Global Side Nav ─── -->
+<nav class="global-sidenav">
+  <div class="nav-icon" title="Home">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/9acd67ce-25f9-49c7-b6ff-d535c084f37b.svg')"></div>
+    </div>
+  </div>
+  <div class="nav-icon" title="Campaigns">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/57e56180-2cc5-4dc0-a972-928581659b4c.svg')"></div>
+    </div>
+  </div>
+  <div class="nav-icon" title="Audience">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/5ca2da54-0d7a-4456-ac8c-198a545e1678.svg')"></div>
+    </div>
+  </div>
+  <div class="nav-icon" title="Reports">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/7c30365f-fcc7-4379-a5b3-ed475de07bae.svg')"></div>
+    </div>
+  </div>
+  <div class="nav-icon" title="Creative">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/b7baf152-3b0d-45b0-9a4d-a748933e2999.svg')"></div>
+    </div>
+  </div>
+  <div class="nav-icon active" title="Inventory">
+    <div class="nav-icon-inner">
+      <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/2bb28138-32c7-41bc-b560-88f333c7061e.svg')"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Page title banner ─── -->
+<div class="page-banner">
+  <h1 class="page-title">Inventory</h1>
+</div>
+
+<!-- ─── Tertiary Nav ─── -->
+<nav class="tertiary-nav">
+  <div class="t-item">Email Module</div>
+  <div class="t-item">In-Store Digital Display</div>
+  <div class="t-item active">Premium Placements</div>
+  <div class="t-item">Push Notification</div>
+  <div class="t-item">Single Subject Email</div>
+  <div class="t-item">TDC</div>
+</nav>
+
+<!-- ─── Main Content ─── -->
+<main class="main">
+
+  <!-- <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Available slots</div>
+      <div class="stat-value">17</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Available slots</div>
+      <div class="stat-value">17</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Available slots</div>
+      <div class="stat-value">17</div>
+    </div>
+  </div> -->
+
+  <div class="tab-list">
+    <div class="tab active" data-tab="table">Table</div>
+    <div class="tab" data-tab="calendar">Calendar</div>
+  </div>
+
+  <div id="view-table">
+
+    <div class="toolbar-row">
+      <div class="search-wrap">
+        <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/96afa560-1e75-4296-8426-4720075f0734.svg')"></div>
+        <input id="search-input" type="text" placeholder="Search" />
+      </div>
+      <div class="toolbar-actions">
+        <button class="export-btn" title="Export">
+          <div class="mds-img" style="background-image: url('https://www.figma.com/api/mcp/asset/9779830d-2155-4fcf-b4ef-dd40cc00bdfd.svg')"></div>
+        </button>
+        <button class="add-inv-btn" id="add-inv-btn">Add Inventory</button>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="chip-group">
+
+        <div class="chip-wrap">
+          <button class="chip" id="chip-date" aria-haspopup="true">
+            <span class="chip-label">Date Range</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-date" hidden>
+            <div class="rdp" id="rdp">
+              <div class="rdp-header">
+                <button class="rdp-nav" id="rdp-prev" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="rdp-month" id="rdp-month"></span>
+                <button class="rdp-nav" id="rdp-next" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <div class="rdp-daynames">
+                <div class="rdp-dayname">Su</div><div class="rdp-dayname">Mo</div><div class="rdp-dayname">Tu</div>
+                <div class="rdp-dayname">We</div><div class="rdp-dayname">Th</div><div class="rdp-dayname">Fr</div><div class="rdp-dayname">Sa</div>
+              </div>
+              <div class="rdp-days" id="rdp-days"></div>
+            </div>
+            <div class="chip-dd-divider"></div>
+            <div class="chip-dd-footer"><button class="chip-dd-clear" id="date-clear">Clear</button></div>
+          </div>
+        </div>
+
+        <div class="chip-wrap">
+          <button class="chip" id="chip-inv" aria-haspopup="true">
+            <span class="chip-label">Inventory</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-inv" hidden></div>
+        </div>
+
+        <div class="chip-wrap">
+          <button class="chip" id="chip-status" aria-haspopup="true">
+            <span class="chip-label">Status</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-status" hidden></div>
+        </div>
+
+        <div class="chip-wrap">
+          <button class="chip" id="chip-account" aria-haspopup="true">
+            <span class="chip-label">Account</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-account" hidden></div>
+        </div>
+
+        <div class="chip-wrap">
+          <button class="chip" id="chip-brand" aria-haspopup="true">
+            <span class="chip-label">Brand</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-brand" hidden></div>
+        </div>
+
+        <button class="clear-filters-btn" id="clear-btn">Clear Filters</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-dates">Dates</th>
+          <th class="col-inv">Inventory</th>
+          <th class="col-focus">HOME Selling Focus</th>
+          <th class="col-theme">Seasonal Theme</th>
+          <th class="col-cost">Cost</th>
+          <th class="col-status">Status</th>
+          <th class="col-account">Account</th>
+          <th class="col-brand">Brand</th>
+          <th class="col-reqby">Requested By</th>
+          <th class="col-action"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr>
+          <td class="col-dates">12/16/26 – 12/22/26</td>
+          <td class="col-inv">Zone 1</td>
+          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-cost">$1M</td>
+          <td class="col-status" data-status="open"></td>
+          <td class="col-account">—</td>
+          <td class="col-brand">—</td>
+          <td class="col-reqby">—</td>
+          <td class="td-action col-action"></td>
+        </tr>
+        <tr>
+          <td class="col-dates">12/16/26 – 12/22/26</td>
+          <td class="col-inv">Zone 2</td>
+          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-cost">$500K</td>
+          <td class="col-status" data-status="requested"></td>
+          <td class="col-account">8451</td>
+          <td class="col-brand">Kroger Brand</td>
+          <td class="col-reqby">Joe Smith</td>
+          <td class="td-action col-action"><button class="review-btn" onclick="openReviewModal(this)">Review Request</button></td>
+        </tr>
+        <tr>
+          <td class="col-dates">12/16/26 – 12/22/26</td>
+          <td class="col-inv">Zone 3</td>
+          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-cost">$250K</td>
+          <td class="col-status" data-status="open"></td>
+          <td class="col-account">—</td>
+          <td class="col-brand">—</td>
+          <td class="col-reqby">—</td>
+          <td class="td-action col-action"></td>
+        </tr>
+        <tr>
+          <td class="col-dates">12/23/26 – 12/29/26</td>
+          <td class="col-inv">Zone 1</td>
+          <td class="col-focus">New Years Eve – Elevated Apps and adult bev (through 12/31)</td>
+          <td class="col-theme">New Years Eve, Winter Meals, Football Selling</td>
+          <td class="col-cost">$1M</td>
+          <td class="col-status" data-status="claimed"></td>
+          <td class="col-account">Pepsi Co.</td>
+          <td class="col-brand">Mountain Dew</td>
+          <td class="col-reqby">Kam Johnson</td>
+          <td class="td-action col-action"></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div id="view-calendar" class="calendar-view">Calendar view coming soon</div>
+
+</main>
+
+<!-- ─── Add Inventory Modal ─── -->
+<div class="modal-backdrop" id="add-inv-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="add-inv-title">
+    <div class="modal-header">
+      <h2 class="modal-title" id="add-inv-title">Add Inventory</h2>
+      <button class="modal-close" data-close="add-inv-modal" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-field">
+        <label class="field-label">Inventory</label>
+        <div class="ss-wrap" id="zone-wrap">
+          <div class="ss-trigger" id="zone-trigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false">
+            <span class="ss-label" id="zone-label">Select a Zone</span>
+            <button class="ss-clear" id="zone-clear" aria-label="Clear selection" tabindex="-1">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <div class="mds-img ss-chevron" style="width:16px;height:16px;background-image:url('https://www.figma.com/api/mcp/asset/8e30ab92-7f8e-4077-899b-61d64cebb10e.svg')"></div>
+          </div>
+          <div class="ss-dropdown" id="zone-dropdown" role="listbox">
+            <div class="ss-option" data-value="Zone 1" role="option">Zone 1</div>
+            <div class="ss-option" data-value="Zone 2" role="option">Zone 2</div>
+            <div class="ss-option" data-value="Zone 3" role="option">Zone 3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">HOME Selling Focus</label>
+        <input class="modal-input" id="inv-focus" type="text" />
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Seasonal Theme</label>
+        <input class="modal-input" id="inv-theme" type="text" />
+      </div>
+
+      <div class="two-col">
+        <div class="form-field">
+          <label class="field-label">Start Date</label>
+          <div class="dp-wrap" id="start-wrap">
+            <div class="dp-trigger" id="start-trigger" tabindex="0">
+              <span class="dp-value" id="start-value">MM/DD/YYYY</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;color:var(--ink-dark)">
+                <rect x="1.5" y="3" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M1.5 7h13" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M5 1.5V4.5M11 1.5V4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="dp-panel" id="start-panel">
+              <div class="dp-header">
+                <button class="dp-nav dp-prev" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="dp-month-label"></span>
+                <button class="dp-nav dp-next" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <div class="dp-daynames">
+                <span class="dp-dayname">Su</span><span class="dp-dayname">Mo</span><span class="dp-dayname">Tu</span>
+                <span class="dp-dayname">We</span><span class="dp-dayname">Th</span><span class="dp-dayname">Fr</span><span class="dp-dayname">Sa</span>
+              </div>
+              <div class="dp-days"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-field">
+          <div class="field-header">
+            <label class="field-label">End Date</label>
+            <span class="badge-optional">Optional</span>
+          </div>
+          <div class="dp-wrap" id="end-wrap">
+            <div class="dp-trigger" id="end-trigger" tabindex="0">
+              <span class="dp-value" id="end-value">MM/DD/YYYY</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;color:var(--ink-dark)">
+                <rect x="1.5" y="3" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M1.5 7h13" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M5 1.5V4.5M11 1.5V4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="dp-panel" id="end-panel">
+              <div class="dp-header">
+                <button class="dp-nav dp-prev" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="dp-month-label"></span>
+                <button class="dp-nav dp-next" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+              <div class="dp-daynames">
+                <span class="dp-dayname">Su</span><span class="dp-dayname">Mo</span><span class="dp-dayname">Tu</span>
+                <span class="dp-dayname">We</span><span class="dp-dayname">Th</span><span class="dp-dayname">Fr</span><span class="dp-dayname">Sa</span>
+              </div>
+              <div class="dp-days"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Cost</label>
+        <div class="currency-wrap">
+          <span class="currency-prefix">$</span>
+          <input class="currency-field" id="inv-cost" type="text" />
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" data-close="add-inv-modal">Cancel</button>
+      <button class="btn btn-primary" id="add-inv-done">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Review Request Modal ─── -->
+<div class="modal-backdrop" id="review-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <div class="modal-header">
+      <h2 class="modal-title" id="review-title">Confirm Request</h2>
+      <button class="modal-close" data-close="review-modal" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info">
+        <p class="modal-info-line"><strong>Brand:</strong> <span id="rm-brand"></span></p>
+        <p class="modal-info-line"><strong>Account:</strong> <span id="rm-account"></span></p>
+        <p class="modal-info-line"><strong>Requested By:</strong> <span id="rm-reqby"></span></p>
+      </div>
+      <div class="modal-detail-card">
+        <div class="modal-detail-row">
+          <span class="modal-detail-key">Dates</span>
+          <span class="modal-detail-val" id="rm-dates"></span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-key">Inventory</span>
+          <span class="modal-detail-val" id="rm-inv"></span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-key">HOME Selling Focus</span>
+          <span class="modal-detail-val" id="rm-focus"></span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-key">Cost</span>
+          <span class="modal-detail-val" id="rm-cost"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="review-deny">Deny</button>
+      <button class="btn btn-primary" id="review-approve">Approve</button>
+    </div>
+  </div>
+</div>
+
+<mds-toast-group></mds-toast-group>
+
+<script>
+  /* ── Status light ── */
+  const STATUS = {
+    open:      { dot: 'open',      label: 'Open' },
+    requested: { dot: 'requested', label: 'Requested' },
+    claimed:   { dot: 'claimed',   label: 'Claimed' },
+  };
+  function statusLight(key) {
+    const s = STATUS[key];
+    return `<span class="status-light"><span class="s-dot ${s.dot}"></span>${s.label}</span>`;
+  }
+  document.querySelectorAll('[data-status]').forEach(td => {
+    td.innerHTML = statusLight(td.dataset.status);
+  });
+
+  /* ── Tabs ── */
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const isTable = t.dataset.tab === 'table';
+      document.getElementById('view-table').style.display = isTable ? '' : 'none';
+      document.getElementById('view-calendar').style.display = isTable ? 'none' : 'flex';
+    });
+  });
+
+  /* ── Tertiary nav ── */
+  document.querySelectorAll('.t-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.t-item').forEach(x => x.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  /* ── Modal helpers ── */
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', () => closeModal(el.dataset.close));
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', function(e) {
+      if (e.target === this) closeModal(this.id);
+    });
+  });
+
+  document.getElementById('add-inv-btn').addEventListener('click', () => openModal('add-inv-modal'));
+  let _reviewRow = null;
+
+  function openReviewModal(btn) {
+    _reviewRow = btn.closest('tr');
+    document.getElementById('rm-brand').textContent   = _reviewRow.querySelector('.col-brand').textContent.trim();
+    document.getElementById('rm-account').textContent = _reviewRow.querySelector('.col-account').textContent.trim();
+    document.getElementById('rm-reqby').textContent   = _reviewRow.querySelector('.col-reqby').textContent.trim();
+    document.getElementById('rm-dates').textContent   = _reviewRow.querySelector('.col-dates').textContent.trim();
+    document.getElementById('rm-inv').textContent     = _reviewRow.querySelector('.col-inv').textContent.trim();
+    document.getElementById('rm-focus').textContent   = _reviewRow.querySelector('.col-focus').textContent.trim();
+    document.getElementById('rm-cost').textContent    = _reviewRow.querySelector('.col-cost').textContent.trim();
+    openModal('review-modal');
+  }
+
+  function showToast(msg) {
+    const tg = document.querySelector('mds-toast-group');
+    if (!tg) return;
+    if (tg.shadowRoot && !tg._stylePatched) {
+      const s = document.createElement('style');
+      s.textContent = '.mds-toast-group { inset: 120px 24px auto auto !important; }';
+      tg.shadowRoot.appendChild(s);
+      tg._stylePatched = true;
+    }
+    tg['private_addToast'](msg, 'success', 'req-' + Date.now(), undefined, true);
+  }
+
+  document.getElementById('review-deny').addEventListener('click', () => {
+    if (_reviewRow) {
+      const statusCell = _reviewRow.querySelector('.col-status');
+      statusCell.dataset.status = 'open';
+      statusCell.innerHTML = statusLight('open');
+      _reviewRow.querySelector('.col-account').textContent = '—';
+      _reviewRow.querySelector('.col-brand').textContent   = '—';
+      _reviewRow.querySelector('.col-reqby').textContent   = '—';
+      _reviewRow.querySelector('.td-action').innerHTML = '';
+    }
+    closeModal('review-modal');
+    showToast('Email successfully sent.');
+  });
+
+  document.getElementById('review-approve').addEventListener('click', () => {
+    closeModal('review-modal');
+    showToast('Email successfully sent.');
+  });
+
+  /* ── Zone single-select ── */
+  (function() {
+    const wrap     = document.getElementById('zone-wrap');
+    const trigger  = document.getElementById('zone-trigger');
+    const dropdown = document.getElementById('zone-dropdown');
+    const label    = document.getElementById('zone-label');
+    const clearBtn = document.getElementById('zone-clear');
+
+    function setOpen(open) {
+      dropdown.classList.toggle('open', open);
+      trigger.classList.toggle('open', open);
+      trigger.setAttribute('aria-expanded', open);
+    }
+
+    function selectValue(val) {
+      label.textContent = val || 'Select a Zone';
+      label.classList.toggle('has-value', !!val);
+      clearBtn.classList.toggle('visible', !!val);
+      document.querySelectorAll('.ss-option').forEach(o => {
+        o.classList.toggle('selected', o.dataset.value === val);
+      });
+      setOpen(false);
+    }
+
+    trigger.addEventListener('click', e => {
+      if (e.target === clearBtn || clearBtn.contains(e.target)) return;
+      e.stopPropagation();
+      setOpen(!dropdown.classList.contains('open'));
+    });
+
+    clearBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      selectValue('');
+    });
+
+    document.querySelectorAll('.ss-option').forEach(opt => {
+      opt.addEventListener('click', () => selectValue(opt.dataset.value));
+    });
+
+    document.addEventListener('click', e => {
+      if (!wrap.contains(e.target)) setOpen(false);
+    });
+  })();
+
+  /* ── Date pickers ── */
+  function makeDatePicker(wrapId, triggerId, panelId, valueId) {
+    const wrap    = document.getElementById(wrapId);
+    const trigger = document.getElementById(triggerId);
+    const panel   = document.getElementById(panelId);
+    const valueEl = document.getElementById(valueId);
+    let view = new Date(), selected = null;
+
+    function fmt(d) { return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`; }
+
+    function render() {
+      const y = view.getFullYear(), m = view.getMonth();
+      panel.querySelector('.dp-month-label').textContent =
+        view.toLocaleString('default', { month: 'long', year: 'numeric' });
+      const grid = panel.querySelector('.dp-days');
+      grid.innerHTML = '';
+      const firstDow = new Date(y, m, 1).getDay();
+      const daysInMonth = new Date(y, m+1, 0).getDate();
+      const prevDays = new Date(y, m, 0).getDate();
+      const today = new Date();
+      for (let i = firstDow-1; i >= 0; i--) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'dp-day dp-other';
+        b.textContent = prevDays - i; grid.appendChild(b);
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'dp-day';
+        b.textContent = d;
+        const dt = new Date(y, m, d);
+        if (today.toDateString() === dt.toDateString()) b.classList.add('dp-today');
+        if (selected && selected.toDateString() === dt.toDateString()) b.classList.add('dp-selected');
+        b.addEventListener('click', () => {
+          selected = dt;
+          valueEl.textContent = fmt(dt);
+          valueEl.classList.add('has-date');
+          setOpen(false); render();
+        });
+        grid.appendChild(b);
+      }
+      const filled = firstDow + daysInMonth;
+      const tail = filled % 7 === 0 ? 0 : 7 - (filled % 7);
+      for (let d = 1; d <= tail; d++) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'dp-day dp-other';
+        b.textContent = d; grid.appendChild(b);
+      }
+    }
+
+    function setOpen(open) {
+      panel.classList.toggle('open', open);
+      trigger.classList.toggle('open', open);
+      if (open) { document.querySelectorAll('.dp-panel.open').forEach(p => { if (p !== panel) p.classList.remove('open'); }); render(); }
+    }
+
+    trigger.addEventListener('click', e => { e.stopPropagation(); setOpen(!panel.classList.contains('open')); });
+    panel.querySelector('.dp-prev').addEventListener('click', e => { e.stopPropagation(); view = new Date(view.getFullYear(), view.getMonth()-1, 1); render(); });
+    panel.querySelector('.dp-next').addEventListener('click', e => { e.stopPropagation(); view = new Date(view.getFullYear(), view.getMonth()+1, 1); render(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) setOpen(false); });
+  }
+
+  makeDatePicker('start-wrap','start-trigger','start-panel','start-value');
+  makeDatePicker('end-wrap','end-trigger','end-panel','end-value');
+
+  /* ── Add Inventory — Done ── */
+  document.getElementById('add-inv-done').addEventListener('click', function() {
+    const zoneLabel = document.getElementById('zone-label');
+    const startEl   = document.getElementById('start-value');
+    const endEl     = document.getElementById('end-value');
+
+    const zone  = zoneLabel.classList.contains('has-value') ? zoneLabel.textContent : '—';
+    const focus = document.getElementById('inv-focus').value.trim() || '—';
+    const theme = document.getElementById('inv-theme').value.trim() || '—';
+    const start = startEl.classList.contains('has-date') ? startEl.textContent : '';
+    const end   = endEl.classList.contains('has-date')   ? endEl.textContent   : '';
+    const dates = start && end ? `${start} – ${end}` : start || '—';
+    const rawCost = document.getElementById('inv-cost').value.trim();
+    const cost  = rawCost ? `$${rawCost}` : '—';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-dates">${dates}</td>
+      <td class="col-inv">${zone}</td>
+      <td class="col-focus">${focus}</td>
+      <td class="col-theme">${theme}</td>
+      <td class="col-cost">${cost}</td>
+      <td class="col-status"></td>
+      <td class="col-account">—</td>
+      <td class="col-brand">—</td>
+      <td class="col-reqby">—</td>
+      <td class="td-action col-action"></td>
+    `;
+    tr.querySelector('.col-status').innerHTML = statusLight('open');
+    document.getElementById('tbody').appendChild(tr);
+
+    /* reset form */
+    zoneLabel.textContent = 'Select a Zone';
+    zoneLabel.classList.remove('has-value');
+    document.getElementById('zone-clear').classList.remove('visible');
+    document.querySelectorAll('.ss-option').forEach(o => o.classList.remove('selected'));
+    document.getElementById('inv-focus').value = '';
+    document.getElementById('inv-theme').value = '';
+    startEl.textContent = 'MM/DD/YYYY'; startEl.classList.remove('has-date');
+    endEl.textContent   = 'MM/DD/YYYY'; endEl.classList.remove('has-date');
+    document.getElementById('inv-cost').value = '';
+
+    closeModal('add-inv-modal');
+  });
+
+  /* ── Filter chips ── */
+  let rdpStart = null, rdpEnd = null, rdpView = new Date(), rdpHover = null;
+  const isSameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
+
+  function rdpEffRange() {
+    let s = rdpStart, e = rdpEnd;
+    if (s && !e && rdpHover) {
+      if (rdpHover > s) e = rdpHover;
+      else if (rdpHover < s) { s = rdpHover; e = rdpStart; }
+    }
+    return [s, e];
+  }
+
+  function rdpUpdateClasses() {
+    const [effS, effE] = rdpEffRange();
+    document.querySelectorAll('#rdp-days .rdp-day').forEach(div => {
+      if (div.classList.contains('other-month')) return;
+      const date = new Date(div.dataset.date);
+      div.classList.toggle('range-start', isSameDay(date, effS));
+      div.classList.toggle('range-end',   isSameDay(date, effE));
+      div.classList.toggle('in-range',    !!(effS && effE && date > effS && date < effE));
+    });
+  }
+
+  function rdpRebuild() {
+    const y = rdpView.getFullYear(), m = rdpView.getMonth();
+    document.getElementById('rdp-month').textContent =
+      rdpView.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const grid = document.getElementById('rdp-days');
+    grid.innerHTML = '';
+    const today = new Date();
+    const firstDow = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const prevDays = new Date(y, m, 0).getDate();
+
+    const makeDay = (date, isOther) => {
+      const div = document.createElement('div');
+      div.className = 'rdp-day' + (isOther ? ' other-month' : '');
+      div.dataset.date = date.toISOString();
+      const inner = document.createElement('div');
+      inner.className = 'rdp-day-inner';
+      inner.textContent = date.getDate();
+      if (!isOther && isSameDay(date, today)) div.classList.add('today');
+      div.appendChild(inner);
+      return div;
+    };
+
+    for (let i = firstDow - 1; i >= 0; i--) grid.appendChild(makeDay(new Date(y, m-1, prevDays - i), true));
+    for (let d = 1; d <= daysInMonth; d++) grid.appendChild(makeDay(new Date(y, m, d), false));
+    const filled = firstDow + daysInMonth;
+    const tail = filled % 7 === 0 ? 0 : 7 - (filled % 7);
+    for (let d = 1; d <= tail; d++) grid.appendChild(makeDay(new Date(y, m+1, d), true));
+    rdpUpdateClasses();
+  }
+
+  document.getElementById('rdp-prev').addEventListener('click', e => { e.stopPropagation(); rdpView = new Date(rdpView.getFullYear(), rdpView.getMonth()-1, 1); rdpRebuild(); });
+  document.getElementById('rdp-next').addEventListener('click', e => { e.stopPropagation(); rdpView = new Date(rdpView.getFullYear(), rdpView.getMonth()+1, 1); rdpRebuild(); });
+
+  const rdpGrid = document.getElementById('rdp-days');
+  rdpGrid.addEventListener('mouseover', e => {
+    const day = e.target.closest('.rdp-day:not(.other-month)');
+    const newHover = day ? new Date(day.dataset.date) : null;
+    if (isSameDay(newHover, rdpHover)) return;
+    rdpHover = newHover;
+    rdpUpdateClasses();
+  });
+  document.getElementById('rdp').addEventListener('mouseleave', () => {
+    if (!rdpHover) return;
+    rdpHover = null; rdpUpdateClasses();
+  });
+
+  rdpGrid.addEventListener('click', e => {
+    const day = e.target.closest('.rdp-day:not(.other-month)');
+    if (!day) return;
+    const date = new Date(day.dataset.date);
+    if (!rdpStart || (rdpStart && rdpEnd)) {
+      rdpStart = date; rdpEnd = null;
+    } else {
+      if (date < rdpStart) { rdpEnd = new Date(rdpStart); rdpStart = date; }
+      else if (isSameDay(date, rdpStart)) { rdpStart = null; }
+      else { rdpEnd = date; }
+    }
+    applyFilters(); rdpUpdateClasses();
+  });
+
+  rdpRebuild();
+
+  const invFilter     = new Set();
+  const statusFilter  = new Set();
+  const accountFilter = new Set();
+  const brandFilter   = new Set();
+
+  const ALL_INV     = ['Zone 1', 'Zone 2', 'Zone 3'];
+  const ALL_STATUS  = ['open', 'requested', 'claimed'];
+  const ALL_ACCOUNT = ['Kroger Co.', '8451', 'Pepsi Co.'];
+  const ALL_BRAND   = ['Simple Truth', 'Kroger Brand', 'Private Selection', 'Mountain Dew'];
+  const STATUS_LABELS = { open: 'Open', requested: 'Requested', claimed: 'Claimed' };
+
+  function parseMDYY(str) {
+    const [m, d, y] = str.trim().split('/').map(Number);
+    return new Date(2000 + y, m - 1, d);
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const fStart = rdpStart ? new Date(rdpStart.getFullYear(), rdpStart.getMonth(), rdpStart.getDate()) : null;
+    const fEnd   = rdpEnd   ? new Date(rdpEnd.getFullYear(),   rdpEnd.getMonth(),   rdpEnd.getDate())   : null;
+
+    document.querySelectorAll('#tbody tr').forEach(row => {
+      if (q && !row.textContent.toLowerCase().includes(q)) { row.style.display = 'none'; return; }
+      if (fStart || fEnd) {
+        const parts = (row.querySelector('.col-dates')?.textContent.trim() || '').split('–');
+        if (parts.length === 2) {
+          const rs = parseMDYY(parts[0]), re = parseMDYY(parts[1]);
+          if (fStart && re < fStart) { row.style.display = 'none'; return; }
+          if (fEnd   && rs > fEnd)   { row.style.display = 'none'; return; }
+        }
+      }
+      if (invFilter.size > 0 && !invFilter.has(row.querySelector('.col-inv')?.textContent.trim())) { row.style.display = 'none'; return; }
+      if (statusFilter.size > 0 && !statusFilter.has(row.querySelector('.col-status')?.dataset.status)) { row.style.display = 'none'; return; }
+      if (accountFilter.size > 0 && !accountFilter.has(row.querySelector('.col-account')?.textContent.trim())) { row.style.display = 'none'; return; }
+      if (brandFilter.size > 0 && !brandFilter.has(row.querySelector('.col-brand')?.textContent.trim())) { row.style.display = 'none'; return; }
+      row.style.display = '';
+    });
+
+    updateChipStates();
+  }
+
+  function updateChipDisplay(chipId, filterSet, allItems, labelFn) {
+    const chip = document.getElementById(chipId);
+    const has = filterSet.size > 0;
+    chip.classList.toggle('has-selection', has);
+    const sep = chip.querySelector('.chip-sep'), val = chip.querySelector('.chip-value');
+    const close = chip.querySelector('.chip-close'), chev = chip.querySelector('.chip-chevron');
+    if (has) {
+      const ordered = allItems.filter(i => filterSet.has(i));
+      const extra = ordered.length - 1;
+      val.textContent = extra > 0 ? `${labelFn(ordered[0])} +${extra}` : labelFn(ordered[0]);
+      sep.removeAttribute('hidden'); val.removeAttribute('hidden'); close.removeAttribute('hidden');
+      chev.setAttribute('hidden', '');
+    } else {
+      sep.setAttribute('hidden', ''); val.setAttribute('hidden', ''); close.setAttribute('hidden', '');
+      chev.removeAttribute('hidden');
+    }
+  }
+
+  function updateDateChipDisplay() {
+    const chip = document.getElementById('chip-date');
+    const has = !!rdpStart;
+    chip.classList.toggle('has-selection', has);
+    const sep = chip.querySelector('.chip-sep'), val = chip.querySelector('.chip-value');
+    const close = chip.querySelector('.chip-close'), chev = chip.querySelector('.chip-chevron');
+    if (has) {
+      const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+      val.textContent = rdpEnd ? `${fmt(rdpStart)} – ${fmt(rdpEnd)}` : `From ${fmt(rdpStart)}`;
+      sep.removeAttribute('hidden'); val.removeAttribute('hidden'); close.removeAttribute('hidden');
+      chev.setAttribute('hidden', '');
+    } else {
+      sep.setAttribute('hidden', ''); val.setAttribute('hidden', ''); close.setAttribute('hidden', '');
+      chev.removeAttribute('hidden');
+    }
+  }
+
+  function updateChipStates() {
+    updateDateChipDisplay();
+    updateChipDisplay('chip-inv',     invFilter,     ALL_INV,     v => v);
+    updateChipDisplay('chip-status',  statusFilter,  ALL_STATUS,  v => STATUS_LABELS[v]);
+    updateChipDisplay('chip-account', accountFilter, ALL_ACCOUNT, v => v);
+    updateChipDisplay('chip-brand',   brandFilter,   ALL_BRAND,   v => v);
+    const any = invFilter.size > 0 || statusFilter.size > 0 || accountFilter.size > 0 || brandFilter.size > 0 || rdpStart;
+    document.getElementById('clear-btn').classList.toggle('active', !!any);
+  }
+
+  function closeAllDropdowns() {
+    document.querySelectorAll('.chip-dropdown').forEach(d => d.setAttribute('hidden', ''));
+    document.querySelectorAll('.chip').forEach(c => c.removeAttribute('aria-expanded'));
+  }
+
+  function makeCheckboxDropdown(items, filterSet, labelFn, ddId) {
+    const dd = document.getElementById(ddId);
+    items.forEach(item => {
+      const lbl = document.createElement('label');
+      lbl.className = 'chip-dd-item';
+      lbl.innerHTML = `<input type="checkbox"><div class="chip-mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span>${labelFn(item)}</span>`;
+      const cb = lbl.querySelector('input');
+      lbl.addEventListener('mousedown', e => e.stopPropagation());
+      cb.addEventListener('change', () => { if (cb.checked) filterSet.add(item); else filterSet.delete(item); applyFilters(); });
+      dd.appendChild(lbl);
+    });
+    const div = document.createElement('div'); div.className = 'chip-dd-divider'; dd.appendChild(div);
+    const footer = document.createElement('div'); footer.className = 'chip-dd-footer';
+    const clearBtn = document.createElement('button'); clearBtn.className = 'chip-dd-clear'; clearBtn.textContent = 'Clear All';
+    clearBtn.addEventListener('mousedown', e => e.stopPropagation());
+    clearBtn.addEventListener('click', () => { filterSet.clear(); dd.querySelectorAll('input').forEach(c => c.checked = false); applyFilters(); });
+    footer.appendChild(clearBtn); dd.appendChild(footer);
+  }
+
+  makeCheckboxDropdown(ALL_INV,     invFilter,     v => v,                'dd-inv');
+  makeCheckboxDropdown(ALL_STATUS,  statusFilter,  v => STATUS_LABELS[v], 'dd-status');
+  makeCheckboxDropdown(ALL_ACCOUNT, accountFilter, v => v,                'dd-account');
+  makeCheckboxDropdown(ALL_BRAND,   brandFilter,   v => v,                'dd-brand');
+
+  const CHIP_IDS = ['chip-date', 'chip-inv', 'chip-status', 'chip-account', 'chip-brand'];
+  CHIP_IDS.forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      const chipEl = document.getElementById(id);
+      const ddId = id.replace('chip-', 'dd-');
+      const dd = document.getElementById(ddId);
+      if (e.target.closest('.chip-close')) {
+        if (id === 'chip-date') {
+          rdpStart = null; rdpEnd = null; rdpRebuild();
+        } else {
+          const map = { 'chip-inv': invFilter, 'chip-status': statusFilter, 'chip-account': accountFilter, 'chip-brand': brandFilter };
+          map[id].clear();
+          dd.querySelectorAll('input').forEach(c => c.checked = false);
+        }
+        applyFilters(); return;
+      }
+      const isOpen = !dd.hasAttribute('hidden');
+      closeAllDropdowns();
+      if (!isOpen) { dd.removeAttribute('hidden'); chipEl.setAttribute('aria-expanded', 'true'); }
+    });
+  });
+
+  document.getElementById('date-clear').addEventListener('mousedown', e => e.stopPropagation());
+  document.getElementById('date-clear').addEventListener('click', () => {
+    rdpStart = null; rdpEnd = null; rdpRebuild(); applyFilters();
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.chip-wrap')) closeAllDropdowns();
+  });
+
+  document.getElementById('search-input').addEventListener('input', applyFilters);
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    rdpStart = null; rdpEnd = null; rdpRebuild();
+    invFilter.clear(); statusFilter.clear(); accountFilter.clear(); brandFilter.clear();
+    document.querySelectorAll('.chip-dropdown input').forEach(c => c.checked = false);
+    applyFilters();
+  });
+
+  // ── Export CSV ──
+  document.querySelector('.export-btn').addEventListener('click', () => {
+    const headers = [...document.querySelectorAll('.data-table thead th')]
+      .map(th => th.textContent.trim())
+      .filter(t => t);
+
+    const expandYear = s => { const [m, d, y] = s.trim().split('/').map(Number); return `${m}/${d}/${2000 + y}`; };
+
+    const rows = [...document.querySelectorAll('#tbody tr')].map(row => {
+      return [...row.querySelectorAll('td')]
+        .filter(td => !td.classList.contains('td-action'))
+        .map(td => {
+          let text;
+          if (td.classList.contains('col-dates')) {
+            const parts = td.textContent.trim().split('–');
+            text = parts.length === 2
+              ? `${expandYear(parts[0])} – ${expandYear(parts[1])}`
+              : td.textContent.trim();
+          } else {
+            const label = td.querySelector('.status-light');
+            text = label ? label.textContent.trim() : td.textContent.trim();
+          }
+          return `"${text.replace(/"/g, '""')}"`;
+        }).join(',');
+    });
+
+    const csv = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'inventory-internal.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
+</body>
+</html>

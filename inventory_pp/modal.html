@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Inventory — Modal</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand-primary: #2874c1;
+      --brand-dark:    #0f52a2;
+      --ink-primary:   #20203c;
+      --ink-darker:    #535665;
+      --ink-dark:      #888b9a;
+      --ink-light:     #b8bec6;
+      --surface-primary: #fff;
+      --surface-lighter: #f8f9fa;
+      --edge-lighter:  #e7eaee;
+      --edge-primary:  #d1d5db;
+      --edge-dark:     #c7cad1;
+      --radius-md: 8px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+      font-size: 14px;
+      color: var(--ink-primary);
+      background: #eff2f5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Backdrop ── */
+    .backdrop {
+      position: fixed; inset: 0;
+      background: rgba(33, 35, 44, 0.32);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Modal ── */
+    .modal {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      width: 528px;
+      box-shadow:
+        0 2px 4px rgba(33, 35, 44, 0.08),
+        0 2px 4px rgba(33, 35, 44, 0.04),
+        0 8px 24px rgba(33, 35, 44, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 24px 24px 20px;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 28px;
+      color: var(--ink-primary);
+    }
+    .close-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border: none; background: none; cursor: pointer;
+      border-radius: var(--radius-md);
+      color: var(--ink-darker);
+      flex-shrink: 0;
+    }
+    .close-btn:hover { background: var(--surface-lighter); }
+    .close-btn svg { display: block; }
+
+    /* ── Body ── */
+    .modal-body {
+      padding: 0 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Placeholder slot */
+    .slot-placeholder {
+      border: 1px dashed var(--edge-primary);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .slot-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink-dark);
+      letter-spacing: -0.14px;
+      line-height: 20px;
+    }
+    .slot-desc {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--ink-dark);
+      letter-spacing: -0.14px;
+      line-height: 20px;
+    }
+
+    /* ── Footer ── */
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 16px 24px;
+      /* border-top: 1px solid var(--edge-lighter); */
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 40px; padding: 0 20px;
+      border-radius: var(--radius-md);
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer;
+      border: none; transition: background 120ms;
+    }
+    .btn-cancel {
+      background: none;
+      color: var(--ink-darker);
+      border: 1px solid var(--edge-primary);
+    }
+    .btn-cancel:hover { background: var(--surface-lighter); }
+    .btn-request {
+      background: var(--brand-primary);
+      color: #fff;
+    }
+    .btn-request:hover { background: var(--brand-dark); }
+  </style>
+</head>
+<body>
+
+<div class="backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Request Inventory</h2>
+      <button class="close-btn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="slot-placeholder">
+        <span class="slot-label">Replace me</span>
+        <span class="slot-desc">I'm a larger slot that you can swap out components a lot more easily. Or just delete me.</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-cancel">Cancel</button>
+      <button class="btn btn-request">Request</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

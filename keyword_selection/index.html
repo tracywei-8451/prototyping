@@ -174,10 +174,28 @@
     border:1px solid var(--c-edge-light);
     border-radius: var(--r-md);
     box-shadow: 0 8px 24px rgba(32,32,60,0.12), 0 2px 6px rgba(32,32,60,0.06);
-    padding: var(--s-xs) 0;
     z-index: 5;
+    display: flex; flex-direction: column;
+    overflow: hidden;
   }
   .popover[hidden] { display:none; }
+  .popover-items {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--s-xs) 0;
+  }
+  .popover-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--c-edge-lighter);
+    padding: var(--s-sm) var(--s-md);
+    display: flex; justify-content: flex-end;
+  }
+  .btn-clear-all {
+    color: var(--c-accent-primary); font-weight:600;
+    font-size:14px; line-height:20px;
+    padding: 0;
+  }
+  .btn-clear-all:disabled { color: var(--c-ink-light); cursor:default; }
   .popover-item {
     display:flex; align-items:center; gap: var(--s-sm);
     padding: var(--s-sm) var(--s-md);
@@ -204,18 +222,7 @@
     border-color: var(--c-accent-primary);
   }
   .popover-item input[type="checkbox"]:checked + .mds-check svg { display:block; }
-  .popover-item .mds-check-indeterminate {
-    background: var(--c-accent-primary);
-    border-color: var(--c-accent-primary);
-  }
-  .popover-item .mds-check-indeterminate::after {
-    content:''; display:block; width:8px; height:2px; background:#fff; border-radius:1px;
-  }
   .popover-item .label { font-size:14px; line-height:20px; }
-  .popover-divider {
-    height:1px; background: var(--c-edge-lighter);
-    margin: var(--s-xs) 0;
-  }
   .clear-filters {
     margin-left:auto;
     color: var(--c-ink-light);
@@ -270,7 +277,7 @@
   .add-link {
     color: var(--c-accent-primary); font-weight:600;
   }
-  .add-link:hover:not(:disabled) { color: var(--c-accent-dark); text-decoration:underline; }
+  .add-link:hover:not(:disabled) { color: var(--c-accent-dark); }
   .add-link:disabled {
     color: var(--c-ink-light); cursor:default; text-decoration:none;
   }
@@ -790,7 +797,7 @@
     query: '',
     page: 1,
     pageSize: 10,
-    selectedIds: new Set(),       // ids from catalog
+    selectedIds: new Map(),       // id -> {bid, matchType}
     selectedCustom: new Map(),    // keyword(lowercased) -> displayKeyword (for entries not in catalog)
     strategyFilters: new Set(),   // checked strategy values; empty = no filter
     strategyOpen: false,
@@ -859,26 +866,21 @@
     const pop = $('#strategy-popover');
     pop.hidden = !state.strategyOpen;
     if (!state.strategyOpen) return;
-    const allChecked = STRATEGY_FILTERS.every(v => state.strategyFilters.has(v));
-    const someChecked = state.strategyFilters.size > 0 && !allChecked;
     pop.innerHTML = `
-      <label class="popover-item" data-action="toggle-all">
-        <input type="checkbox" ${allChecked ? 'checked' : ''} />
-        <span class="mds-check ${someChecked ? 'mds-check-indeterminate' : ''}">
-          ${someChecked ? '' : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5l2.5 2.5 4.5-5"/></svg>`}
-        </span>
-        <span class="label">Select All</span>
-      </label>
-      <div class="popover-divider"></div>
-      ${STRATEGY_FILTERS.map(v => `
-        <label class="popover-item" data-action="toggle" data-value="${escapeHtml(v)}">
-          <input type="checkbox" ${state.strategyFilters.has(v) ? 'checked' : ''} />
-          <span class="mds-check">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5l2.5 2.5 4.5-5"/></svg>
-          </span>
-          <span class="label">${escapeHtml(v)}</span>
-        </label>
-      `).join('')}
+      <div class="popover-items">
+        ${STRATEGY_FILTERS.map(v => `
+          <label class="popover-item" data-action="toggle" data-value="${escapeHtml(v)}">
+            <input type="checkbox" ${state.strategyFilters.has(v) ? 'checked' : ''} />
+            <span class="mds-check">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5l2.5 2.5 4.5-5"/></svg>
+            </span>
+            <span class="label">${escapeHtml(v)}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div class="popover-footer">
+        <button class="btn-clear-all" data-action="clear-all" ${state.strategyFilters.size === 0 ? 'disabled' : ''}>Clear All</button>
+      </div>
     `;
   }
 
@@ -978,7 +980,7 @@
       return;
     }
 
-    const fromCatalog = [...state.selectedIds].map(id => ALL.find(k => k.id === id)).filter(Boolean);
+    const fromCatalog = [...state.selectedIds.keys()].map(id => ALL.find(k => k.id === id)).filter(Boolean);
     fromCatalog.sort((a,b) => a.rank - b.rank);
     const customList = [...state.selectedCustom.entries()].map(([k, v]) => ({
       display: v.display, customKey: k, matchType: v.matchType, bid: v.bid
@@ -1045,14 +1047,12 @@
     const item = e.target.closest('[data-action]');
     if (!item) return;
     e.preventDefault();
-    if (item.dataset.action === 'toggle-all') {
-      const allChecked = STRATEGY_FILTERS.every(v => state.strategyFilters.has(v));
-      if (allChecked) state.strategyFilters.clear();
-      else STRATEGY_FILTERS.forEach(v => state.strategyFilters.add(v));
-    } else if (item.dataset.action === 'toggle') {
+    if (item.dataset.action === 'toggle') {
       const v = item.dataset.value;
       if (state.strategyFilters.has(v)) state.strategyFilters.delete(v);
       else state.strategyFilters.add(v);
+    } else if (item.dataset.action === 'clear-all') {
+      state.strategyFilters.clear();
     }
     state.page = 1;
     renderStrategyChip(); renderStrategyPopover();
@@ -1087,7 +1087,7 @@
     const btn = e.target.closest('[data-action="add"]');
     if (!btn || btn.disabled) return;
     if (selectedTotal() >= MAX_SELECTED) return;
-    state.selectedIds.add(btn.dataset.id);
+    state.selectedIds.set(btn.dataset.id, { bid: null, matchType: null });
     renderTable(); renderSelected(); renderAddAll();
   });
 
@@ -1097,7 +1097,7 @@
     let capped = false;
     for (const kw of filtered()) {
       if (selectedTotal() >= MAX_SELECTED) { capped = true; break; }
-      state.selectedIds.add(kw.id);
+      state.selectedIds.set(kw.id, { bid: null, matchType: null });
     }
     renderTable(); renderSelected(); renderAddAll();
     if (capped) showToast(`Selection limit of ${MAX_SELECTED} reached`);
@@ -1173,20 +1173,81 @@
   const dropzone = $('#dropzone');
   const fileInput = $('#file-input');
 
+  function parseCSVRaw(text) {
+    const rows = [];
+    let row = [], cell = '', inQuote = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuote) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { cell += '"'; i++; }
+          else inQuote = false;
+        } else { cell += ch; }
+      } else if (ch === '"') {
+        inQuote = true;
+      } else if (ch === ',') {
+        row.push(cell.trim()); cell = '';
+      } else if (ch === '\n' || (ch === '\r' && text[i + 1] === '\n')) {
+        if (ch === '\r') i++;
+        row.push(cell.trim()); cell = '';
+        if (row.some(c => c)) rows.push(row);
+        row = [];
+      } else {
+        cell += ch;
+      }
+    }
+    row.push(cell.trim());
+    if (row.some(c => c)) rows.push(row);
+    return rows;
+  }
+
   async function ingestFile(file) {
     if (!file) return;
     let text = '';
-    try {
-      text = await file.text();
-    } catch { showToast('Could not read file'); return; }
-    // If it looks like CSV, take the first column of each row.
-    const lines = text.split(/\r?\n/).map(l => {
-      const i = l.indexOf(',');
-      return (i === -1 ? l : l.slice(0, i)).trim();
+    try { text = await file.text(); }
+    catch { showToast('Could not read file'); return; }
+
+    const rows = parseCSVRaw(text);
+    if (rows.length === 0) { showToast('File is empty'); return; }
+
+    // Detect header row by checking for known column names
+    const HEADER_ALIASES = {
+      keyword: ['keyword', 'keywords', 'kw'],
+      matchType: ['match type', 'match_type', 'matchtype', 'type'],
+      bid: ['bid amount', 'bid_amount', 'bid', 'amount'],
+    };
+    const firstLower = rows[0].map(c => c.toLowerCase());
+    const hasHeader = firstLower.some(c =>
+      [...HEADER_ALIASES.keyword, ...HEADER_ALIASES.matchType, ...HEADER_ALIASES.bid].includes(c)
+    );
+
+    let kwIdx = 0, mtIdx = 1, bidIdx = 2;
+    if (hasHeader) {
+      kwIdx  = firstLower.findIndex(c => HEADER_ALIASES.keyword.includes(c));
+      mtIdx  = firstLower.findIndex(c => HEADER_ALIASES.matchType.includes(c));
+      bidIdx = firstLower.findIndex(c => HEADER_ALIASES.bid.includes(c));
+      if (kwIdx === -1) kwIdx = 0;
+    }
+
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    if (dataRows.length === 0) { showToast('No data rows found'); return; }
+
+    const lines = dataRows.map(row => {
+      const kw = (row[kwIdx] || '').trim();
+      if (!kw) return null;
+      const mt  = mtIdx  >= 0 ? (row[mtIdx]  || '').trim() : '';
+      const bid = bidIdx >= 0 ? (row[bidIdx] || '').trim() : '';
+      const parts = [kw];
+      if (mt || bid) parts.push(mt);
+      if (bid) parts.push(bid);
+      return parts.join(', ');
     }).filter(Boolean);
+
+    if (lines.length === 0) { showToast('No valid keywords found'); return; }
+
     const ta = $('#custom-text');
     ta.value = ta.value ? (ta.value.replace(/\s+$/, '') + '\n' + lines.join('\n')) : lines.join('\n');
-    $('#file-name').textContent = `Loaded ${file.name}`;
+    $('#file-name').textContent = `Loaded ${lines.length} keyword${lines.length === 1 ? '' : 's'} from ${file.name}`;
     $('#file-name').hidden = false;
     updateCustomState();
   }
@@ -1222,7 +1283,7 @@
       if (inCatalog) {
         if (state.selectedIds.has(inCatalog.id)) { dup++; continue; }
         if (selectedTotal() >= MAX_SELECTED) { skippedAtLimit++; continue; }
-        state.selectedIds.add(inCatalog.id);
+        state.selectedIds.set(inCatalog.id, { bid, matchType });
         added++;
       } else {
         if (existingCustom.has(key)) { dup++; continue; }
@@ -1245,7 +1306,7 @@
 
   // CSV template download
   $('#csv-template-btn').addEventListener('click', () => {
-    const csv = 'keyword,boost\nsoft drinks,(5)\nsparkling water,\nenergy drinks,(10)\n';
+    const csv = 'Keyword,Match Type,Bid Amount\nsoft drinks,broad,0.50\nsparkling water,exact,1.25\nenergy drinks,phrase,0.75\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1265,9 +1326,14 @@
     });
   });
   $('#save-btn').addEventListener('click', () => {
-    const catalogKws = [...state.selectedIds].map(id => {
+    const catalogKws = [...state.selectedIds.entries()].map(([id, meta]) => {
       const kw = ALL.find(k => k.id === id);
-      return kw ? { keyword: kw.keyword, tags: [kw.territory, ...kw.tags].filter(Boolean) } : null;
+      return kw ? {
+        keyword: kw.keyword,
+        tags: [kw.territory, ...kw.tags].filter(Boolean),
+        matchType: meta.matchType || null,
+        bid: meta.bid || null,
+      } : null;
     }).filter(Boolean);
     const customKws = [...state.selectedCustom.values()].map(entry => ({
       keyword: entry.display, tags: [], matchType: entry.matchType || null, bid: entry.bid || null
@@ -1288,7 +1354,7 @@
     state.selectedCustom.clear();
     (e.data.keywords || []).forEach(({ keyword }) => {
       const found = byNorm.get(norm(keyword));
-      if (found) state.selectedIds.add(found.id);
+      if (found) state.selectedIds.set(found.id, { bid: null, matchType: null });
       else state.selectedCustom.set(norm(keyword), { display: keyword, matchType: null, bid: null });
     });
     render();

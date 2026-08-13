@@ -966,7 +966,7 @@
       <label class="bid-modal__label" for="bid-modal-input">Bid Amount</label>
       <div class="bid-modal__input-wrap">
         <span>$</span>
-        <input type="text" id="bid-modal-input" placeholder="0.00" inputmode="decimal">
+        <input type="text" id="bid-modal-input" placeholder="" inputmode="decimal">
       </div>
     </div>
     <div class="bid-modal__footer">
@@ -1076,7 +1076,7 @@
         <span class="match-type-label">${b.mt}</span>
         <div class="bid-input${b.defOn?' disabled':''}">
           <span class="dollar">$</span>
-          <input type="text" value="${b.val}" placeholder="0.00"${b.defOn?' disabled':''} aria-label="${b.mt} bid">
+          <input type="text" value="${b.val}" placeholder=""${b.defOn?' disabled':''} aria-label="${b.mt} bid">
         </div>
       </div>`).join('');
 
@@ -1143,7 +1143,7 @@
     const bidRows = k.bids.map(b =>
       `<div class="bid-row" data-match-type="${b.mt.toLowerCase()}">
         <span class="match-type-label">${b.mt}</span>
-        <div class="bid-input"><span class="dollar">$</span><input type="text" value="${b.val||''}" placeholder="0.00" aria-label="${b.mt} boost bid"></div>
+        <div class="bid-input"><span class="dollar">$</span><input type="text" value="${b.val||''}" placeholder="" aria-label="${b.mt} boost bid"></div>
       </div>`).join('');
 
     tr.innerHTML = `
