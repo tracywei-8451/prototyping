@@ -385,9 +385,9 @@
       flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%;
       display: inline-block;
     }
-    .s-dot.open      { border: 1.5px solid #a6adb9; background: transparent; }
+    .s-dot.open      { border: 1.5px solid var(--positive); background: transparent; }
     .s-dot.requested { background: linear-gradient(to top, var(--warning) 50%, transparent 50%); border: 1.5px solid var(--warning); }
-    .s-dot.claimed   { background: var(--positive); }
+    .s-dot.claimed   { background: #a6adb9; border-color: #a6adb9; }
 
     /* ─── Request button ─── */
     .req-btn {
@@ -787,7 +787,7 @@
 
   const STATUS = {
     open:      { dot: 'open',      label: 'Open' },
-    requested: { dot: 'requested', label: 'Requested' },
+    requested: { dot: 'requested', label: 'Under Review' },
     claimed:   { dot: 'claimed',   label: 'Claimed' },
   };
 
@@ -941,7 +941,7 @@
 
   const ALL_INV    = ['Zone 1', 'Zone 2', 'Zone 3'];
   const ALL_STATUS = ['open', 'requested', 'claimed'];
-  const STATUS_LABELS = { open: 'Open', requested: 'Requested', claimed: 'Claimed' };
+  const STATUS_LABELS = { open: 'Open', requested: 'Under Review', claimed: 'Claimed' };
 
   function parseMDYY(str) {
     const [m, d, y] = str.trim().split('/').map(Number);
@@ -1119,6 +1119,7 @@
     a.click();
     URL.revokeObjectURL(a.href);
   });
+
 </script>
 
 <mds-toast-group></mds-toast-group>

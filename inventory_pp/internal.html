@@ -412,9 +412,9 @@
       flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%;
       display: inline-block;
     }
-    .s-dot.open      { border: 1.5px solid #a6adb9; background: transparent; }
+    .s-dot.open      { border: 1.5px solid var(--positive); background: transparent; }
     .s-dot.requested { background: linear-gradient(to top, var(--warning) 50%, transparent 50%); border: 1.5px solid var(--warning); }
-    .s-dot.claimed   { background: var(--positive); }
+    .s-dot.claimed   { background: #a6adb9; border-color: #a6adb9; }
 
     /* ─── Request button ─── */
     .req-btn {
@@ -920,7 +920,7 @@
         <label class="field-label">Inventory</label>
         <div class="ss-wrap" id="zone-wrap">
           <div class="ss-trigger" id="zone-trigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false">
-            <span class="ss-label" id="zone-label">Select a Zone</span>
+            <span class="ss-label" id="zone-label">Select a zone</span>
             <button class="ss-clear" id="zone-clear" aria-label="Clear selection" tabindex="-1">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </button>
@@ -1073,7 +1073,7 @@
   /* ── Status light ── */
   const STATUS = {
     open:      { dot: 'open',      label: 'Open' },
-    requested: { dot: 'requested', label: 'Requested' },
+    requested: { dot: 'requested', label: 'Under Review' },
     claimed:   { dot: 'claimed',   label: 'Claimed' },
   };
   function statusLight(key) {
@@ -1411,7 +1411,7 @@
   const ALL_STATUS  = ['open', 'requested', 'claimed'];
   const ALL_ACCOUNT = ['Kroger Co.', '8451', 'Pepsi Co.'];
   const ALL_BRAND   = ['Simple Truth', 'Kroger Brand', 'Private Selection', 'Mountain Dew'];
-  const STATUS_LABELS = { open: 'Open', requested: 'Requested', claimed: 'Claimed' };
+  const STATUS_LABELS = { open: 'Open', requested: 'Under Review', claimed: 'Claimed' };
 
   function parseMDYY(str) {
     const [m, d, y] = str.trim().split('/').map(Number);
