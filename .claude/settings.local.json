@@ -30,7 +30,12 @@
       "Bash(touch /Users/t160029/repo/prototyping/fun/index.html)",
       "Bash(git checkout *)",
       "WebFetch(domain:meridian.8451.com)",
-      "WebFetch(domain:unpkg.com)"
+      "WebFetch(domain:unpkg.com)",
+      "Bash(chmod +x *)",
+      "Bash(xargs sed -i '' -e 's|\\\\.\\\\./index\\\\.html|../../index.html|g' -e 's|\\\\.\\\\./favicon\\\\.svg|../../favicon.svg|g' -e 's|\\\\.\\\\./placement_type/|../../placement_type/|g')",
+      "Bash(xargs sed -i '' -e 's|\\\\.\\\\./index\\\\.html|../../index.html|g' -e 's|\\\\.\\\\./favicon\\\\.svg|../../favicon.svg|g')",
+      "Bash(xargs sed -i '' -e 's|\\\\.\\\\./index\\\\.html|../../index.html|g' -e 's|\\\\.\\\\./favicon\\\\.svg|../../favicon.svg|g' -e 's|\\\\.\\\\./reordering_bulk/|../../archive/reordering_bulk/|g')",
+      "Bash(grep -v 'querySelector\\\\|spread\\\\|rest\\\\|\\\\.\\\\.\\\\.`')"
     ]
   }
 }

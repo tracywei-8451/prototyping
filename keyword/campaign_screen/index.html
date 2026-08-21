@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Ad Group — Bid Management</title>
-  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
   <link rel="preconnect" href="https://rsms.me/" />
   <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
   <style>
@@ -418,7 +418,7 @@
 <body>
 
   <div class="version-bar">
-    <!-- <a class="back-to-library" href="../index.html">← Library</a> -->
+    <!-- <a class="back-to-library" href="../../index.html">← Library</a> -->
     <a class="version-tab active" href="#">PLA</a>
     <a class="version-tab" href="ppc.html">PPC</a>
   </div>
@@ -557,26 +557,22 @@
   </div>
 
   <script>
-    function syncHeight(iframe, autoScroll) {
-      const doc = iframe.contentWindow.document;
-      const sync = () => {
-        const newH = doc.documentElement.scrollHeight;
-        const oldH = parseInt(iframe.style.height) || 0;
-        iframe.style.height = newH + 'px';
-        if (autoScroll && newH > oldH) {
-          iframe.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-      };
-      sync();
-      new ResizeObserver(sync).observe(doc.documentElement);
-    }
-
-    document.getElementById('placement-frame').addEventListener('load', function () {
-      syncHeight(this, false);
-    });
-
+    const placementFrame = document.getElementById('placement-frame');
     const frame = document.getElementById('panel-frame');
-    frame.addEventListener('load', function () { syncHeight(this, true); });
+
+    window.addEventListener('message', function(e) {
+      if (!e.data || e.data.type !== 'iframe-height') return;
+      const newH = e.data.height;
+      let target = null;
+      if (e.source === placementFrame.contentWindow) target = placementFrame;
+      else if (e.source === frame.contentWindow) target = frame;
+      if (!target) return;
+      const oldH = parseInt(target.style.height) || 0;
+      target.style.height = newH + 'px';
+      if (target === frame && newH > oldH) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    });
 
     const keywordOverlay = document.getElementById('keyword-overlay');
     const selectorFrame = keywordOverlay.querySelector('iframe');
