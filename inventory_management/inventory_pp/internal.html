@@ -204,20 +204,22 @@
     }
 
     /* ─── Tabs ─── */
-    .tab-list {
-      display: flex; gap: 24px;
-      border-bottom: 1px solid var(--edge-primary);
-      margin-bottom: 32px;
+    .view-toggle {
+      display: inline-flex; height: 32px;
+      background: var(--surface-lighter); border-radius: var(--radius-md);
+      padding: 2px; gap: 2px; flex-shrink: 0;
     }
-    .tab {
-      display: flex; align-items: center;
-      height: 40px; padding-bottom: 16px;
-      font-size: 14px; letter-spacing: -0.14px;
-      cursor: pointer; border-bottom: 3px solid transparent;
-      margin-bottom: -1px; user-select: none;
+    .vt-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 28px; padding: 0 10px; border: none; border-radius: 6px;
+      background: transparent; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      color: var(--ink-darker);
     }
-    .tab.active { font-weight: 700; color: var(--ink-primary); border-bottom-color: var(--brand-primary); }
-    .tab:not(.active) { font-weight: 400; color: var(--ink-darker); }
+    .vt-btn.active {
+      background: var(--surface-primary); color: var(--ink-primary);
+      box-shadow: 0 1px 3px rgba(33,35,44,.12), 0 0 1px rgba(33,35,44,.08);
+    }
 
     /* ─── Toolbar ─── */
     .toolbar-row {
@@ -226,7 +228,7 @@
     }
     .toolbar-actions { display: flex; align-items: center; gap: 8px; }
     .chip-group { display: flex; align-items: center; gap: 8px; }
-    .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+    .filter-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 24px; }
 
     .search-wrap {
       display: flex; align-items: center; gap: 8px;
@@ -310,6 +312,20 @@
     .chip-mds-check svg { display: none; width: 10px; height: 10px; }
     .chip-dd-divider { height: 1px; background: var(--edge-lighter); margin: 4px 0; }
     .chip-dd-footer { padding: 6px 16px; display: flex; justify-content: flex-end; }
+    .chip-dd-radio {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; cursor: pointer; font-size: 14px; color: var(--ink-primary);
+    }
+    .chip-dd-radio input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-mds-radio {
+      width: 16px; height: 16px; border: 1.5px solid var(--ink-light);
+      border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .chip-dd-radio input[type="radio"]:checked + .chip-mds-radio { border-color: var(--brand-primary); }
+    .chip-dd-radio input[type="radio"]:checked + .chip-mds-radio::after {
+      content: ''; display: block; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--brand-primary);
+    }
     .chip-dd-clear {
       font-size: 13px; font-weight: 600; color: var(--brand-primary);
       background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;
@@ -367,11 +383,14 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       line-height: 20px;
     }
-    .data-table td.td-action {
+    .data-table td.td-action,
+    .data-table td.td-overflow {
       white-space: nowrap; overflow: visible;
       padding: 8px 16px; vertical-align: middle;
     }
     /* sticky left columns */
+    .col-period { width: 86px; }
+    .col-week   { width: 65px; }
     .col-dates  { width: 166px; position: sticky; left: 0; z-index: 3; background: #fff; box-shadow: 3px 0 0 0 #fff; }
     .col-inv    { width: 130px; position: sticky; left: 166px; z-index: 2; background: #fff; box-shadow: 4px 0 6px -2px rgba(33,35,44,0.07); }
     /* scrollable middle */
@@ -384,6 +403,84 @@
     .col-reqby  { width: 130px; }
     /* sticky right column */
     .col-action { width: 148px; position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -4px 0 6px -2px rgba(33,35,44,0.07); }
+
+    /* ─── Overflow menu ─── */
+    .overflow-wrap { position: relative; display: inline-flex; }
+    .overflow-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border: none; background: transparent;
+      border-radius: var(--radius-md); cursor: pointer; color: var(--ink-dark);
+    }
+    .overflow-btn:hover { background: var(--surface-lighter); }
+    .overflow-dd {
+      position: absolute; top: calc(100% + 4px); right: 0;
+      min-width: 160px; z-index: 150;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      padding: 4px 0;
+    }
+    .overflow-dd-item {
+      display: flex; align-items: center;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+    }
+    .overflow-dd-item:hover { background: var(--surface-lighter); }
+
+    /* ─── Comments flyout ─── */
+    .flyout {
+      position: fixed; top: 36px; right: 0; bottom: 0;
+      width: 400px; z-index: 160;
+      background: var(--surface-primary);
+      border-left: 1px solid var(--edge-lighter);
+      box-shadow: 0 8px 24px rgba(33,35,44,.08), 0 2px 4px rgba(33,35,44,.08);
+      display: flex; flex-direction: column;
+      padding: 24px;
+      transform: translateX(100%);
+      transition: transform 240ms cubic-bezier(.25,.46,.45,.94);
+    }
+    .flyout.open { transform: translateX(0); }
+    .flyout-header { display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; margin-bottom: 24px; }
+    .flyout-close {
+      display: flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border: none; background: none;
+      cursor: pointer; color: var(--ink-primary); padding: 0;
+    }
+    .flyout-close:hover { opacity: 0.6; }
+    .flyout-title { font-size: 22px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.5px; line-height: 28px; }
+    .flyout-comments { flex: 1; overflow-y: auto; margin: 0 -4px; padding: 0 4px; display: flex; flex-direction: column; gap: 16px; }
+    .flyout-empty { font-size: 14px; color: var(--ink-dark); text-align: center; padding: 24px 0; }
+    .flyout-input-wrap {
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      display: flex; flex-direction: column; height: 92px; padding: 8px;
+      flex-shrink: 0; margin-top: 24px;
+    }
+    .flyout-textarea {
+      flex: 1; border: none; outline: none; resize: none;
+      font-family: inherit; font-size: 14px; color: var(--ink-darker);
+      background: transparent; line-height: 20px;
+    }
+    .flyout-send {
+      align-self: flex-end;
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--surface-lighter); border: none; border-radius: var(--radius-md);
+      cursor: default; color: var(--ink-light);
+      transition: background 120ms, color 120ms;
+    }
+    .flyout-send.ready { background: #d2eafa; color: var(--brand-primary); cursor: pointer; }
+    .flyout-send.ready:hover { background: #b8dff7; }
+
+    /* ─── Comment cards ─── */
+    .comment-card { background: #f8f8fe; border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .comment-header { display: flex; align-items: center; justify-content: space-between; }
+    .comment-user { display: flex; align-items: center; gap: 12px; }
+    .comment-avatar { width: 24px; height: 24px; border-radius: 100px; background: #d2eafa; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--brand-primary); letter-spacing: -0.14px; flex-shrink: 0; }
+    .comment-name { font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px; }
+    .comment-time { font-size: 12px; font-weight: 500; color: var(--ink-dark); letter-spacing: -0.06px; white-space: nowrap; }
+    .comment-body { font-size: 14px; font-weight: 400; color: var(--ink-darker); letter-spacing: -0.14px; line-height: 20px; padding-left: 2px; word-break: break-word; white-space: pre-wrap; }
 
     /* ─── Add Inventory button ─── */
     .add-inv-btn {
@@ -501,10 +598,10 @@
     .field-label { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; line-height: 20px; }
     .badge-optional {
       display: inline-flex; align-items: center;
-      height: 20px; padding: 0 6px;
-      background: var(--surface-lighter); border: 1px solid var(--edge-primary);
-      border-radius: 4px; font-size: 12px; font-weight: 700;
-      color: var(--ink-dark); letter-spacing: -0.06px;
+      padding: 2px 8px;
+      background: #e9ecf1; border-radius: 32px;
+      font-size: 12px; font-weight: 700;
+      color: var(--ink-primary); letter-spacing: -0.06px;
     }
     .modal-input {
       height: 40px; padding: 0 16px; width: 100%;
@@ -603,6 +700,95 @@
       font-family: inherit; font-size: 14px; font-weight: 400;
       color: var(--ink-darker); letter-spacing: -0.14px; background: transparent;
     }
+
+    /* ─── Destructive button / disabled state ─── */
+    .btn-destructive { background: #c62828; color: #fff; border: none; }
+    .btn-destructive:hover { background: #a32020; }
+    .btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+
+    /* ─── Wide two-column modal ─── */
+    .modal-wide { width: 920px; max-width: 96vw; max-height: 90vh; }
+    .modal-wide .modal-body {
+      padding: 0; flex-direction: row; gap: 0;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+    .modal-panel-left {
+      flex: 0 0 560px; min-width: 0;
+      padding: 0 24px 24px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .modal-panel-right {
+      flex: 1; min-width: 0;
+      border-left: 1px solid var(--edge-lighter);
+      background: var(--surface-lighter);
+      display: flex; flex-direction: column;
+    }
+    .modal-section-title {
+      font-size: 18px; font-weight: 700;
+      color: var(--ink-primary); letter-spacing: -0.12px; line-height: 22px;
+      padding-top: 8px; flex-shrink: 0;
+    }
+    .rm-readonly-card {
+      background: var(--surface-lighter); border-radius: var(--radius-md);
+      padding: 8px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .rm-readonly-row {
+      display: flex; align-items: flex-start;
+      min-height: 32px; padding: 4px 8px;
+      font-size: 14px; letter-spacing: -0.14px; line-height: 20px;
+    }
+    .rm-readonly-key { color: var(--ink-primary); font-weight: 700; flex: 0 0 140px; }
+    .rm-readonly-val { color: var(--ink-darker); font-weight: 400; flex: 1; }
+    .rm-3col { display: flex; gap: 16px; }
+    .rm-3col-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .rm-field-label {
+      font-size: 14px; font-weight: 700; color: var(--ink-primary);
+      letter-spacing: -0.14px;
+    }
+    .rm-field-val { font-size: 14px; font-weight: 400; color: var(--ink-darker); letter-spacing: -0.14px; }
+    .rm-desc-text { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; line-height: 20px; }
+    .rm-reason-textarea {
+      width: 100%; height: 96px; padding: 10px 16px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); font-family: inherit;
+      font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+      line-height: 20px; resize: none; outline: none;
+    }
+    .rm-reason-textarea:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(40,116,193,0.12); }
+    .rm-comments-header {
+      flex-shrink: 0; height: 56px;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-primary);
+      display: flex; align-items: center; padding: 0 24px;
+      font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px;
+    }
+    .rm-comments-list {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .rm-comments-list .comment-card { background: var(--surface-primary); }
+    .rm-comments-input-wrap {
+      flex-shrink: 0;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      display: flex; flex-direction: column; height: 80px; padding: 8px;
+      margin: 0 16px 16px;
+    }
+    .rm-comments-textarea {
+      flex: 1; border: none; outline: none; resize: none;
+      font-family: inherit; font-size: 14px; color: var(--ink-darker);
+      background: transparent; line-height: 20px;
+    }
+    .rm-comments-send {
+      align-self: flex-end;
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--surface-lighter); border: none; border-radius: var(--radius-md);
+      cursor: default; color: var(--ink-light);
+      transition: background 120ms, color 120ms;
+    }
+    .rm-comments-send.ready { background: #d2eafa; color: var(--brand-primary); cursor: pointer; }
+    .rm-comments-send.ready:hover { background: #b8dff7; }
 
     /* ─── Calendar placeholder ─── */
     .calendar-view {
@@ -718,11 +904,6 @@
     </div>
   </div> -->
 
-  <div class="tab-list">
-    <div class="tab active" data-tab="table">Table</div>
-    <div class="tab" data-tab="calendar">Calendar</div>
-  </div>
-
   <div id="view-table">
 
     <div class="toolbar-row">
@@ -775,7 +956,7 @@
 
         <div class="chip-wrap">
           <button class="chip" id="chip-inv" aria-haspopup="true">
-            <span class="chip-label">Inventory</span>
+            <span class="chip-label">Placement</span>
             <span class="chip-sep" hidden></span>
             <span class="chip-value" hidden></span>
             <span class="chip-close" hidden>
@@ -825,7 +1006,38 @@
           <div class="chip-dropdown" id="dd-brand" hidden></div>
         </div>
 
+        <div class="chip-wrap">
+          <button class="chip" id="chip-myinv" aria-haspopup="true">
+            <span class="chip-label">My Inventory</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-myinv" hidden>
+            <label class="chip-dd-radio" onmousedown="event.preventDefault()">
+              <input type="radio" name="myinv" value="all">
+              <div class="chip-mds-radio"></div>
+              <span>Show All</span>
+            </label>
+            <label class="chip-dd-radio" onmousedown="event.preventDefault()">
+              <input type="radio" name="myinv" value="mine">
+              <div class="chip-mds-radio"></div>
+              <span>Show My Requests</span>
+            </label>
+            <div class="chip-dd-divider"></div>
+            <div class="chip-dd-footer"><button class="chip-dd-clear" id="myinv-clear" onmousedown="event.preventDefault()">Clear</button></div>
+          </div>
+        </div>
+
         <button class="clear-filters-btn" id="clear-btn">Clear Filters</button>
+      </div>
+
+      <div class="view-toggle" id="view-toggle">
+        <button class="vt-btn active" data-view="table">Table</button>
+        <button class="vt-btn" data-view="calendar">Calendar</button>
       </div>
     </div>
 
@@ -833,9 +1045,11 @@
     <table class="data-table">
       <thead>
         <tr>
+          <th class="col-period">Period</th>
+          <th class="col-week">Week</th>
           <th class="col-dates">Dates</th>
           <th class="col-inv">Inventory</th>
-          <th class="col-focus">HOME Selling Focus</th>
+          <th class="col-focus">Priority Focus</th>
           <th class="col-theme">Seasonal Theme</th>
           <th class="col-cost">Cost</th>
           <th class="col-status">Status</th>
@@ -843,13 +1057,16 @@
           <th class="col-brand">Brand</th>
           <th class="col-reqby">Requested By</th>
           <th class="col-action"></th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="tbody">
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
           <td class="col-inv">Zone 1</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$1M</td>
           <td class="col-status" data-status="open"></td>
@@ -857,23 +1074,29 @@
           <td class="col-brand">—</td>
           <td class="col-reqby">—</td>
           <td class="td-action col-action"></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
           <td class="col-inv">Zone 2</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$500K</td>
           <td class="col-status" data-status="requested"></td>
-          <td class="col-account">8451</td>
-          <td class="col-brand">Kroger Brand</td>
+          <td class="col-account">Campbell's</td>
+          <td class="col-brand">Campbell's Soup</td>
           <td class="col-reqby">Joe Smith</td>
-          <td class="td-action col-action"><button class="review-btn" onclick="openReviewModal(this)">Review Request</button></td>
+          <td class="td-action col-action" data-description="Looking to reserve this slot for our Holiday Soup campaign targeting winter meal occasions."><button class="review-btn" onclick="openReviewModal(this)">Review Request</button></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
           <td class="col-inv">Zone 3</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$250K</td>
           <td class="col-status" data-status="open"></td>
@@ -881,11 +1104,14 @@
           <td class="col-brand">—</td>
           <td class="col-reqby">—</td>
           <td class="td-action col-action"></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W3</td>
           <td class="col-dates">12/23/26 – 12/29/26</td>
           <td class="col-inv">Zone 1</td>
-          <td class="col-focus">New Years Eve – Elevated Apps and adult bev (through 12/31)</td>
+          <td class="col-focus">New Years Eve, Winter Meals, Football Selling</td>
           <td class="col-theme">New Years Eve, Winter Meals, Football Selling</td>
           <td class="col-cost">$1M</td>
           <td class="col-status" data-status="claimed"></td>
@@ -893,6 +1119,7 @@
           <td class="col-brand">Mountain Dew</td>
           <td class="col-reqby">Kam Johnson</td>
           <td class="td-action col-action"></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
       </tbody>
     </table>
@@ -1026,44 +1253,119 @@
 
 <!-- ─── Review Request Modal ─── -->
 <div class="modal-backdrop" id="review-modal">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="review-title">
-    <div class="modal-header">
-      <h2 class="modal-title" id="review-title">Confirm Request</h2>
-      <button class="modal-close" data-close="review-modal" aria-label="Close">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <div class="modal-header" style="border-bottom:1px solid var(--edge-primary);">
+      <h2 class="modal-title" id="review-title">Approve Inventory</h2>
+      <button class="modal-close" id="review-modal-close" aria-label="Close">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
+
     <div class="modal-body">
-      <div class="modal-info">
-        <p class="modal-info-line"><strong>Brand:</strong> <span id="rm-brand"></span></p>
-        <p class="modal-info-line"><strong>Account:</strong> <span id="rm-account"></span></p>
-        <p class="modal-info-line"><strong>Requested By:</strong> <span id="rm-reqby"></span></p>
+
+      <!-- Left panel -->
+      <div class="modal-panel-left">
+        <div class="modal-section-title">Inventory Details</div>
+        <div class="rm-readonly-card">
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Period</span>
+            <span class="rm-readonly-val" id="rm-period"></span>
+          </div>
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Week</span>
+            <span class="rm-readonly-val" id="rm-week"></span>
+          </div>
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Dates</span>
+            <span class="rm-readonly-val" id="rm-dates"></span>
+          </div>
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Placement</span>
+            <span class="rm-readonly-val" id="rm-inv"></span>
+          </div>
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Priority Focus</span>
+            <span class="rm-readonly-val" id="rm-focus"></span>
+          </div>
+          <div class="rm-readonly-row">
+            <span class="rm-readonly-key">Cost</span>
+            <span class="rm-readonly-val" id="rm-cost"></span>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Request Details</div>
+        <div class="rm-3col">
+          <div class="rm-3col-field">
+            <div class="rm-field-label">Account</div>
+            <div class="rm-field-val" id="rm-account"></div>
+          </div>
+          <div class="rm-3col-field">
+            <div class="rm-field-label">Brand</div>
+            <div class="rm-field-val" id="rm-brand"></div>
+          </div>
+          <div class="rm-3col-field">
+            <div class="rm-field-label">Requested By</div>
+            <div class="rm-field-val" id="rm-reqby"></div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <div class="field-header">
+            <span class="field-label">Description</span>
+            <span class="badge-optional">Optional</span>
+          </div>
+          <p class="rm-desc-text" id="rm-desc"></p>
+        </div>
+
+        <div class="form-field">
+          <label class="field-label" for="rm-reason">Reason for Decision</label>
+          <textarea class="rm-reason-textarea" id="rm-reason" placeholder="Enter a reason to enable Approve and Deny..."></textarea>
+        </div>
       </div>
-      <div class="modal-detail-card">
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Dates</span>
-          <span class="modal-detail-val" id="rm-dates"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Inventory</span>
-          <span class="modal-detail-val" id="rm-inv"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">HOME Selling Focus</span>
-          <span class="modal-detail-val" id="rm-focus"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Cost</span>
-          <span class="modal-detail-val" id="rm-cost"></span>
+
+      <!-- Right panel -->
+      <div class="modal-panel-right">
+        <div class="rm-comments-header">Comments</div>
+        <div class="rm-comments-list" id="rm-comments-list"></div>
+        <div class="rm-comments-input-wrap">
+          <textarea class="rm-comments-textarea" id="rm-comments-textarea"></textarea>
+          <button class="rm-comments-send" id="rm-comments-send" title="Send">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 13V3M8 3L4 7M8 3l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
       </div>
+
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="review-deny">Deny</button>
-      <button class="btn btn-primary" id="review-approve">Approve</button>
+
+    <div class="modal-footer" style="border-top:1px solid var(--edge-lighter);">
+      <button class="btn btn-destructive" id="review-deny" disabled>Deny</button>
+      <button class="btn btn-primary" id="review-approve" disabled>Approve</button>
     </div>
+  </div>
+</div>
+
+<!-- ─── Comments Flyout ─── -->
+<div class="flyout" id="flyout">
+  <div class="flyout-header">
+    <button class="flyout-close" id="flyout-close" aria-label="Close">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <span class="flyout-title">Comments</span>
+  </div>
+  <div class="flyout-comments" id="flyout-comments-list"></div>
+  <div class="flyout-input-wrap">
+    <textarea class="flyout-textarea" id="flyout-textarea" placeholder=""></textarea>
+    <button class="flyout-send" id="flyout-send" title="Send">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 13V3M8 3L4 7M8 3l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -1084,13 +1386,13 @@
     td.innerHTML = statusLight(td.dataset.status);
   });
 
-  /* ── Tabs ── */
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      const isTable = t.dataset.tab === 'table';
-      document.getElementById('view-table').style.display = isTable ? '' : 'none';
+  /* ── View toggle ── */
+  document.querySelectorAll('.vt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const isTable = btn.dataset.view === 'table';
+      document.getElementById('view-table').querySelector('.table-wrap').style.display = isTable ? '' : 'none';
       document.getElementById('view-calendar').style.display = isTable ? 'none' : 'flex';
     });
   });
@@ -1121,13 +1423,24 @@
 
   function openReviewModal(btn) {
     _reviewRow = btn.closest('tr');
-    document.getElementById('rm-brand').textContent   = _reviewRow.querySelector('.col-brand').textContent.trim();
-    document.getElementById('rm-account').textContent = _reviewRow.querySelector('.col-account').textContent.trim();
-    document.getElementById('rm-reqby').textContent   = _reviewRow.querySelector('.col-reqby').textContent.trim();
+    document.getElementById('rm-period').textContent  = _reviewRow.querySelector('.col-period').textContent.trim();
+    document.getElementById('rm-week').textContent    = _reviewRow.querySelector('.col-week').textContent.trim();
     document.getElementById('rm-dates').textContent   = _reviewRow.querySelector('.col-dates').textContent.trim();
     document.getElementById('rm-inv').textContent     = _reviewRow.querySelector('.col-inv').textContent.trim();
     document.getElementById('rm-focus').textContent   = _reviewRow.querySelector('.col-focus').textContent.trim();
     document.getElementById('rm-cost').textContent    = _reviewRow.querySelector('.col-cost').textContent.trim();
+    document.getElementById('rm-account').textContent = _reviewRow.querySelector('.col-account').textContent.trim();
+    document.getElementById('rm-brand').textContent   = _reviewRow.querySelector('.col-brand').textContent.trim();
+    document.getElementById('rm-reqby').textContent   = _reviewRow.querySelector('.col-reqby').textContent.trim();
+    const descCell = _reviewRow.querySelector('.td-action[data-description]');
+    document.getElementById('rm-desc').textContent   = descCell ? descCell.dataset.description : '';
+    document.getElementById('rm-reason').value = '';
+    document.getElementById('rm-comments-textarea').value = '';
+    document.getElementById('rm-comments-send').classList.remove('ready');
+    document.getElementById('review-deny').disabled    = true;
+    document.getElementById('review-approve').disabled = true;
+    const rowKey = getRowKey(_reviewRow);
+    renderCommentList('rm-comments-list', rowKey);
     openModal('review-modal');
   }
 
@@ -1143,23 +1456,64 @@
     tg['private_addToast'](msg, 'success', 'req-' + Date.now(), undefined, true);
   }
 
+  document.getElementById('review-modal-close').addEventListener('click', () => closeModal('review-modal'));
+
+  document.getElementById('rm-reason').addEventListener('input', function() {
+    const hasReason = this.value.trim().length > 0;
+    document.getElementById('review-deny').disabled    = !hasReason;
+    document.getElementById('review-approve').disabled = !hasReason;
+  });
+
+  document.getElementById('rm-comments-textarea').addEventListener('input', function() {
+    document.getElementById('rm-comments-send').classList.toggle('ready', this.value.trim().length > 0);
+  });
+
+  document.getElementById('rm-comments-send').addEventListener('click', function() {
+    if (!this.classList.contains('ready') || !_reviewRow) return;
+    const ta = document.getElementById('rm-comments-textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const rowKey = getRowKey(_reviewRow);
+    addComment(rowKey, text);
+    ta.value = '';
+    this.classList.remove('ready');
+    renderCommentList('rm-comments-list', rowKey);
+  });
+
   document.getElementById('review-deny').addEventListener('click', () => {
-    if (_reviewRow) {
-      const statusCell = _reviewRow.querySelector('.col-status');
-      statusCell.dataset.status = 'open';
-      statusCell.innerHTML = statusLight('open');
-      _reviewRow.querySelector('.col-account').textContent = '—';
-      _reviewRow.querySelector('.col-brand').textContent   = '—';
-      _reviewRow.querySelector('.col-reqby').textContent   = '—';
-      _reviewRow.querySelector('.td-action').innerHTML = '';
+    if (!_reviewRow) return;
+    const reason = document.getElementById('rm-reason').value.trim();
+    const rowKey = getRowKey(_reviewRow);
+    if (reason) {
+      if (!rowCommentsStore[rowKey]) rowCommentsStore[rowKey] = [];
+      rowCommentsStore[rowKey].push({ initials: 'AD', name: 'Admin', timestamp: formatTimestamp(), text: `Denied — ${reason}` });
     }
+    const statusCell = _reviewRow.querySelector('.col-status');
+    statusCell.dataset.status = 'open';
+    statusCell.innerHTML = statusLight('open');
+    _reviewRow.querySelector('.col-account').textContent = '—';
+    _reviewRow.querySelector('.col-brand').textContent   = '—';
+    _reviewRow.querySelector('.col-reqby').textContent   = '—';
+    _reviewRow.querySelector('.td-action').innerHTML = '';
+    _reviewRow.querySelector('.td-action').removeAttribute('data-description');
     closeModal('review-modal');
-    showToast('Email successfully sent.');
+    showToast('Request denied. Email sent.');
   });
 
   document.getElementById('review-approve').addEventListener('click', () => {
+    if (!_reviewRow) return;
+    const reason = document.getElementById('rm-reason').value.trim();
+    const rowKey = getRowKey(_reviewRow);
+    if (reason) {
+      if (!rowCommentsStore[rowKey]) rowCommentsStore[rowKey] = [];
+      rowCommentsStore[rowKey].push({ initials: 'AD', name: 'Admin', timestamp: formatTimestamp(), text: `Approved — ${reason}` });
+    }
+    const statusCell = _reviewRow.querySelector('.col-status');
+    statusCell.dataset.status = 'claimed';
+    statusCell.innerHTML = statusLight('claimed');
+    _reviewRow.querySelector('.td-action').innerHTML = '';
     closeModal('review-modal');
-    showToast('Email successfully sent.');
+    showToast('Request approved. Email sent.');
   });
 
   /* ── Zone single-select ── */
@@ -1406,6 +1760,7 @@
   const statusFilter  = new Set();
   const accountFilter = new Set();
   const brandFilter   = new Set();
+  let myinvFilter     = null; // null | 'mine'
 
   const ALL_INV     = ['Zone 1', 'Zone 2', 'Zone 3'];
   const ALL_STATUS  = ['open', 'requested', 'claimed'];
@@ -1437,6 +1792,7 @@
       if (statusFilter.size > 0 && !statusFilter.has(row.querySelector('.col-status')?.dataset.status)) { row.style.display = 'none'; return; }
       if (accountFilter.size > 0 && !accountFilter.has(row.querySelector('.col-account')?.textContent.trim())) { row.style.display = 'none'; return; }
       if (brandFilter.size > 0 && !brandFilter.has(row.querySelector('.col-brand')?.textContent.trim())) { row.style.display = 'none'; return; }
+      if (myinvFilter === 'mine' && row.querySelector('.col-reqby')?.textContent.trim() !== 'Joe Smith') { row.style.display = 'none'; return; }
       row.style.display = '';
     });
 
@@ -1478,13 +1834,30 @@
     }
   }
 
+  function updateMyInvChipDisplay() {
+    const chip = document.getElementById('chip-myinv');
+    const has = !!myinvFilter;
+    chip.classList.toggle('has-selection', has);
+    const sep = chip.querySelector('.chip-sep'), val = chip.querySelector('.chip-value');
+    const close = chip.querySelector('.chip-close'), chev = chip.querySelector('.chip-chevron');
+    if (has) {
+      val.textContent = 'My Requests';
+      sep.removeAttribute('hidden'); val.removeAttribute('hidden'); close.removeAttribute('hidden');
+      chev.setAttribute('hidden', '');
+    } else {
+      sep.setAttribute('hidden', ''); val.setAttribute('hidden', ''); close.setAttribute('hidden', '');
+      chev.removeAttribute('hidden');
+    }
+  }
+
   function updateChipStates() {
     updateDateChipDisplay();
     updateChipDisplay('chip-inv',     invFilter,     ALL_INV,     v => v);
     updateChipDisplay('chip-status',  statusFilter,  ALL_STATUS,  v => STATUS_LABELS[v]);
     updateChipDisplay('chip-account', accountFilter, ALL_ACCOUNT, v => v);
     updateChipDisplay('chip-brand',   brandFilter,   ALL_BRAND,   v => v);
-    const any = invFilter.size > 0 || statusFilter.size > 0 || accountFilter.size > 0 || brandFilter.size > 0 || rdpStart;
+    updateMyInvChipDisplay();
+    const any = invFilter.size > 0 || statusFilter.size > 0 || accountFilter.size > 0 || brandFilter.size > 0 || rdpStart || myinvFilter;
     document.getElementById('clear-btn').classList.toggle('active', !!any);
   }
 
@@ -1516,6 +1889,32 @@
   makeCheckboxDropdown(ALL_STATUS,  statusFilter,  v => STATUS_LABELS[v], 'dd-status');
   makeCheckboxDropdown(ALL_ACCOUNT, accountFilter, v => v,                'dd-account');
   makeCheckboxDropdown(ALL_BRAND,   brandFilter,   v => v,                'dd-brand');
+
+  // ── My Inventory chip ──────────────────────────────────────────
+  document.getElementById('chip-myinv').addEventListener('click', e => {
+    if (e.target.closest('.chip-close')) {
+      myinvFilter = null;
+      document.querySelectorAll('input[name="myinv"]').forEach(r => r.checked = false);
+      applyFilters(); return;
+    }
+    const dd = document.getElementById('dd-myinv');
+    const isOpen = !dd.hasAttribute('hidden');
+    closeAllDropdowns();
+    if (!isOpen) { dd.removeAttribute('hidden'); document.getElementById('chip-myinv').setAttribute('aria-expanded', 'true'); }
+  });
+
+  document.querySelectorAll('input[name="myinv"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      myinvFilter = radio.value === 'mine' ? 'mine' : null;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('myinv-clear').addEventListener('click', () => {
+    myinvFilter = null;
+    document.querySelectorAll('input[name="myinv"]').forEach(r => r.checked = false);
+    applyFilters();
+  });
 
   const CHIP_IDS = ['chip-date', 'chip-inv', 'chip-status', 'chip-account', 'chip-brand'];
   CHIP_IDS.forEach(id => {
@@ -1554,6 +1953,7 @@
     document.getElementById('search-input').value = '';
     rdpStart = null; rdpEnd = null; rdpRebuild();
     invFilter.clear(); statusFilter.clear(); accountFilter.clear(); brandFilter.clear();
+    myinvFilter = null;
     document.querySelectorAll('.chip-dropdown input').forEach(c => c.checked = false);
     applyFilters();
   });
@@ -1590,6 +1990,125 @@
     a.download = 'inventory-internal.csv';
     a.click();
     URL.revokeObjectURL(a.href);
+  });
+
+  // ── Overflow menu ──────────────────────────────────────────────
+  function toggleOverflow(btn, event) {
+    event.stopPropagation();
+    const dd = btn.nextElementSibling;
+    const isOpen = !dd.hasAttribute('hidden');
+    closeAllOverflows();
+    if (!isOpen) {
+      const row = btn.closest('tr');
+      const status = row.querySelector('.col-status')?.dataset.status;
+      const items = [];
+      if (status === 'requested' || status === 'claimed') items.push('View Comments');
+      if (items.length === 0) return;
+      dd.innerHTML = items.map(t => `<div class="overflow-dd-item">${t}</div>`).join('');
+      dd.removeAttribute('hidden');
+    }
+  }
+
+  function closeAllOverflows() {
+    document.querySelectorAll('.overflow-dd').forEach(d => d.setAttribute('hidden', ''));
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.overflow-wrap')) closeAllOverflows();
+  });
+
+  // ── Comment system ─────────────────────────────────────────────
+  const rowCommentsStore = {};
+
+  function getRowKey(row) {
+    return `${row.querySelector('.col-dates').textContent.trim()}|${row.querySelector('.col-inv').textContent.trim()}`;
+  }
+
+  function formatTimestamp() {
+    const now = new Date();
+    const m = now.getMonth() + 1, d = now.getDate();
+    const y = String(now.getFullYear()).slice(-2);
+    let h = now.getHours();
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${m}/${d}/${y} at ${h}:${min} ${ampm}`;
+  }
+
+  function makeCommentCard(comment) {
+    const div = document.createElement('div');
+    div.className = 'comment-card';
+    div.innerHTML = `
+      <div class="comment-header">
+        <div class="comment-user">
+          <div class="comment-avatar" style="${comment.avatarStyle || ''}">${comment.initials}</div>
+          <span class="comment-name">${comment.name}</span>
+        </div>
+        <span class="comment-time">${comment.timestamp}</span>
+      </div>
+      <div class="comment-body">${comment.text.replace(/</g, '&lt;')}</div>`;
+    return div;
+  }
+
+  function renderCommentList(containerId, rowKey) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const comments = rowCommentsStore[rowKey] || [];
+    if (comments.length === 0) {
+      container.innerHTML = '<p class="flyout-empty"></p>';
+      return;
+    }
+    comments.forEach(c => container.appendChild(makeCommentCard(c)));
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function addComment(rowKey, text) {
+    if (!rowCommentsStore[rowKey]) rowCommentsStore[rowKey] = [];
+    rowCommentsStore[rowKey].push({ initials: 'TW', name: 'Tracy Wei', timestamp: formatTimestamp(), text, avatarStyle: 'background:#d2eafa;color:#2874c1;' });
+  }
+
+  // ── Flyout ─────────────────────────────────────────────────────
+  let _flyoutRow = null;
+
+  function openFlyout(row) {
+    _flyoutRow = row;
+    const rowKey = getRowKey(row);
+    renderCommentList('flyout-comments-list', rowKey);
+    document.getElementById('flyout-textarea').value = '';
+    document.getElementById('flyout-send').classList.remove('ready');
+    document.getElementById('flyout').classList.add('open');
+  }
+
+  function closeFlyout() {
+    document.getElementById('flyout').classList.remove('open');
+    _flyoutRow = null;
+  }
+
+  document.getElementById('flyout-close').addEventListener('click', closeFlyout);
+
+  document.getElementById('flyout-textarea').addEventListener('input', function() {
+    document.getElementById('flyout-send').classList.toggle('ready', this.value.trim().length > 0);
+  });
+
+  document.getElementById('flyout-send').addEventListener('click', function() {
+    if (!this.classList.contains('ready') || !_flyoutRow) return;
+    const ta = document.getElementById('flyout-textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const rowKey = getRowKey(_flyoutRow);
+    addComment(rowKey, text);
+    ta.value = '';
+    this.classList.remove('ready');
+    renderCommentList('flyout-comments-list', rowKey);
+  });
+
+  // "View Comments" delegation
+  document.getElementById('tbody').addEventListener('click', function(e) {
+    const item = e.target.closest('.overflow-dd-item');
+    if (!item) return;
+    const row = item.closest('tr');
+    closeAllOverflows();
+    openFlyout(row);
   });
 </script>
 </body>

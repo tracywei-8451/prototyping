@@ -63,7 +63,6 @@
       min-width: 1100px;
     }
 
-    /* icon via background-image — immune to SVG intrinsic size */
     .mds-img {
       display: block; flex-shrink: 0;
       width: 16px; height: 16px;
@@ -184,40 +183,29 @@
     /* ─── Main ─── */
     .main { margin-top: 228px; margin-left: 321px; padding: 32px 40px 60px; }
 
-    /* ─── Stat cards ─── */
-    .stat-row { display: flex; gap: 40px; margin-bottom: 32px; }
-    .stat-card {
-      flex: 1 0 0; min-width: 0; height: 160px;
-      background: var(--surface-primary);
-      border: 1px solid var(--edge-primary);
-      border-radius: var(--radius-lg);
-      padding: 0 37px;
-      display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    /* ─── View Toggle ─── */
+    .view-toggle {
+      display: inline-flex; align-items: center;
+      height: 32px;
+      background: var(--surface-lighter);
+      border-radius: var(--radius-md);
+      padding: 2px; gap: 2px;
+      flex-shrink: 0;
     }
-    .stat-label {
-      font-size: 11px; font-weight: 500; color: var(--ink-dark);
-      letter-spacing: 0.88px; text-transform: uppercase; line-height: 15px;
+    .vt-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 28px; padding: 0 10px;
+      border: none; border-radius: 6px;
+      background: transparent; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      color: var(--ink-darker); letter-spacing: -0.14px;
+      transition: background 120ms, color 120ms;
     }
-    .stat-value {
-      font-size: 48px; font-weight: 800; color: var(--ink-primary);
-      letter-spacing: -1.5px; line-height: 52px;
+    .vt-btn:hover { background: rgba(0,0,0,0.05); }
+    .vt-btn.active {
+      background: var(--surface-primary); color: var(--ink-primary);
+      box-shadow: 0 1px 3px rgba(33,35,44,.12), 0 0 1px rgba(33,35,44,.08);
     }
-
-    /* ─── Tabs ─── */
-    .tab-list {
-      display: flex; gap: 24px;
-      border-bottom: 1px solid var(--edge-primary);
-      margin-bottom: 32px;
-    }
-    .tab {
-      display: flex; align-items: center;
-      height: 40px; padding-bottom: 16px;
-      font-size: 14px; letter-spacing: -0.14px;
-      cursor: pointer; border-bottom: 3px solid transparent;
-      margin-bottom: -1px; user-select: none;
-    }
-    .tab.active { font-weight: 700; color: var(--ink-primary); border-bottom-color: var(--brand-primary); }
-    .tab:not(.active) { font-weight: 400; color: var(--ink-darker); }
 
     /* ─── Toolbar ─── */
     .toolbar-row {
@@ -225,8 +213,11 @@
       gap: 8px; margin-bottom: 12px;
     }
     .toolbar-actions { display: flex; align-items: center; gap: 8px; }
+    .filter-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 24px;
+    }
     .chip-group { display: flex; align-items: center; gap: 8px; }
-    .filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
 
     .search-wrap {
       display: flex; align-items: center; gap: 8px;
@@ -308,6 +299,31 @@
     }
     .chip-dd-item input[type="checkbox"]:checked + .chip-mds-check svg { display: block; }
     .chip-mds-check svg { display: none; width: 10px; height: 10px; }
+
+    /* Radio-style chip items (My Inventory) */
+    .chip-dd-radio {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+    }
+    .chip-dd-radio:hover { background: var(--surface-lighter); }
+    .chip-dd-radio input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-mds-radio {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border: 1.5px solid var(--ink-light); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-primary);
+      transition: background 120ms, border-color 120ms;
+    }
+    .chip-dd-radio input[type="radio"]:checked + .chip-mds-radio {
+      border-color: var(--brand-primary);
+    }
+    .chip-dd-radio input[type="radio"]:checked + .chip-mds-radio::after {
+      content: ''; display: block;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--brand-primary);
+    }
+
     .chip-dd-divider { height: 1px; background: var(--edge-lighter); margin: 4px 0; }
     .chip-dd-footer { padding: 6px 16px; display: flex; justify-content: flex-end; }
     .chip-dd-clear {
@@ -366,18 +382,21 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 0; line-height: 20px;
     }
-    .data-table td.td-action {
+    .data-table td.td-action,
+    .data-table td.td-overflow {
       white-space: nowrap; max-width: none; width: 1%;
-      padding: 8px 16px; vertical-align: middle;
+      padding: 8px 16px; vertical-align: middle; overflow: visible;
     }
-    .col-dates  { width: 210px; }
-    .col-inv    { width: 130px; }
-    .col-focus  { width: 320px; }
-    .col-theme  { width: 378px; }
-    .col-cost   { width: 102px; }
-    .col-status { width: 130px; }
+    .data-table td.td-overflow { padding: 8px 8px 8px 0; }
+    .col-period  { width: 86px; }
+    .col-week    { width: 65px; }
+    .col-dates   { width: 165px; }
+    .col-placement { width: 137px; }
+    .col-focus   { }
+    .col-cost    { width: 85px; }
+    .col-status  { width: 131px; }
     .data-table .col-status { overflow: visible; text-overflow: unset; }
-    .col-action { width: 1%; }
+    .col-action  { width: 1%; }
 
     /* ─── Status light ─── */
     .status-light { display: inline-flex; align-items: center; gap: 8px; }
@@ -399,6 +418,32 @@
     }
     .req-btn:hover { background: #d2eafa; }
 
+    /* ─── Overflow menu ─── */
+    .overflow-wrap { position: relative; display: inline-flex; }
+    .overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border: none; background: none; cursor: pointer;
+      border-radius: var(--radius-md);
+      color: var(--ink-darker);
+    }
+    .overflow-btn:hover { background: var(--surface-lighter); }
+    .overflow-dd {
+      position: absolute; top: calc(100% + 4px); right: 0;
+      min-width: 160px; z-index: 150;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      padding: 4px 0;
+    }
+    .overflow-dd-item {
+      display: flex; align-items: center;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+    }
+    .overflow-dd-item:hover { background: var(--surface-lighter); }
+
     /* ─── Modal ─── */
     .modal-backdrop {
       display: none;
@@ -410,16 +455,19 @@
     .modal {
       background: var(--surface-primary);
       border-radius: var(--radius-lg);
-      width: 528px;
+      width: 888px;
+      max-height: 90vh;
       box-shadow:
         0 2px 4px rgba(33, 35, 44, 0.08),
         0 2px 4px rgba(33, 35, 44, 0.04),
         0 8px 24px rgba(33, 35, 44, 0.08);
-      display: flex; flex-direction: column;
+      display: flex; flex-direction: column; overflow: hidden;
     }
     .modal-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      padding: 24px 24px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px;
+      border-bottom: 1px solid var(--edge-primary);
+      flex-shrink: 0;
     }
     .modal-title {
       font-size: 22px; font-weight: 700;
@@ -433,29 +481,153 @@
       border-radius: var(--radius-md); color: var(--ink-darker); flex-shrink: 0;
     }
     .modal-close:hover { background: var(--surface-lighter); }
-    .modal-body { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 16px; }
-    .modal-info { display: flex; flex-direction: column; gap: 8px; }
-    .modal-info-line {
-      font-size: 14px; letter-spacing: -0.14px; line-height: 20px;
-      color: var(--ink-darker);
+
+    /* Two-column body */
+    .modal-body-cols {
+      display: flex; flex: 1; overflow: hidden;
+      border-bottom: 1px solid var(--edge-primary);
     }
-    .modal-info-line strong { font-weight: 700; }
-    .modal-detail-card {
+    .modal-left {
+      width: 560px; flex-shrink: 0;
+      padding: 16px 24px 24px;
+      display: flex; flex-direction: column; gap: 24px;
+      overflow-y: auto;
+    }
+    .modal-right {
+      flex: 1;
+      background: var(--surface-lighter);
+      border-left: 1px solid var(--edge-primary);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Section headings */
+    .modal-section-title {
+      font-size: 18px; font-weight: 700;
+      letter-spacing: -0.12px; line-height: 22px;
+      color: var(--ink-primary); margin-bottom: 16px;
+    }
+
+    /* Inventory detail card */
+    .inv-detail-card {
       background: var(--surface-lighter);
       border-radius: var(--radius-md);
       padding: 8px;
-      display: flex; flex-direction: column; gap: 8px;
+      display: flex; flex-direction: column; gap: 4px;
     }
-    .modal-detail-row {
-      display: flex; gap: 8px; min-height: 24px; align-items: center;
-      font-size: 14px; letter-spacing: -0.14px; color: var(--ink-dark);
-      line-height: 20px;
+    .inv-detail-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 2px 0;
+      font-size: 14px; letter-spacing: -0.14px; line-height: 20px;
     }
-    .modal-detail-key { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .modal-detail-val { flex: 1; }
+    .inv-key {
+      font-weight: 700; color: var(--ink-primary);
+      width: 130px; flex-shrink: 0;
+    }
+    .inv-val {
+      font-weight: 400; color: var(--ink-darker);
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Form fields */
+    .form-field { display: flex; flex-direction: column; gap: 8px; }
+    .form-label {
+      font-size: 14px; font-weight: 700; color: var(--ink-primary);
+      letter-spacing: -0.14px; display: flex; align-items: center; gap: 8px;
+    }
+    .badge-optional {
+      display: inline-flex; align-items: center;
+      background: #e9ecf1; border-radius: 32px;
+      padding: 2px 8px;
+      font-size: 12px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.06px;
+    }
+    .form-row-2col { display: flex; gap: 24px; }
+    .form-row-2col .form-field { flex: 1; min-width: 0; }
+    /* ─── Modal select dropdowns ─── */
+    .modal-select-wrap { position: relative; }
+    .modal-select-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; height: 40px; padding: 0 16px;
+      border: 1px solid var(--edge-primary); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      font-family: inherit; font-size: 14px; font-weight: 400;
+      letter-spacing: -0.14px; cursor: pointer; user-select: none;
+      transition: border-color 120ms;
+    }
+    .modal-select-trigger:hover { border-color: var(--edge-dark); }
+    .modal-select-trigger[aria-expanded="true"] { border-color: var(--brand-primary); }
+    .modal-select-trigger.has-value { color: var(--ink-darker); }
+    .modal-select-trigger:not(.has-value) { color: var(--ink-dark); }
+    .modal-select-chevron { flex-shrink: 0; transition: transform 120ms; }
+    .modal-select-trigger[aria-expanded="true"] .modal-select-chevron { transform: rotate(180deg); }
+    .modal-select-dd {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      z-index: 200;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      max-height: 220px; overflow-y: auto; padding: 4px 0;
+    }
+    .modal-select-option {
+      display: flex; align-items: center;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+      transition: background 80ms;
+    }
+    .modal-select-option:hover { background: var(--surface-lighter); }
+    .modal-select-option.selected { font-weight: 700; color: var(--brand-primary); }
+    .modal-select-empty {
+      padding: 8px 16px;
+      font-size: 14px; color: var(--ink-dark); font-style: italic;
+    }
+    .modal-textarea {
+      width: 100%; min-height: 80px; resize: vertical;
+      padding: 8px 16px; border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      font-family: inherit; font-size: 14px; color: var(--ink-primary);
+      background: var(--surface-primary); outline: none; line-height: 20px;
+    }
+    .modal-textarea::placeholder { color: var(--ink-dark); }
+    .modal-textarea:focus { border-color: var(--brand-primary); }
+
+    /* Comments panel */
+    .comments-header {
+      height: 56px; padding: 0 24px;
+      display: flex; align-items: center;
+      background: var(--surface-primary);
+      border-bottom: 1px solid var(--edge-primary);
+      font-size: 14px; font-weight: 700; color: var(--ink-primary);
+      letter-spacing: -0.14px; flex-shrink: 0;
+    }
+    .comments-body {
+      flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 16px; overflow-y: auto;
+    }
+    .comments-input-wrap {
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      display: flex; flex-direction: column; min-height: 92px; padding: 8px;
+    }
+    .comments-textarea {
+      flex: 1; border: none; outline: none; resize: none;
+      font-family: inherit; font-size: 14px; color: var(--ink-darker);
+      background: transparent; line-height: 20px; min-height: 48px;
+    }
+    .comments-send {
+      align-self: flex-end; margin-top: 4px;
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--surface-lighter); border: none; border-radius: var(--radius-md);
+      cursor: default; color: var(--ink-light);
+      transition: background 120ms, color 120ms;
+    }
+    .comments-send.ready {
+      background: #d2eafa; color: var(--brand-primary); cursor: pointer;
+    }
+    .comments-send.ready:hover { background: #b8dff7; }
+
     .modal-footer {
       display: flex; align-items: center; justify-content: flex-end;
-      gap: 8px; padding: 16px 24px;
+      gap: 16px; padding: 24px;
+      flex-shrink: 0;
     }
     .btn {
       display: inline-flex; align-items: center; justify-content: center;
@@ -465,10 +637,102 @@
       letter-spacing: -0.14px; cursor: pointer;
       border: none; transition: background 120ms;
     }
-    .btn-cancel { background: none; color: var(--ink-darker); border: none; }
+    .btn-cancel { background: none; color: var(--brand-primary); border: none; }
     .btn-cancel:hover { background: var(--surface-lighter); }
     .btn-primary { background: var(--brand-primary); color: #fff; }
     .btn-primary:hover { background: var(--brand-dark); }
+
+    /* ─── Comment cards ─── */
+    .comments-list {
+      display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 12px; overflow-y: auto;
+    }
+    .comment-card {
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      flex-shrink: 0;
+    }
+    .comment-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .comment-user { display: flex; align-items: center; gap: 12px; }
+    .comment-avatar {
+      width: 24px; height: 24px; border-radius: 100px;
+      background: #d2eafa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--brand-primary);
+      letter-spacing: -0.14px; flex-shrink: 0;
+    }
+    .comment-name {
+      font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .comment-time {
+      font-size: 12px; font-weight: 500; color: var(--ink-dark); letter-spacing: -0.06px;
+      white-space: nowrap;
+    }
+    .comment-body {
+      font-size: 14px; font-weight: 400; color: var(--ink-darker);
+      letter-spacing: -0.14px; line-height: 20px;
+      padding-left: 2px; word-break: break-word; white-space: pre-wrap;
+    }
+
+    /* ─── Comments flyout ─── */
+    .flyout {
+      position: fixed; top: 36px; right: 0; bottom: 0;
+      width: 400px; z-index: 160;
+      background: var(--surface-primary);
+      border-left: 1px solid var(--edge-lighter);
+      box-shadow: 0 8px 24px rgba(33,35,44,.08), 0 2px 4px rgba(33,35,44,.08);
+      display: flex; flex-direction: column;
+      padding: 24px;
+      transform: translateX(100%);
+      transition: transform 240ms cubic-bezier(.25,.46,.45,.94);
+    }
+    .flyout.open { transform: translateX(0); }
+    .flyout-header {
+      display: flex; flex-direction: column; gap: 16px;
+      flex-shrink: 0; margin-bottom: 24px;
+    }
+    .flyout-close {
+      display: flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border: none; background: none;
+      cursor: pointer; color: var(--ink-primary); padding: 0;
+    }
+    .flyout-close:hover { opacity: 0.6; }
+    .flyout-title {
+      font-size: 22px; font-weight: 700; color: var(--ink-primary);
+      letter-spacing: -0.5px; line-height: 28px;
+    }
+    .flyout-comments {
+      flex: 1; overflow-y: auto; margin: 0 -4px; padding: 0 4px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .flyout-empty {
+      font-size: 14px; color: var(--ink-dark); text-align: center; padding: 24px 0;
+    }
+    .flyout-input-wrap {
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      display: flex; flex-direction: column; height: 92px; padding: 8px;
+      flex-shrink: 0; margin-top: 24px;
+    }
+    .flyout-textarea {
+      flex: 1; border: none; outline: none; resize: none;
+      font-family: inherit; font-size: 14px; color: var(--ink-darker);
+      background: transparent; line-height: 20px;
+    }
+    .flyout-send {
+      align-self: flex-end;
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: var(--surface-lighter); border: none; border-radius: var(--radius-md);
+      cursor: default; color: var(--ink-light);
+      transition: background 120ms, color 120ms;
+    }
+    .flyout-send.ready { background: #d2eafa; color: var(--brand-primary); cursor: pointer; }
+    .flyout-send.ready:hover { background: #b8dff7; }
 
     /* ─── Calendar placeholder ─── */
     .calendar-view {
@@ -569,26 +833,6 @@
 <!-- ─── Main Content ─── -->
 <main class="main">
 
-  <!-- <div class="stat-row">
-    <div class="stat-card">
-      <div class="stat-label">Available slots</div>
-      <div class="stat-value">17</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Available slots</div>
-      <div class="stat-value">17</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Available slots</div>
-      <div class="stat-value">17</div>
-    </div>
-  </div> -->
-
-  <div class="tab-list">
-    <div class="tab active" data-tab="table">Table</div>
-    <div class="tab" data-tab="calendar">Calendar</div>
-  </div>
-
   <div id="view-table">
 
     <div class="toolbar-row">
@@ -605,6 +849,8 @@
 
     <div class="filter-row">
       <div class="chip-group">
+
+        <!-- Date Range chip -->
         <div class="chip-wrap">
           <button class="chip" id="chip-date" aria-haspopup="true">
             <span class="chip-label">Date Range</span>
@@ -637,9 +883,10 @@
           </div>
         </div>
 
+        <!-- Placement chip -->
         <div class="chip-wrap">
-          <button class="chip" id="chip-inv" aria-haspopup="true">
-            <span class="chip-label">Inventory</span>
+          <button class="chip" id="chip-placement" aria-haspopup="true">
+            <span class="chip-label">Placement</span>
             <span class="chip-sep" hidden></span>
             <span class="chip-value" hidden></span>
             <span class="chip-close" hidden>
@@ -647,9 +894,10 @@
             </span>
             <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <div class="chip-dropdown" id="dd-inv" hidden></div>
+          <div class="chip-dropdown" id="dd-placement" hidden></div>
         </div>
 
+        <!-- Status chip -->
         <div class="chip-wrap">
           <button class="chip" id="chip-status" aria-haspopup="true">
             <span class="chip-label">Status</span>
@@ -663,58 +911,115 @@
           <div class="chip-dropdown" id="dd-status" hidden></div>
         </div>
 
+        <!-- My Inventory chip (single-select) -->
+        <div class="chip-wrap">
+          <button class="chip" id="chip-myinv" aria-haspopup="true">
+            <span class="chip-label">My Inventory</span>
+            <span class="chip-sep" hidden></span>
+            <span class="chip-value" hidden></span>
+            <span class="chip-close" hidden>
+              <svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <svg class="chip-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="chip-dropdown" id="dd-myinv" hidden>
+            <label class="chip-dd-radio">
+              <input type="radio" name="myinv" value="available">
+              <div class="chip-mds-radio"></div>
+              <span>Show All Available</span>
+            </label>
+            <label class="chip-dd-radio">
+              <input type="radio" name="myinv" value="mine">
+              <div class="chip-mds-radio"></div>
+              <span>Show My Inventory</span>
+            </label>
+            <div class="chip-dd-divider"></div>
+            <div class="chip-dd-footer"><button class="chip-dd-clear" id="myinv-clear">Clear</button></div>
+          </div>
+        </div>
+
         <button class="clear-filters-btn" id="clear-btn">Clear Filters</button>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle" id="view-toggle">
+        <button class="vt-btn active" data-view="table">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="12" height="2.5" rx="0.5" fill="currentColor"/>
+            <rect x="1" y="5.5" width="12" height="2.5" rx="0.5" fill="currentColor"/>
+            <rect x="1" y="10" width="12" height="2.5" rx="0.5" fill="currentColor"/>
+          </svg>
+          Table
+        </button>
+        <button class="vt-btn" data-view="calendar">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="2.5" width="12" height="10.5" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            <path d="M1 5.5h12" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M4.5 1v3M9.5 1v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Calendar
+        </button>
       </div>
     </div>
 
     <table class="data-table">
       <thead>
         <tr>
+          <th class="col-period">Period</th>
+          <th class="col-week">Week</th>
           <th class="col-dates">Dates</th>
-          <th class="col-inv">Inventory</th>
-          <th class="col-focus">HOME Selling Focus</th>
-          <th class="col-theme">Seasonal Theme</th>
+          <th class="col-placement">Placement</th>
+          <th class="col-focus">Priority Focus</th>
           <th class="col-cost">Cost</th>
           <th class="col-status">Status</th>
+          <th class="col-action"></th>
           <th class="col-action"></th>
         </tr>
       </thead>
       <tbody id="tbody">
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
-          <td class="col-inv">Zone 1</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
-          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-placement">Zone 1</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$1M</td>
           <td class="col-status" data-status="open"></td>
           <td class="td-action"><button class="req-btn" onclick="doRequest(this)">Request</button></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
-          <td class="col-inv">Zone 2</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
-          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-placement">Zone 2</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$500K</td>
           <td class="col-status" data-status="requested"></td>
           <td class="td-action"></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W2</td>
           <td class="col-dates">12/16/26 – 12/22/26</td>
-          <td class="col-inv">Zone 3</td>
-          <td class="col-focus">Holiday Meal – Ham &amp; Roast P/I</td>
-          <td class="col-theme">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
+          <td class="col-placement">Zone 3</td>
+          <td class="col-focus">Christmas, Holiday Selling, Winter Meals, Football Selling</td>
           <td class="col-cost">$250K</td>
           <td class="col-status" data-status="open"></td>
           <td class="td-action"><button class="req-btn" onclick="doRequest(this)">Request</button></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
         <tr>
+          <td class="col-period">P12</td>
+          <td class="col-week">W3</td>
           <td class="col-dates">12/23/26 – 12/29/26</td>
-          <td class="col-inv">Zone 1</td>
-          <td class="col-focus">New Years Eve – Elevated Apps and adult bev (through 12/31)</td>
-          <td class="col-theme">New Years Eve, Winter Meals, Football Selling</td>
+          <td class="col-placement">Zone 1</td>
+          <td class="col-focus">New Years Eve, Winter Meals, Football Selling</td>
           <td class="col-cost">$1M</td>
           <td class="col-status" data-status="claimed"></td>
           <td class="td-action"></td>
+          <td class="td-overflow"><div class="overflow-wrap"><button class="overflow-btn" onclick="toggleOverflow(this, event)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.25" fill="currentColor"/><circle cx="8" cy="8" r="1.25" fill="currentColor"/><circle cx="13" cy="8" r="1.25" fill="currentColor"/></svg></button><div class="overflow-dd" hidden></div></div></td>
         </tr>
       </tbody>
     </table>
@@ -727,57 +1032,135 @@
 <!-- ─── Request Modal ─── -->
 <div class="modal-backdrop" id="modal-backdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <!-- Header -->
     <div class="modal-header">
       <h2 class="modal-title" id="modal-title">Request Inventory</h2>
       <button class="modal-close" id="modal-close" aria-label="Close">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
-    <div class="modal-body">
-      <div class="modal-info">
-        <p class="modal-info-line"><strong>Brand:</strong> Ritz</p>
-        <p class="modal-info-line"><strong>Account:</strong> Mondelez</p>
-        <p class="modal-info-line"><strong>Requested By:</strong> John Doe</p>
+
+    <!-- Two-column body -->
+    <div class="modal-body-cols">
+
+      <!-- Left: Inventory Details + Request Details -->
+      <div class="modal-left">
+
+        <!-- Inventory Details -->
+        <div>
+          <div class="modal-section-title">Inventory Details</div>
+          <div class="inv-detail-card">
+            <div class="inv-detail-row"><span class="inv-key">Period</span><span class="inv-val" id="md-period"></span></div>
+            <div class="inv-detail-row"><span class="inv-key">Week</span><span class="inv-val" id="md-week"></span></div>
+            <div class="inv-detail-row"><span class="inv-key">Dates</span><span class="inv-val" id="md-dates"></span></div>
+            <div class="inv-detail-row"><span class="inv-key">Placement</span><span class="inv-val" id="md-placement"></span></div>
+            <div class="inv-detail-row"><span class="inv-key">Priority Focus</span><span class="inv-val" id="md-focus"></span></div>
+            <div class="inv-detail-row"><span class="inv-key">Cost</span><span class="inv-val" id="md-cost"></span></div>
+          </div>
+        </div>
+
+        <!-- Request Details -->
+        <div>
+          <div class="modal-section-title">Request Details</div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row-2col">
+              <div class="form-field">
+                <label class="form-label">Account</label>
+                <div class="modal-select-wrap" id="select-account-wrap">
+                  <button class="modal-select-trigger" id="select-account-trigger" aria-haspopup="listbox">
+                    <span class="modal-select-value" id="select-account-value">Select an account</span>
+                    <svg class="modal-select-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <div class="modal-select-dd" id="select-account-dd" hidden role="listbox"></div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Brand</label>
+                <div class="modal-select-wrap" id="select-brand-wrap">
+                  <button class="modal-select-trigger" id="select-brand-trigger" aria-haspopup="listbox">
+                    <span class="modal-select-value" id="select-brand-value">Select a brand</span>
+                    <svg class="modal-select-chevron" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <div class="modal-select-dd" id="select-brand-dd" hidden role="listbox"></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">
+                Description
+                <span class="badge-optional">Optional</span>
+              </label>
+              <textarea class="modal-textarea" id="modal-desc" placeholder="Enter a description" rows="4"></textarea>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="modal-detail-card">
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Dates</span>
-          <span class="modal-detail-val" id="md-dates"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Inventory</span>
-          <span class="modal-detail-val" id="md-inv"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">HOME Selling Focus</span>
-          <span class="modal-detail-val" id="md-focus"></span>
-        </div>
-        <div class="modal-detail-row">
-          <span class="modal-detail-key">Cost</span>
-          <span class="modal-detail-val" id="md-cost"></span>
+
+      <!-- Right: Comments -->
+      <div class="modal-right">
+        <div class="comments-header">Comments</div>
+        <div class="comments-body">
+          <div class="comments-list" id="modal-comments-list"></div>
+          <div class="comments-input-wrap">
+            <textarea class="comments-textarea" placeholder=""></textarea>
+            <button class="comments-send" title="Send">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 13V3M8 3L4 7M8 3l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+
     </div>
+
+    <!-- Footer -->
     <div class="modal-footer">
-      <button class="btn btn-cancel" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary">Request</button>
+      <button type="button" class="btn btn-cancel" id="modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-save" onclick="saveRequest()">Save</button>
     </div>
+
+  </div>
+</div>
+
+<!-- ─── Comments Flyout ─── -->
+<div class="flyout" id="flyout">
+  <div class="flyout-header">
+    <button class="flyout-close" id="flyout-close" aria-label="Close">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <span class="flyout-title">Comments</span>
+  </div>
+  <div class="flyout-comments" id="flyout-comments-list"></div>
+  <div class="flyout-input-wrap">
+    <textarea class="flyout-textarea" id="flyout-textarea" placeholder=""></textarea>
+    <button class="flyout-send" id="flyout-send" title="Send">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 13V3M8 3L4 7M8 3l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </div>
 </div>
 
 <script>
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      const isTable = t.dataset.tab === 'table';
+  // ── View toggle ──────────────────────────────────────────────
+  document.querySelectorAll('.vt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const isTable = btn.dataset.view === 'table';
       document.getElementById('view-table').style.display = isTable ? '' : 'none';
       document.getElementById('view-calendar').style.display = isTable ? 'none' : 'flex';
     });
   });
 
+  // ── Tertiary nav ──────────────────────────────────────────────
   document.querySelectorAll('.t-item').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.t-item').forEach(x => x.classList.remove('active'));
@@ -785,6 +1168,7 @@
     });
   });
 
+  // ── Status lights ──────────────────────────────────────────────
   const STATUS = {
     open:      { dot: 'open',      label: 'Open' },
     requested: { dot: 'requested', label: 'Under Review' },
@@ -796,23 +1180,63 @@
     return `<span class="status-light"><span class="s-dot ${s.dot}"></span>${s.label}</span>`;
   }
 
-  // Render all status cells on load
   document.querySelectorAll('[data-status]').forEach(td => {
     td.innerHTML = statusLight(td.dataset.status);
   });
 
+  // ── Overflow menu ──────────────────────────────────────────────
+  function toggleOverflow(btn, event) {
+    event.stopPropagation();
+    const dd = btn.nextElementSibling;
+    const isOpen = !dd.hasAttribute('hidden');
+    closeAllOverflows();
+    if (!isOpen) {
+      const row = btn.closest('tr');
+      const status = row.querySelector('.col-status')?.dataset.status;
+      const items = [];
+      if (status === 'requested' || status === 'claimed') {
+        items.push('View Comments');
+      }
+      if (items.length === 0) return;
+      dd.innerHTML = items.map(t => `<div class="overflow-dd-item">${t}</div>`).join('');
+      dd.removeAttribute('hidden');
+    }
+  }
+
+  function closeAllOverflows() {
+    document.querySelectorAll('.overflow-dd').forEach(d => d.setAttribute('hidden', ''));
+  }
+
+  // ── Request modal ──────────────────────────────────────────────
   let _pendingRow = null;
 
   function doRequest(btn) {
     _pendingRow = btn.closest('tr');
-    document.getElementById('md-dates').textContent = _pendingRow.querySelector('.col-dates').textContent.trim();
-    document.getElementById('md-inv').textContent   = _pendingRow.querySelector('.col-inv').textContent.trim();
-    document.getElementById('md-focus').textContent = _pendingRow.querySelector('.col-focus').textContent.trim();
-    document.getElementById('md-cost').textContent  = _pendingRow.querySelector('.col-cost').textContent.trim();
+    document.getElementById('md-period').textContent    = _pendingRow.querySelector('.col-period').textContent.trim();
+    document.getElementById('md-week').textContent      = _pendingRow.querySelector('.col-week').textContent.trim();
+    document.getElementById('md-dates').textContent     = _pendingRow.querySelector('.col-dates').textContent.trim();
+    document.getElementById('md-placement').textContent = _pendingRow.querySelector('.col-placement').textContent.trim();
+    document.getElementById('md-focus').textContent     = _pendingRow.querySelector('.col-focus').textContent.trim();
+    document.getElementById('md-cost').textContent      = _pendingRow.querySelector('.col-cost').textContent.trim();
+    const rowKey = getRowKey(_pendingRow);
+    _modalCommentSnapshot = (rowCommentsStore[rowKey] || []).length;
+    renderCommentList('modal-comments-list', rowKey);
+    document.querySelector('.comments-textarea').value = '';
+    document.querySelector('.comments-send').classList.remove('ready');
+    document.getElementById('modal-desc').value = '';
+    resetModalSelects();
     document.getElementById('modal-backdrop').classList.add('open');
   }
 
   function closeModal() {
+    // Roll back any comments added during this modal session
+    if (_pendingRow) {
+      const rowKey = getRowKey(_pendingRow);
+      if (rowCommentsStore[rowKey]) {
+        rowCommentsStore[rowKey].splice(_modalCommentSnapshot);
+        if (rowCommentsStore[rowKey].length === 0) delete rowCommentsStore[rowKey];
+      }
+    }
     document.getElementById('modal-backdrop').classList.remove('open');
     _pendingRow = null;
   }
@@ -835,18 +1259,270 @@
     if (e.target === this) closeModal();
   });
 
-  document.querySelector('.modal-footer .btn-primary').addEventListener('click', function() {
-    if (_pendingRow) {
-      const cell = _pendingRow.querySelector('.col-status');
-      cell.dataset.status = 'requested';
-      cell.innerHTML = statusLight('requested');
-      _pendingRow.querySelector('.td-action').innerHTML = '';
+  // ── Account & Brand dropdowns ────────────────────────────────
+  const ACCOUNTS = [
+    'Campbell\'s', 'General Mills', 'Kraft Heinz', 'Kellogg\'s',
+    'Mondelez', 'Nestlé', 'Procter & Gamble', 'Unilever',
+  ];
+
+  const BRANDS_BY_ACCOUNT = {
+    'Campbell\'s':        ['Campbell\'s Soup', 'Pace', 'Pepperidge Farm', 'Swanson', 'V8'],
+    'General Mills':      ['Betty Crocker', 'Cheerios', 'Nature Valley', 'Pillsbury', 'Wheaties'],
+    'Kraft Heinz':        ['Heinz', 'Jell-O', 'Kraft', 'Oscar Mayer', 'Velveeta'],
+    'Kellogg\'s':         ['Eggo', 'Frosted Flakes', 'Pop-Tarts', 'Pringles', 'Special K'],
+    'Mondelez':           ['Cadbury', 'Chips Ahoy', 'Oreo', 'Ritz', 'Trident'],
+    'Nestlé':             ['Coffee-mate', 'DiGiorno', 'KitKat', 'Purina', 'Stouffer\'s'],
+    'Procter & Gamble':   ['Crest', 'Dawn', 'Gillette', 'Pampers', 'Tide'],
+    'Unilever':           ['Ben & Jerry\'s', 'Dove', 'Hellmann\'s', 'Knorr', 'Lipton'],
+  };
+
+  let selectedAccount = null;
+  let selectedBrand   = null;
+
+  function closeModalSelects() {
+    ['select-account-dd', 'select-brand-dd'].forEach(id => {
+      document.getElementById(id).setAttribute('hidden', '');
+    });
+    document.getElementById('select-account-trigger').removeAttribute('aria-expanded');
+    document.getElementById('select-brand-trigger').removeAttribute('aria-expanded');
+  }
+
+  function populateBrandDd() {
+    const dd = document.getElementById('select-brand-dd');
+    dd.innerHTML = '';
+    const brands = selectedAccount ? BRANDS_BY_ACCOUNT[selectedAccount] : Object.values(BRANDS_BY_ACCOUNT).flat().sort();
+    brands.forEach(brand => {
+      const opt = document.createElement('div');
+      opt.className = 'modal-select-option' + (brand === selectedBrand ? ' selected' : '');
+      opt.textContent = brand;
+      opt.setAttribute('role', 'option');
+      opt.addEventListener('click', () => {
+        selectedBrand = brand;
+        const trigger = document.getElementById('select-brand-trigger');
+        document.getElementById('select-brand-value').textContent = brand;
+        trigger.classList.add('has-value');
+        closeModalSelects();
+      });
+      dd.appendChild(opt);
+    });
+  }
+
+  function populateAccountDd() {
+    const dd = document.getElementById('select-account-dd');
+    dd.innerHTML = '';
+    ACCOUNTS.forEach(account => {
+      const opt = document.createElement('div');
+      opt.className = 'modal-select-option' + (account === selectedAccount ? ' selected' : '');
+      opt.textContent = account;
+      opt.setAttribute('role', 'option');
+      opt.addEventListener('click', () => {
+        selectedAccount = account;
+        const trigger = document.getElementById('select-account-trigger');
+        document.getElementById('select-account-value').textContent = account;
+        trigger.classList.add('has-value');
+        // Reset brand if it doesn't belong to this account
+        if (selectedBrand && !BRANDS_BY_ACCOUNT[account].includes(selectedBrand)) {
+          selectedBrand = null;
+          document.getElementById('select-brand-value').textContent = 'Select a brand';
+          document.getElementById('select-brand-trigger').classList.remove('has-value');
+        }
+        closeModalSelects();
+      });
+      dd.appendChild(opt);
+    });
+  }
+
+  document.getElementById('select-account-trigger').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('select-account-dd');
+    const isOpen = !dd.hasAttribute('hidden');
+    closeModalSelects();
+    if (!isOpen) {
+      populateAccountDd();
+      dd.removeAttribute('hidden');
+      this.setAttribute('aria-expanded', 'true');
     }
-    closeModal();
-    showToast('Email request sent.');
   });
 
-  // ── Filter chips ──────────────────────────────────────────────
+  document.getElementById('select-brand-trigger').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('select-brand-dd');
+    const isOpen = !dd.hasAttribute('hidden');
+    closeModalSelects();
+    if (!isOpen) {
+      populateBrandDd();
+      dd.removeAttribute('hidden');
+      this.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // Close modal selects on outside click (modal body click)
+  document.getElementById('modal-backdrop').addEventListener('click', function(e) {
+    if (!e.target.closest('.modal-select-wrap')) closeModalSelects();
+  }, true);
+
+  function resetModalSelects() {
+    selectedAccount = null; selectedBrand = null;
+    document.getElementById('select-account-value').textContent = 'Select an account';
+    document.getElementById('select-brand-value').textContent   = 'Select a brand';
+    document.getElementById('select-account-trigger').classList.remove('has-value');
+    document.getElementById('select-brand-trigger').classList.remove('has-value');
+    closeModalSelects();
+  }
+
+  // ── Request store ─────────────────────────────────────────────
+  const rowRequestStore = {}; // rowKey → {account, brand, description}
+
+  // ── Comment system ────────────────────────────────────────────
+  const rowCommentsStore = {}; // rowKey → [{initials, name, timestamp, text}]
+  let _modalCommentSnapshot = 0; // comment count when modal opened — used to roll back on cancel
+
+  function getRowKey(row) {
+    return `${row.querySelector('.col-dates').textContent.trim()}|${row.querySelector('.col-placement').textContent.trim()}`;
+  }
+
+  function formatTimestamp() {
+    const now = new Date();
+    const m = now.getMonth() + 1, d = now.getDate();
+    const y = String(now.getFullYear()).slice(-2);
+    let h = now.getHours();
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${m}/${d}/${y} at ${h}:${min} ${ampm}`;
+  }
+
+  function makeCommentCard(comment) {
+    const div = document.createElement('div');
+    div.className = 'comment-card';
+    div.innerHTML = `
+      <div class="comment-header">
+        <div class="comment-user">
+          <div class="comment-avatar" style="${comment.avatarStyle || ''}">${comment.initials}</div>
+          <span class="comment-name">${comment.name}</span>
+        </div>
+        <span class="comment-time">${comment.timestamp}</span>
+      </div>
+      <div class="comment-body">${comment.text.replace(/</g,'&lt;')}</div>
+    `;
+    return div;
+  }
+
+  function renderCommentList(containerId, rowKey) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const comments = rowCommentsStore[rowKey] || [];
+    if (containerId === 'flyout-comments-list' && comments.length === 0) {
+      container.innerHTML = '<p class="flyout-empty">No comments yet.</p>';
+      return;
+    }
+    comments.forEach(c => container.appendChild(makeCommentCard(c)));
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function addComment(rowKey, text) {
+    if (!rowCommentsStore[rowKey]) rowCommentsStore[rowKey] = [];
+    rowCommentsStore[rowKey].push({
+      initials: 'TW', name: 'Tracy Wei', avatarStyle: 'background:#d2eafa;color:#2874c1;',
+      timestamp: formatTimestamp(), text
+    });
+  }
+
+  // Modal comments send
+  document.querySelector('.comments-textarea').addEventListener('input', function() {
+    document.querySelector('.comments-send').classList.toggle('ready', this.value.trim().length > 0);
+  });
+
+  document.querySelector('.comments-send').addEventListener('click', function() {
+    if (!this.classList.contains('ready') || !_pendingRow) return;
+    const ta = document.querySelector('.comments-textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const rowKey = getRowKey(_pendingRow);
+    addComment(rowKey, text);
+    ta.value = '';
+    this.classList.remove('ready');
+    renderCommentList('modal-comments-list', rowKey);
+    // Sync flyout if open for same row
+    if (document.getElementById('flyout').classList.contains('open') && _flyoutRow && getRowKey(_flyoutRow) === rowKey) {
+      renderCommentList('flyout-comments-list', rowKey);
+    }
+  });
+
+  // ── Flyout ────────────────────────────────────────────────────
+  let _flyoutRow = null;
+
+  function openFlyout(row) {
+    _flyoutRow = row;
+    const rowKey = getRowKey(row);
+    renderCommentList('flyout-comments-list', rowKey);
+    document.getElementById('flyout-textarea').value = '';
+    document.getElementById('flyout-send').classList.remove('ready');
+    document.getElementById('flyout').classList.add('open');
+  }
+
+  function closeFlyout() {
+    document.getElementById('flyout').classList.remove('open');
+    _flyoutRow = null;
+  }
+
+  document.getElementById('flyout-close').addEventListener('click', closeFlyout);
+
+  document.getElementById('flyout-textarea').addEventListener('input', function() {
+    document.getElementById('flyout-send').classList.toggle('ready', this.value.trim().length > 0);
+  });
+
+  document.getElementById('flyout-send').addEventListener('click', function() {
+    if (!this.classList.contains('ready') || !_flyoutRow) return;
+    const ta = document.getElementById('flyout-textarea');
+    const text = ta.value.trim();
+    if (!text) return;
+    const rowKey = getRowKey(_flyoutRow);
+    addComment(rowKey, text);
+    ta.value = '';
+    this.classList.remove('ready');
+    renderCommentList('flyout-comments-list', rowKey);
+    // Sync modal if open for same row
+    if (document.getElementById('modal-backdrop').classList.contains('open') && _pendingRow && getRowKey(_pendingRow) === rowKey) {
+      renderCommentList('modal-comments-list', rowKey);
+    }
+  });
+
+  // "View Comments" click via delegation on tbody
+  document.getElementById('tbody').addEventListener('click', function(e) {
+    const item = e.target.closest('.overflow-dd-item');
+    if (!item) return;
+    const row = item.closest('tr');
+    closeAllOverflows();
+    openFlyout(row);
+  });
+
+  function saveRequest() {
+    const row = _pendingRow;
+    // Commit modal comments — prevent closeModal from rolling them back
+    if (row) {
+      const rowKey = getRowKey(row);
+      _modalCommentSnapshot = (rowCommentsStore[rowKey] || []).length;
+    }
+    closeModal();
+    if (row) {
+      const rowKey = getRowKey(row);
+      const desc = document.getElementById('modal-desc')?.value.trim() ?? '';
+      rowRequestStore[rowKey] = {
+        account: selectedAccount || '',
+        brand: selectedBrand || '',
+        description: desc,
+      };
+      const cell = row.querySelector('.col-status');
+      cell.dataset.status = 'requested';
+      cell.innerHTML = statusLight('requested');
+      const actionCell = row.querySelector('.td-action');
+      if (actionCell) actionCell.innerHTML = '';
+    }
+    showToast('Request submitted.');
+  }
+
+  // ── Date range picker ──────────────────────────────────────────
   let rdpStart = null, rdpEnd = null, rdpView = new Date(), rdpHover = null;
   const isSameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
 
@@ -901,11 +1577,9 @@
     rdpUpdateClasses();
   }
 
-  // Nav
   document.getElementById('rdp-prev').addEventListener('click', e => { e.stopPropagation(); rdpView = new Date(rdpView.getFullYear(), rdpView.getMonth()-1, 1); rdpRebuild(); });
   document.getElementById('rdp-next').addEventListener('click', e => { e.stopPropagation(); rdpView = new Date(rdpView.getFullYear(), rdpView.getMonth()+1, 1); rdpRebuild(); });
 
-  // Hover via delegation — no DOM mutation on hover
   const rdpGrid = document.getElementById('rdp-days');
   rdpGrid.addEventListener('mouseover', e => {
     const day = e.target.closest('.rdp-day:not(.other-month)');
@@ -919,7 +1593,6 @@
     rdpHover = null; rdpUpdateClasses();
   });
 
-  // Click via delegation
   rdpGrid.addEventListener('click', e => {
     const day = e.target.closest('.rdp-day:not(.other-month)');
     if (!day) return;
@@ -936,12 +1609,15 @@
 
   rdpRebuild();
 
-  const invFilter    = new Set();
-  const statusFilter = new Set();
+  // ── Filters ──────────────────────────────────────────────────
+  const placementFilter = new Set();
+  const statusFilter    = new Set();
+  let   myInvFilter     = null; // null | 'available' | 'mine'
 
-  const ALL_INV    = ['Zone 1', 'Zone 2', 'Zone 3'];
-  const ALL_STATUS = ['open', 'requested', 'claimed'];
+  const ALL_PLACEMENT = ['Zone 1', 'Zone 2', 'Zone 3'];
+  const ALL_STATUS    = ['open', 'requested', 'claimed'];
   const STATUS_LABELS = { open: 'Open', requested: 'Under Review', claimed: 'Claimed' };
+  const MYINV_LABELS  = { available: 'Show All Available', mine: 'Show My Inventory' };
 
   function parseMDYY(str) {
     const [m, d, y] = str.trim().split('/').map(Number);
@@ -963,11 +1639,17 @@
           if (fEnd   && rs > fEnd)   { row.style.display = 'none'; return; }
         }
       }
-      if (invFilter.size > 0) {
-        if (!invFilter.has(row.querySelector('.col-inv')?.textContent.trim())) { row.style.display = 'none'; return; }
+      if (placementFilter.size > 0) {
+        if (!placementFilter.has(row.querySelector('.col-placement')?.textContent.trim())) { row.style.display = 'none'; return; }
       }
       if (statusFilter.size > 0) {
         if (!statusFilter.has(row.querySelector('.col-status')?.dataset.status)) { row.style.display = 'none'; return; }
+      }
+      if (myInvFilter === 'available') {
+        if (row.querySelector('.col-status')?.dataset.status !== 'open') { row.style.display = 'none'; return; }
+      } else if (myInvFilter === 'mine') {
+        const s = row.querySelector('.col-status')?.dataset.status;
+        if (s !== 'requested' && s !== 'claimed') { row.style.display = 'none'; return; }
       }
       row.style.display = '';
     });
@@ -1010,11 +1692,28 @@
     }
   }
 
+  function updateMyInvChipDisplay() {
+    const chip = document.getElementById('chip-myinv');
+    const has = !!myInvFilter;
+    chip.classList.toggle('has-selection', has);
+    const sep = chip.querySelector('.chip-sep'), val = chip.querySelector('.chip-value');
+    const close = chip.querySelector('.chip-close'), chev = chip.querySelector('.chip-chevron');
+    if (has) {
+      val.textContent = MYINV_LABELS[myInvFilter];
+      sep.removeAttribute('hidden'); val.removeAttribute('hidden'); close.removeAttribute('hidden');
+      chev.setAttribute('hidden', '');
+    } else {
+      sep.setAttribute('hidden', ''); val.setAttribute('hidden', ''); close.setAttribute('hidden', '');
+      chev.removeAttribute('hidden');
+    }
+  }
+
   function updateChipStates() {
     updateDateChipDisplay();
-    updateChipDisplay('chip-inv', invFilter, ALL_INV, v => v);
+    updateChipDisplay('chip-placement', placementFilter, ALL_PLACEMENT, v => v);
     updateChipDisplay('chip-status', statusFilter, ALL_STATUS, v => STATUS_LABELS[v]);
-    const any = invFilter.size > 0 || statusFilter.size > 0 || rdpStart;
+    updateMyInvChipDisplay();
+    const any = placementFilter.size > 0 || statusFilter.size > 0 || rdpStart || myInvFilter;
     document.getElementById('clear-btn').classList.toggle('active', !!any);
   }
 
@@ -1042,19 +1741,36 @@
     footer.appendChild(clearBtn); dd.appendChild(footer);
   }
 
-  makeCheckboxDropdown(ALL_INV, invFilter, v => v, 'dd-inv');
+  makeCheckboxDropdown(ALL_PLACEMENT, placementFilter, v => v, 'dd-placement');
   makeCheckboxDropdown(ALL_STATUS, statusFilter, v => STATUS_LABELS[v], 'dd-status');
 
-  // chip click toggle
-  ['chip-date', 'chip-inv', 'chip-status'].forEach(id => {
+  // My Inventory radio chip
+  document.querySelectorAll('#dd-myinv input[type="radio"]').forEach(radio => {
+    radio.addEventListener('mousedown', e => e.stopPropagation());
+    radio.addEventListener('change', () => {
+      myInvFilter = radio.value;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('myinv-clear').addEventListener('mousedown', e => e.stopPropagation());
+  document.getElementById('myinv-clear').addEventListener('click', () => {
+    myInvFilter = null;
+    document.querySelectorAll('#dd-myinv input[type="radio"]').forEach(r => r.checked = false);
+    applyFilters();
+  });
+
+  // Chip click toggle
+  ['chip-date', 'chip-placement', 'chip-status', 'chip-myinv'].forEach(id => {
     const chipEl = document.getElementById(id);
     const ddId = id.replace('chip-', 'dd-');
     const dd = document.getElementById(ddId);
     chipEl.addEventListener('click', e => {
       if (e.target.closest('.chip-close')) {
         if (id === 'chip-date') { rdpStart = null; rdpEnd = null; rdpRebuild(); }
-        else if (id === 'chip-inv') { invFilter.clear(); dd.querySelectorAll('input').forEach(c => c.checked = false); }
+        else if (id === 'chip-placement') { placementFilter.clear(); dd.querySelectorAll('input').forEach(c => c.checked = false); }
         else if (id === 'chip-status') { statusFilter.clear(); dd.querySelectorAll('input').forEach(c => c.checked = false); }
+        else if (id === 'chip-myinv') { myInvFilter = null; dd.querySelectorAll('input').forEach(r => r.checked = false); }
         applyFilters(); return;
       }
       const isOpen = !dd.hasAttribute('hidden');
@@ -1063,30 +1779,28 @@
     });
   });
 
-  // date clear button
   document.getElementById('date-clear').addEventListener('mousedown', e => e.stopPropagation());
   document.getElementById('date-clear').addEventListener('click', () => {
     rdpStart = null; rdpEnd = null; rdpRebuild(); applyFilters();
   });
 
-  // click outside closes
+  // Click outside closes dropdowns and overflow menus
   document.addEventListener('click', e => {
     if (!e.target.closest('.chip-wrap')) closeAllDropdowns();
+    if (!e.target.closest('.overflow-wrap')) closeAllOverflows();
   });
 
-  // search
   document.getElementById('search-input').addEventListener('input', applyFilters);
 
-  // clear all
   document.getElementById('clear-btn').addEventListener('click', () => {
     document.getElementById('search-input').value = '';
     rdpStart = null; rdpEnd = null; rdpRebuild();
-    invFilter.clear(); statusFilter.clear();
+    placementFilter.clear(); statusFilter.clear(); myInvFilter = null;
     document.querySelectorAll('.chip-dropdown input').forEach(c => c.checked = false);
     applyFilters();
   });
 
-  // ── Export CSV ──
+  // ── Export CSV ──────────────────────────────────────────────
   document.querySelector('.export-btn').addEventListener('click', () => {
     const headers = [...document.querySelectorAll('.data-table thead th')]
       .map(th => th.textContent.trim())
@@ -1096,7 +1810,7 @@
 
     const rows = [...document.querySelectorAll('#tbody tr')].map(row => {
       return [...row.querySelectorAll('td')]
-        .filter(td => !td.classList.contains('td-action'))
+        .filter(td => !td.classList.contains('td-action') && !td.classList.contains('td-overflow'))
         .map(td => {
           let text;
           if (td.classList.contains('col-dates')) {
