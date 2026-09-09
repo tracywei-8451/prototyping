@@ -402,6 +402,8 @@
     font-size:14px; line-height:20px;
   }
   .dropzone .drop-action:hover { text-decoration:underline; }
+  #upload-limit-alert:not([hidden]) { display:flex; align-items:flex-start; }
+  #invalid-rows-banner:not([hidden]) { display:flex; align-items:flex-start; }
   .file-name {
     color: var(--c-ink-darker); font-size:12px; line-height:16px;
     margin-top: var(--s-xs);
@@ -688,9 +690,12 @@
             <label class="dropzone" id="dropzone">
               <span class="filetypes">Only .csv, .xls and .xlsx files.</span>
               <span class="drop-action">Drag and drop or upload file(s)</span>
-              <span class="file-name" id="file-name" hidden></span>
               <input id="file-input" type="file" accept=".txt,.csv,.xls,.xlsx,text/plain,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="sr-only" />
             </label>
+            <div id="upload-limit-alert" hidden style="gap:8px;margin-top:8px;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex-shrink:0;color:#bc2f60"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.485 2.495a1.75 1.75 0 013.03 0l6.51 11.26A1.75 1.75 0 0116.51 16.5H3.49a1.75 1.75 0 01-1.515-2.745l6.51-11.26zM10 7a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3A.75.75 0 0110 7zm0 7a1 1 0 100-2 1 1 0 000 2z" fill="currentColor"/></svg>
+              <p style="margin:0;padding-top:2px;font-size:12px;line-height:16px;color:#bc2f60;letter-spacing:-0.06px;">File contains more than 250 bids. Upload a file with 250 bids or less.</p>
+            </div>
           </div>
 
           <div class="custom-section">
@@ -707,7 +712,7 @@
               </span>
             </div>
             <textarea id="custom-text" class="keywords-textarea" rows="5"
-              placeholder="Keywords should be entered in this format:&#10;keyword, match type, bid amount&#10;e.g. seasonal, exact, 1.00"></textarea>
+              placeholder="Keywords should be entered in this format:&#10;keyword, match type (optional), bid amount (optional)&#10;e.g. seasonal, exact, 1.00"></textarea>
           </div>
 
           <div class="custom-actions">
@@ -724,6 +729,10 @@
             <span id="selected-label">keywords added</span>
           </div>
           <button class="remove-all" id="remove-all-btn" type="button" disabled>Remove All</button>
+        </div>
+        <div id="invalid-rows-banner" hidden style="gap:8px;padding:16px;background:#fffaeb;">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="flex-shrink:0"><circle cx="10" cy="10" r="10" fill="#F59E0B"/><path d="M10 6v5" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14" r="1" fill="white"/></svg>
+          <p style="margin:0;font-size:14px;line-height:20px;color:#535665;letter-spacing:-0.14px;">Keywords with invalid data could not be added</p>
         </div>
         <div class="selected-list" id="selected-list"></div>
       </aside>
@@ -743,9 +752,8 @@
 (() => {
   // ----- Mock data -----
   const TERRITORIES = ['Battleground', 'Potential', 'Defend'];
-  const TAG_POOL = ['Drives Clicks', 'Previously Boosted', 'High Traffic', 'Seasonal', 'Top Performer', 'Brand', 'Long Tail'];
   // Six strategy filter values: 3 territories + the 3 tags actually present in mock data.
-  const STRATEGY_FILTERS = ['Battleground', 'Potential', 'Defend', 'Drives Clicks', 'Previously Boosted', 'High Traffic'];
+  const STRATEGY_FILTERS = ['Battleground', 'Competitive', 'Complementary', 'Defend', 'Drives Clicks', 'High Traffic', 'Potential', 'Previously Used'];
   const SEED_KEYWORDS = [
     'soft drinks','beverages','soda','sugar free','sparkling water','energy drinks',
     'juice','iced tea','lemonade','coffee','cold brew','espresso','latte',
@@ -773,12 +781,12 @@
     const TAG_COMBOS = [
       [],
       ['Drives Clicks'],
-      ['Previously Boosted', 'High Traffic'],
+      ['Previously Used', 'High Traffic'],
       ['Drives Clicks', 'High Traffic'],
-      ['Previously Boosted'],
-      ['Drives Clicks', 'Previously Boosted', 'High Traffic'],
+      ['Previously Used'],
+      ['Drives Clicks', 'Previously Used', 'High Traffic'],
       ['High Traffic'],
-      ['Drives Clicks', 'Previously Boosted'],
+      ['Drives Clicks', 'Previously Used'],
     ];
     return list.map((kw, i) => ({
       id: 'kw-' + (i+1),
@@ -801,6 +809,7 @@
     selectedCustom: new Map(),    // keyword(lowercased) -> displayKeyword (for entries not in catalog)
     strategyFilters: new Set(),   // checked strategy values; empty = no filter
     strategyOpen: false,
+    hasInvalidRows: false,
   };
 
   // ----- Helpers -----
@@ -973,6 +982,7 @@
     $('#selected-count').textContent = count;
     $('#selected-label').textContent = count === 1 ? 'keyword added' : 'keywords added';
     $('#remove-all-btn').disabled = count === 0;
+    $('#invalid-rows-banner').hidden = !state.hasInvalidRows;
 
     const list = $('#selected-list');
     if (count === 0) {
@@ -1232,28 +1242,66 @@
     const dataRows = hasHeader ? rows.slice(1) : rows;
     if (dataRows.length === 0) { showToast('No data rows found'); return; }
 
-    const lines = dataRows.map(row => {
-      const kw = (row[kwIdx] || '').trim();
-      if (!kw) return null;
+    let invalidRowCount = 0;
+    const entries = dataRows.map(row => {
+      const keyword = (row[kwIdx] || '').trim();
+      if (!keyword) { invalidRowCount++; return null; }
       const mt  = mtIdx  >= 0 ? (row[mtIdx]  || '').trim() : '';
       const bid = bidIdx >= 0 ? (row[bidIdx] || '').trim() : '';
-      const parts = [kw];
-      if (mt || bid) parts.push(mt);
-      if (bid) parts.push(bid);
-      return parts.join(', ');
+      const matchType = MATCH_TYPE_MAP[mt.toLowerCase()] || null;
+      const bidRaw = bid.replace(/[$\s]/g, '');
+      const bidNum = parseFloat(bidRaw);
+      const bidValid = !bidRaw || (!isNaN(bidNum) && bidNum >= 0);
+      if (!bidValid) { invalidRowCount++; return null; }
+      return { keyword, matchType, bid: bidRaw ? bidNum.toFixed(2) : null };
     }).filter(Boolean);
 
-    if (lines.length === 0) { showToast('No valid keywords found'); return; }
+    if (entries.length === 0) { showToast('No valid keywords found'); return; }
+    state.hasInvalidRows = invalidRowCount > 0;
 
-    const ta = $('#custom-text');
-    ta.value = ta.value ? (ta.value.replace(/\s+$/, '') + '\n' + lines.join('\n')) : lines.join('\n');
-    $('#file-name').textContent = `Loaded ${lines.length} keyword${lines.length === 1 ? '' : 's'} from ${file.name}`;
-    $('#file-name').hidden = false;
-    updateCustomState();
+    const uploadAlert = $('#upload-limit-alert');
+    if (entries.length > 250) {
+      uploadAlert.hidden = false;
+      return;
+    }
+    uploadAlert.hidden = true;
+
+    // Commit directly to selection — bypass textarea
+    let added = 0, dup = 0, skippedAtLimit = 0;
+    const existingCustom = new Set([...state.selectedCustom.keys()]);
+    const seenInBatch = new Set();
+    for (const { keyword: raw, matchType: rawMatchType, bid } of entries) {
+      const key = norm(raw);
+      if (!key) continue;
+      if (seenInBatch.has(key)) { dup++; continue; }
+      seenInBatch.add(key);
+      const matchType = rawMatchType || (bid ? 'Broad' : null);
+      const inCatalog = byNorm.get(key);
+      if (inCatalog) {
+        if (state.selectedIds.has(inCatalog.id)) { dup++; continue; }
+        if (selectedTotal() >= MAX_SELECTED) { skippedAtLimit++; continue; }
+        state.selectedIds.set(inCatalog.id, { bid, matchType });
+        added++;
+      } else {
+        if (existingCustom.has(key)) { dup++; continue; }
+        if (selectedTotal() >= MAX_SELECTED) { skippedAtLimit++; continue; }
+        state.selectedCustom.set(key, { display: raw, matchType, bid });
+        added++;
+      }
+    }
+
+    renderTable(); renderSelected(); renderAddAll();
+    const parts = [];
+    if (added) parts.push(`Added ${added}`);
+    if (dup) parts.push(`${dup} duplicate${dup===1?'':'s'} skipped`);
+    if (skippedAtLimit) parts.push(`${skippedAtLimit} skipped (limit ${MAX_SELECTED})`);
+    showToast(parts.join(' · ') || 'No valid keywords found');
   }
 
   fileInput.addEventListener('change', async (e) => {
     const f = e.target.files && e.target.files[0];
+    $('#upload-limit-alert').hidden = true;
+    state.hasInvalidRows = false;
     await ingestFile(f);
     e.target.value = '';
   });
@@ -1265,6 +1313,8 @@
   }));
   dropzone.addEventListener('drop', async (e) => {
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    $('#upload-limit-alert').hidden = true;
+    state.hasInvalidRows = false;
     await ingestFile(f);
   });
 
@@ -1304,9 +1354,17 @@
     showToast(parts.join(' · ') || 'Nothing to add');
   });
 
-  // CSV template download
+  // CSV template download — rows from current selection, or empty template if nothing selected
   $('#csv-template-btn').addEventListener('click', () => {
-    const csv = 'Keyword,Match Type,Bid Amount\nsoft drinks,broad,0.50\nsparkling water,exact,1.25\nenergy drinks,phrase,0.75\n';
+    const rows = [['Keyword', 'Match Type', 'Bid Amount']];
+    for (const [id, meta] of state.selectedIds) {
+      const kw = ALL.find(k => k.id === id);
+      if (kw) rows.push([kw.keyword, meta.matchType || (meta.bid ? 'Broad' : ''), meta.bid || '']);
+    }
+    for (const [, entry] of state.selectedCustom) {
+      rows.push([entry.display, entry.matchType || (entry.bid ? 'Broad' : ''), entry.bid || '']);
+    }
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n') + '\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1318,6 +1376,8 @@
   // Close + cancel/save
   $$('.icon-btn[aria-label="Close"], .btn-tertiary').forEach(el => {
     el.addEventListener('click', () => {
+      $('#upload-limit-alert').hidden = true;
+      state.hasInvalidRows = false;
       if (window.self !== window.top) {
         window.parent.postMessage('close-keyword-selector', '*');
       } else {

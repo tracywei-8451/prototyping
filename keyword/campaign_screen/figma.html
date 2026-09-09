@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Screen — Figma</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", -apple-system, system-ui, sans-serif;
+      background: #eff2f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .version-bar {
+      position: relative;
+      flex-shrink: 0;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .version-tab {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 12px;
+      border-radius: 4px;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    .figma-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="version-bar">
+  <a class="version-tab" href="index.html">PLA</a>
+  <a class="version-tab" href="ppc.html">PPC</a>
+  <span style="width:1px;height:14px;background:rgba(255,255,255,0.2);margin:0 6px;"></span>
+  <a class="version-tab active" href="figma.html">Figma</a>
+</div>
+
+<iframe
+  class="figma-frame"
+  src="https://embed.figma.com/design/4I7FCQP7hr60MHVPwhaj1p/%E2%9C%A8-Media-Buying--2025-?node-id=7480-20958&embed-host=share"
+  allowfullscreen
+></iframe>
+
+</body>
+</html>

@@ -37,7 +37,8 @@
       "Bash(xargs sed -i '' -e 's|\\\\.\\\\./index\\\\.html|../../index.html|g' -e 's|\\\\.\\\\./favicon\\\\.svg|../../favicon.svg|g' -e 's|\\\\.\\\\./reordering_bulk/|../../archive/reordering_bulk/|g')",
       "Bash(grep -v 'querySelector\\\\|spread\\\\|rest\\\\|\\\\.\\\\.\\\\.`')",
       "Bash(node --input-type=module)",
-      "Bash(node --check)"
+      "Bash(node --check)",
+      "Skill(update-config)"
     ]
   }
 }
