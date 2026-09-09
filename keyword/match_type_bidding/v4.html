@@ -477,8 +477,10 @@
       border: none; background: transparent; font: inherit; font-size: 14px;
       font-weight: 600; color: var(--ink-darker); cursor: pointer;
     }
-    .page-btn:hover { background: var(--surface-light); }
+    #bid-limit-banner:not([hidden]) { display: flex; }
+    .page-btn:hover:not(:disabled) { background: var(--surface-light); }
     .page-btn.active { border: 1px solid var(--accent-primary); color: var(--ink-primary); }
+    .page-btn:disabled { opacity: 0.35; cursor: default; }
     .page-btn svg { width: 20px; height: 20px; display: block; }
 
     /* ── Bid modal ── */
@@ -894,6 +896,15 @@
         </div>
       </div>
 
+      <div id="bid-limit-banner" hidden style="align-items:center;gap:8px;padding:10px 16px;background:#fdf2f5;border-radius:8px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" flex-shrink="0" style="flex-shrink:0">
+          <path d="M8 1.5L1 14h14L8 1.5z" fill="#bc2f60"/>
+          <path d="M8 6v3.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="8" cy="11.5" r="0.75" fill="white"/>
+        </svg>
+        <span style="font-size:14px;font-weight:600;color:#20203c;letter-spacing:-0.14px;">Max 250 bids entered</span>
+      </div>
+
       <table class="kw-table" id="kw-table">
         <colgroup>
           <col class="col-cb"><col class="col-keyword"><col class="col-strategy">
@@ -938,18 +949,14 @@
 
       <div class="pagination">
         <div class="pagination-left">
-          <span class="pagination-info">Showing <strong>1–5</strong> of <strong>13</strong></span>
-          <button class="rows-selector">10
-            <svg viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <span class="pagination-info" id="kw-page-info">Showing <strong>1–5</strong> of <strong>5</strong></span>
         </div>
-        <div class="pagination-controls">
-          <button class="page-btn"><svg viewBox="0 0 20 20" fill="none"><path d="M5 4.5v11M9.5 10l5.5-5v10L9.5 10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="page-btn"><svg viewBox="0 0 20 20" fill="none"><path d="M12 5l-5 5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn"><svg viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="page-btn"><svg viewBox="0 0 20 20" fill="none"><path d="M15 4.5v11M10.5 10L5 5v10l5.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="pagination-controls" id="kw-page-controls">
+          <button class="page-btn" id="kw-pg-first"><svg viewBox="0 0 20 20" fill="none"><path d="M5 4.5v11M9.5 10l5.5-5v10L9.5 10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="page-btn" id="kw-pg-prev"><svg viewBox="0 0 20 20" fill="none"><path d="M12 5l-5 5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <span id="kw-pg-nums" style="display:contents"></span>
+          <button class="page-btn" id="kw-pg-next"><svg viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="page-btn" id="kw-pg-last"><svg viewBox="0 0 20 20" fill="none"><path d="M15 4.5v11M10.5 10L5 5v10l5.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </div>
     </div>
@@ -1106,6 +1113,7 @@
         if (on) {
           bidInputs[i].dataset.saved = bidInputs[i].value;
           bidInputs[i].value = getDefaultBid(); bidInputs[i].disabled = true;
+          delete bidInputs[i].dataset.limitDisabled;
           bidWraps[i].classList.add('disabled');
           applyBtns[i].disabled = true; applyBtns[i].textContent = 'Applied';
         } else {
@@ -1113,6 +1121,7 @@
           bidInputs[i].disabled = false; bidWraps[i].classList.remove('disabled');
           applyBtns[i].disabled = false; applyBtns[i].textContent = 'Apply';
         }
+        enforceBidLimit();
       });
     });
 
@@ -1121,6 +1130,7 @@
         if (switches[i].dataset.on === 'true') return;
         bidInputs[i].value = sugPrices[i].textContent.replace('$','');
         btn.disabled = true; btn.textContent = 'Applied';
+        enforceBidLimit();
       });
       bidInputs[i].addEventListener('input', () => {
         if (bidInputs[i].value !== sugPrices[i].textContent.replace('$','')) {
@@ -1166,6 +1176,7 @@
       btn.addEventListener('click', () => {
         bidInputs[i].value = sugPrices[i].textContent.replace('$','');
         btn.disabled = true; btn.textContent = 'Applied';
+        enforceBidLimit();
       });
       bidInputs[i].addEventListener('input', () => {
         if (bidInputs[i].value !== sugPrices[i].textContent.replace('$','')) {
@@ -1181,6 +1192,9 @@
   const pfTbody = document.getElementById('p-full-tbody');
   const psTbody = document.getElementById('p-slim-tbody');
   const kwTbody = document.getElementById('kw-tbody');
+  let kwPage = 1;
+  const KW_PAGE_SIZE = 10;
+
   PRODUCTS.forEach(p => { pfTbody.appendChild(buildFullRow(p)); psTbody.appendChild(buildSlimRow(p)); });
   KEYWORDS.forEach(k => kwTbody.appendChild(buildKwRow(k)));
 
@@ -1293,6 +1307,8 @@
     document.getElementById('kw-badge').textContent = kws.length;
     kwAdded = kws.length > 0;
     render();
+    kwPage = 1;
+    renderKwPage();
     updateActionBar();
   });
 
@@ -1301,6 +1317,8 @@
   const matchTypeFilter = new Set();
   const ALL_TAGS   = ['Battleground','Defend','Drives Clicks','High Traffic','Potential','Previously Boosted'];
   const MATCH_TYPES = ['Exact','Phrase','Broad'];
+
+  renderKwPage();
 
   function makeChipDropdown(items, filterSet, keyFn, onChange) {
     const dd = document.createElement('div');
@@ -1351,17 +1369,71 @@
     }
   }
 
+  function getFilteredRows() {
+    return [...kwTbody.querySelectorAll('tr')].filter(tr => {
+      if (strategyFilter.size === 0) return true;
+      const tags = [...tr.querySelectorAll('.tag')].map(t => t.textContent.trim());
+      return tags.some(t => strategyFilter.has(t));
+    });
+  }
+
+  function renderKwPage() {
+    const filtered = getFilteredRows();
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / KW_PAGE_SIZE));
+    if (kwPage > totalPages) kwPage = totalPages;
+    const start = (kwPage - 1) * KW_PAGE_SIZE;
+    const end   = Math.min(start + KW_PAGE_SIZE, total);
+
+    [...kwTbody.querySelectorAll('tr')].forEach(tr => { tr.style.display = 'none'; });
+    filtered.forEach((tr, i) => { tr.style.display = (i >= start && i < end) ? '' : 'none'; });
+
+    const infoFrom = total === 0 ? 0 : start + 1;
+    document.getElementById('kw-page-info').innerHTML =
+      `Showing <strong>${infoFrom}–${end}</strong> of <strong>${total}</strong>`;
+
+    const numsEl = document.getElementById('kw-pg-nums');
+    numsEl.innerHTML = '';
+    const window_size = 5;
+    let pg_start = Math.max(1, kwPage - Math.floor(window_size / 2));
+    let pg_end   = Math.min(totalPages, pg_start + window_size - 1);
+    if (pg_end - pg_start < window_size - 1) pg_start = Math.max(1, pg_end - window_size + 1);
+    for (let p = pg_start; p <= pg_end; p++) {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn' + (p === kwPage ? ' active' : '');
+      btn.textContent = p;
+      btn.addEventListener('click', () => { kwPage = p; renderKwPage(); updateActionBar(); });
+      numsEl.appendChild(btn);
+    }
+
+    const first = document.getElementById('kw-pg-first');
+    const prev  = document.getElementById('kw-pg-prev');
+    const next  = document.getElementById('kw-pg-next');
+    const last  = document.getElementById('kw-pg-last');
+    first.disabled = kwPage === 1;
+    prev.disabled  = kwPage === 1;
+    next.disabled  = kwPage === totalPages;
+    last.disabled  = kwPage === totalPages;
+  }
+
+  document.getElementById('kw-pg-first').addEventListener('click', () => { kwPage = 1; renderKwPage(); updateActionBar(); });
+  document.getElementById('kw-pg-prev').addEventListener('click',  () => { kwPage--; renderKwPage(); updateActionBar(); });
+  document.getElementById('kw-pg-next').addEventListener('click',  () => { kwPage++; renderKwPage(); updateActionBar(); });
+  document.getElementById('kw-pg-last').addEventListener('click',  () => {
+    const total = getFilteredRows().length;
+    kwPage = Math.max(1, Math.ceil(total / KW_PAGE_SIZE));
+    renderKwPage(); updateActionBar();
+  });
+
   function applyFilters() {
+    kwPage = 1;
     [...kwTbody.querySelectorAll('tr')].forEach(tr => {
-      if (strategyFilter.size > 0) {
-        const tags = [...tr.querySelectorAll('.tag')].map(t => t.textContent.trim());
-        tr.style.display = tags.some(t => strategyFilter.has(t)) ? '' : 'none';
-      } else { tr.style.display = ''; }
       [...tr.querySelectorAll('.bid-row, .suggested-bid-row, .switch-row')].forEach(row => {
         row.style.display = matchTypeFilter.size > 0 ? (matchTypeFilter.has(row.dataset.matchType) ? '' : 'none') : '';
       });
     });
-    [...document.querySelectorAll('.row-cb')].forEach(cb => cb.checked = false);
+    renderKwPage();
+    [...document.querySelectorAll('#kw-tbody .row-cb')].forEach(cb => cb.checked = false);
     updateActionBar();
   }
 
@@ -1452,11 +1524,34 @@
   });
 
   /* ── Checkboxes + action bar ── */
-  function getVisibleRows()  { return [...kwTbody.querySelectorAll('tr')].filter(tr => tr.style.display !== 'none'); }
+  function getVisibleRows()  { return [...kwTbody.querySelectorAll('tr')].filter(tr => tr.style.display !== 'none' && tr.style.display !== undefined); }
   function getCheckedRows()  { return getVisibleRows().filter(tr => tr.querySelector('.row-cb').checked); }
 
   function getBoostVisibleRows() { return [...boostKwTbody.querySelectorAll('tr')].filter(tr => tr.style.display !== 'none'); }
   function getBoostCheckedRows() { return getBoostVisibleRows().filter(tr => tr.querySelector('.row-cb').checked); }
+
+  const BID_LIMIT = 250;
+
+  function countFilledBids() {
+    return [...document.querySelectorAll('#kw-tbody .bid-input input, #boost-kw-tbody .bid-input input')]
+      .filter(f => f.value.trim() !== '').length;
+  }
+
+  function enforceBidLimit() {
+    const atLimit = countFilledBids() >= BID_LIMIT;
+    document.querySelectorAll('#kw-tbody .bid-input input, #boost-kw-tbody .bid-input input').forEach(f => {
+      if (atLimit && !f.value.trim() && !f.disabled) {
+        f.disabled = true;
+        f.dataset.limitDisabled = '1';
+        f.closest('.bid-input').classList.add('disabled');
+      } else if (!atLimit && f.dataset.limitDisabled) {
+        f.disabled = false;
+        delete f.dataset.limitDisabled;
+        f.closest('.bid-input').classList.remove('disabled');
+      }
+    });
+    document.getElementById('bid-limit-banner').hidden = !atLimit;
+  }
 
   function updateBoostActionBar() {
     const checked = getBoostCheckedRows(), visible = getBoostVisibleRows();
@@ -1479,19 +1574,21 @@
   document.getElementById('boost-action-deselect-all').addEventListener('click', () => { getBoostCheckedRows().forEach(tr => tr.querySelector('.row-cb').checked=false); updateBoostActionBar(); });
   document.getElementById('boost-action-apply-suggested').addEventListener('click', () => {
     getBoostCheckedRows().forEach(tr => {
-      const sRows = [...tr.querySelectorAll('.suggested-bid-row')];
-      const bws   = [...tr.querySelectorAll('.bid-input')];
-      sRows.forEach((sRow, i) => {
+      tr.querySelectorAll('.suggested-bid-row').forEach(sRow => {
+        if (sRow.style.display === 'none') return;
+        const mt = sRow.dataset.matchType;
         const price = sRow.querySelector('.suggested-bid__price').textContent.replace('$','').trim();
-        bws[i].querySelector('input').value = price;
+        const input = tr.querySelector(`.bid-row[data-match-type="${mt}"] input`);
+        if (input) input.value = price;
         const btn = sRow.querySelector('.suggested-bid__cta'); btn.disabled=true; btn.textContent='Applied';
       });
     });
+    enforceBidLimit();
   });
   document.getElementById('boost-action-remove').addEventListener('click', () => {
     getBoostCheckedRows().forEach(tr => tr.remove());
     document.getElementById('boost-kw-badge').textContent = boostKwTbody.querySelectorAll('tr').length;
-    updateBoostActionBar(); notifyResize();
+    updateBoostActionBar(); enforceBidLimit(); notifyResize();
   });
   document.getElementById('boost-action-enter-bid').addEventListener('click', () => {
     document.getElementById('bid-modal-input').value = '';
@@ -1511,6 +1608,9 @@
     else                                        { hcb.checked=false; hcb.indeterminate=true;  hck.classList.add('is-indeterminate'); }
   }
 
+  kwTbody.addEventListener('input', e => { if (e.target.matches('.bid-input input')) enforceBidLimit(); });
+  boostKwTbody.addEventListener('input', e => { if (e.target.matches('.bid-input input')) enforceBidLimit(); });
+
   kwTbody.addEventListener('change', e => { if (e.target.matches('.row-cb')) updateActionBar(); });
   document.getElementById('select-all-cb').addEventListener('change', e => {
     getVisibleRows().forEach(tr => tr.querySelector('.row-cb').checked = e.target.checked);
@@ -1521,27 +1621,35 @@
 
   document.getElementById('action-use-default').addEventListener('click', () => {
     const def = getDefaultBid();
-    getCheckedRows().forEach(tr => tr.querySelectorAll('.bid-input').forEach(bw => { const f=bw.querySelector('input'); if(!f.disabled){f.dataset.saved=f.value;f.value=def;} }));
+    getCheckedRows().forEach(tr => {
+      tr.querySelectorAll('.bid-row').forEach(bidRow => {
+        if (bidRow.style.display === 'none') return;
+        const f = bidRow.querySelector('.bid-input input');
+        if (!f.disabled) { f.dataset.saved = f.value; f.value = def; }
+      });
+    });
+    enforceBidLimit();
   });
 
   document.getElementById('action-apply-suggested').addEventListener('click', () => {
     getCheckedRows().forEach(tr => {
-      const sRows = [...tr.querySelectorAll('.suggested-bid-row')];
-      const sws   = [...tr.querySelectorAll('.switch-rows .switch')];
-      const bws   = [...tr.querySelectorAll('.bid-input')];
-      sRows.forEach((sRow, i) => {
-        if (sws[i]?.dataset.on === 'true') return;
+      tr.querySelectorAll('.suggested-bid-row').forEach(sRow => {
+        if (sRow.style.display === 'none') return;
+        const mt = sRow.dataset.matchType;
+        const sw = tr.querySelector(`.switch-row[data-match-type="${mt}"] .switch`);
+        if (sw?.dataset.on === 'true') return;
         const price = sRow.querySelector('.suggested-bid__price').textContent.replace('$','').trim();
-        bws[i].querySelector('input').value = price;
+        tr.querySelector(`.bid-row[data-match-type="${mt}"] input`).value = price;
         const btn = sRow.querySelector('.suggested-bid__cta'); btn.disabled=true; btn.textContent='Applied';
       });
     });
+    enforceBidLimit();
   });
 
   document.getElementById('action-remove').addEventListener('click', () => {
     getCheckedRows().forEach(tr => tr.remove());
     document.getElementById('kw-badge').textContent = kwTbody.querySelectorAll('tr').length;
-    updateActionBar(); notifyResize();
+    renderKwPage(); updateActionBar(); enforceBidLimit(); notifyResize();
   });
 
   /* ── Enter New Bid modal ── */
@@ -1555,7 +1663,14 @@
   document.getElementById('bid-modal-apply').addEventListener('click', () => {
     const val = document.getElementById('bid-modal-input').value.trim();
     if (!val) return;
-    getCheckedRows().forEach(tr => tr.querySelectorAll('.bid-input input').forEach(f => f.value = val));
+    getCheckedRows().forEach(tr => {
+      tr.querySelectorAll('.bid-row').forEach(bidRow => {
+        if (bidRow.style.display === 'none') return;
+        const f = bidRow.querySelector('.bid-input input');
+        if (f && !f.disabled) f.value = val;
+      });
+    });
+    enforceBidLimit();
     bidOverlay.classList.remove('open');
   });
   bidOverlay.addEventListener('click', e => { if (e.target === bidOverlay) bidOverlay.classList.remove('open'); });
