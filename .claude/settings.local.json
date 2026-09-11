@@ -38,7 +38,8 @@
       "Bash(grep -v 'querySelector\\\\|spread\\\\|rest\\\\|\\\\.\\\\.\\\\.`')",
       "Bash(node --input-type=module)",
       "Bash(node --check)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "WebFetch(domain:www.figma.com)"
     ]
   }
 }

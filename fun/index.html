@@ -5,7 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fun</title>
   <style>
-    body { margin: 0; background: #eff2f5; min-height: 100vh; }
+    body { margin: 0; background: #eff2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+    .game-grid { display: flex; gap: 24px; flex-wrap: wrap; padding: 40px; }
+
+    .game-card {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      text-decoration: none; color: #333;
+      font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500;
+    }
+    .game-card .icon {
+      width: 72px; height: 72px; border-radius: 16px;
+      background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; transition: transform .15s, box-shadow .15s;
+    }
+    .game-card:hover .icon { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,.18); }
 
     @keyframes nateFlicker {
       0%,19%,21%,23%,55%,56%,100% { opacity:.85; text-shadow: 0 0 6px #7a0000, 0 0 16px #ff1a1a, 0 0 28px #ff0000, 2px 0 1px #00ffea, -2px 0 1px #ff00c8; }
@@ -39,6 +54,12 @@
   </style>
 </head>
 <body>
+  <div class="game-grid">
+    <a class="game-card" href="tennis/index.html">
+      <div class="icon">🎾</div>
+      <span>Grand Slam</span>
+    </a>so 
+  </div>
   <div id="nate">☠ NATE WAS HERE ☠</div>
 </body>
 </html>

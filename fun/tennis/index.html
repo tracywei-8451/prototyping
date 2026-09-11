@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tennis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    /* ── Sidebars ── */
+    .sidebar {
+      flex-shrink: 0;
+      background: #d2cab5;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #sidebar-left  { width: 250px; border-right: 4px solid #fff; padding: 48px 24px; }
+    #sidebar-right { width: 250px; border-left:  4px solid #fff; padding: 48px 24px; }
+
+    .sidebar-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: #000;
+      letter-spacing: .02em;
+      margin-bottom: 16px;
+    }
+
+    /* ── Score cards ── */
+    .score-cards {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .score-card {
+      flex: 1;
+      background: rgba(0,0,0,.08);
+      border-radius: 6px;
+      padding: 12px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-height: 90px;
+      justify-content: center;
+    }
+    .score-card .name  { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(0,0,0,.45); }
+    .score-card .pts   { font-size: 32px; font-weight: 700; color: #1a1a1a; line-height: 1.1; }
+    .score-card .games { font-size: 10px; color: rgba(0,0,0,.35); margin-top: 2px; }
+
+    /* ── Settings placeholder ── */
+    .settings-link {
+      font-size: 12px;
+      color: rgba(0,0,0,.5);
+      text-decoration: none;
+      margin-top: auto;
+    }
+    .settings-link:hover { color: #000; }
+
+    /* ── Theming circles ── */
+    .circle-row { display: flex; gap: 13px; margin-bottom: 32px; }
+    .slam-btn {
+      width: 40px; height: 40px;
+      flex-shrink: 0;
+      cursor: pointer;
+      border: none; background: none; padding: 0;
+      border-radius: 50%;
+      transition: transform .15s, opacity .15s;
+    }
+    .slam-btn:hover { transform: scale(1.1); }
+    .slam-btn svg { display: block; }
+
+    /* ── Center / court ── */
+    #center {
+      flex: 1;
+      background: #ae442d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #court-bg {
+      position: absolute;
+      inset: 0;
+      background: #ae442d;
+      filter: url(#clay-grain);
+    }
+
+    #canvas-wrap { position: relative; z-index: 1; width: 760px; height: 420px; }
+    #court-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+    canvas { display: block; position: absolute; inset: 0; background: transparent; z-index: 1; }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(0,0,0,.55);
+    }
+    #overlay h2 { font-size: 28px; font-weight: 700; color: #fff; }
+    #overlay p  { font-size: 14px; color: rgba(255,255,255,.6); }
+    #overlay.hidden { display: none; }
+
+    #start-btn {
+      margin-top: 8px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      background: #fff;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    #start-btn:hover { background: #f0ebe3; }
+  </style>
+</head>
+<body>
+
+<!-- SVG filter definitions -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <filter id="clay-grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="bg"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="bg" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="2 2" stitchTiles="stitch" numOctaves="3" result="noise" seed="9927"/>
+      <feColorMatrix in="noise" type="luminanceToAlpha" result="alphaNoise"/>
+      <feComponentTransfer in="alphaNoise" result="coloredNoise">
+        <feFuncA type="discrete" tableValues="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+      </feComponentTransfer>
+      <feComposite operator="in" in2="shape" in="coloredNoise" result="noiseClipped"/>
+      <feFlood flood-color="rgba(0,0,0,0.25)" result="darkColor"/>
+      <feComposite operator="in" in2="noiseClipped" in="darkColor" result="finalNoise"/>
+      <feMerge>
+        <feMergeNode in="shape"/>
+        <feMergeNode in="finalNoise"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Left sidebar -->
+<div id="sidebar-left" class="sidebar">
+  <p class="sidebar-label">Scores</p>
+  <div class="score-cards">
+    <div class="score-card">
+      <span class="name">You</span>
+      <span class="pts" id="p1-points">0</span>
+      <span class="games" id="p1-games">0 games</span>
+    </div>
+    <div class="score-card">
+      <span class="name">CPU</span>
+      <span class="pts" id="p2-points">0</span>
+      <span class="games" id="p2-games">0 games</span>
+    </div>
+  </div>
+  <a class="settings-link" href="#">settings</a>
+</div>
+
+<!-- Center / game -->
+<div id="center">
+  <div id="court-bg"></div>
+  <div id="canvas-wrap">
+    <img id="court-svg" src="Court.svg" alt="" />
+    <canvas id="c" width="760" height="420"></canvas>
+  </div>
+  <div id="overlay">
+    <h2 id="overlay-title">Grand Slam Pong</h2>
+    <p id="overlay-msg">Move your paddle with the mouse</p>
+    <button id="start-btn">Serve</button>
+  </div>
+</div>
+
+<!-- Right sidebar -->
+<div id="sidebar-right" class="sidebar">
+  <p class="sidebar-label">Theming</p>
+  <div class="circle-row">
+    <!-- French Open -->
+    <button class="slam-btn" data-slam="french" title="French Open">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="url(#grad-french)" stroke="white" stroke-width="2"/>
+        <defs>
+          <linearGradient id="grad-french" x1="7" y1="7" x2="35.5" y2="31" gradientUnits="userSpaceOnUse">
+            <stop offset="0.5" stop-color="#D35220"/>
+            <stop offset="0.5" stop-color="#05482F"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+    <!-- US Open -->
+    <button class="slam-btn" data-slam="us" title="US Open">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="url(#grad-us)" stroke="white" stroke-width="2"/>
+        <defs>
+          <linearGradient id="grad-us" x1="7" y1="7" x2="35.5" y2="31" gradientUnits="userSpaceOnUse">
+            <stop offset="0.5" stop-color="#002986"/>
+            <stop offset="0.5" stop-color="#FFD109"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+    <!-- Australian Open -->
+    <button class="slam-btn" data-slam="aus" title="Australian Open">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="url(#grad-aus)" stroke="white" stroke-width="2"/>
+        <defs>
+          <linearGradient id="grad-aus" x1="7" y1="7" x2="35.5" y2="31" gradientUnits="userSpaceOnUse">
+            <stop offset="0.5" stop-color="#1C91D0"/>
+            <stop offset="0.5" stop-color="white"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+    <!-- Wimbledon -->
+    <button class="slam-btn" data-slam="wimb" title="Wimbledon">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="19" fill="url(#grad-wimb)" stroke="white" stroke-width="2"/>
+        <defs>
+          <linearGradient id="grad-wimb" x1="7" y1="7" x2="35.5" y2="31" gradientUnits="userSpaceOnUse">
+            <stop offset="0.5" stop-color="#007649"/>
+            <stop offset="0.5" stop-color="#593987"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+  </div>
+  <p class="sidebar-label">Racquet Style</p>
+  <div class="circle-row">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// --- Game state ---
+// Paddles are now vertical bars on left/right
+const PADDLE_H = 80, PADDLE_W = 10;
+// Court SVG outer boundary: x≈4.9 and x≈626.2 out of 632, scaled to 760px canvas
+const COURT_LEFT  = Math.round(4.9031  * W / 632);
+const COURT_RIGHT = Math.round(626.243 * W / 632);
+const BALL_R = 7;
+const BASE_SPEED = 5;
+
+let ball, p1, cpu, state, p1Points, p2Points, p1Games, p2Games;
+
+const POINTS = ['0', '15', '30', '40'];
+
+function reset() {
+  p1      = { x: COURT_LEFT  + PADDLE_W / 2, y: H / 2 };
+  cpu     = { x: COURT_RIGHT - PADDLE_W / 2, y: H / 2 };
+  ball    = { x: W / 2, y: H / 2, vx: 0, vy: 0, speed: BASE_SPEED };
+  p1Points  = 0;
+  p2Points  = 0;
+  p1Games   = 0;
+  p2Games   = 0;
+  state     = 'idle';
+  updateScoreboard();
+}
+
+function serve() {
+  const angle = (Math.random() * 40 - 20) * (Math.PI / 180);
+  const dir   = Math.random() < .5 ? 1 : -1;
+  ball.x = W / 2; ball.y = H / 2;
+  ball.vx = Math.cos(angle) * ball.speed * dir;
+  ball.vy = Math.sin(angle) * ball.speed;
+  state   = 'playing';
+}
+
+// --- Scoring ---
+function awardPoint(winner) {
+  state = 'point';
+
+  if (winner === 'p1') p1Points++;
+  else p2Points++;
+
+  let p1w = false, p2w = false;
+  if (p1Points >= 3 && p2Points >= 3) {
+    if (p1Points - p2Points >= 2)      p1w = true;
+    else if (p2Points - p1Points >= 2) p2w = true;
+  } else {
+    if (p1Points >= 4) p1w = true;
+    if (p2Points >= 4) p2w = true;
+  }
+
+  if (p1w) { p1Games++; p1Points = 0; p2Points = 0; }
+  if (p2w) { p2Games++; p1Points = 0; p2Points = 0; }
+
+  updateScoreboard();
+
+  if (p1Games >= 6 || p2Games >= 6) {
+    endMatch(p1Games > p2Games ? 'You' : 'CPU');
+    return;
+  }
+
+  setTimeout(() => { serve(); }, 800);
+}
+
+function pointLabel(p1p, p2p) {
+  if (p1p >= 3 && p2p >= 3) {
+    if (p1p === p2p)  return ['Deuce', 'Deuce'];
+    if (p1p > p2p)    return ['Ad', '—'];
+    return ['—', 'Ad'];
+  }
+  return [POINTS[p1p] ?? p1p, POINTS[p2p] ?? p2p];
+}
+
+function updateScoreboard() {
+  const [l1, l2] = pointLabel(p1Points, p2Points);
+  document.getElementById('p1-points').textContent = l1;
+  document.getElementById('p2-points').textContent = l2;
+  document.getElementById('p1-games').textContent  = p1Games + ' game' + (p1Games !== 1 ? 's' : '');
+  document.getElementById('p2-games').textContent  = p2Games + ' game' + (p2Games !== 1 ? 's' : '');
+}
+
+function endMatch(winner) {
+  state = 'idle';
+  document.getElementById('overlay-title').textContent = winner + ' wins!';
+  document.getElementById('overlay-msg').textContent   = p1Games + ' – ' + p2Games + ' games';
+  document.getElementById('start-btn').textContent     = 'Play Again';
+  overlay.classList.remove('hidden');
+}
+
+// --- Pause ---
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  e.preventDefault();
+  if (state === 'playing') {
+    state = 'paused';
+    document.getElementById('overlay-title').textContent = 'Paused';
+    document.getElementById('overlay-msg').textContent   = 'Press space to resume';
+    document.getElementById('start-btn').textContent     = 'Resume';
+    overlay.classList.remove('hidden');
+  } else if (state === 'paused') {
+    overlay.classList.add('hidden');
+    state = 'playing';
+  }
+});
+
+// --- Mouse / touch control (vertical movement now) ---
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  p1.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.clientY - rect.top));
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  p1.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.touches[0].clientY - rect.top));
+}, { passive: false });
+
+// --- CPU AI ---
+function updateCPU() {
+  const speed = 3.5;
+  if (ball.y > cpu.y + 4)      cpu.y += speed;
+  else if (ball.y < cpu.y - 4) cpu.y -= speed;
+  cpu.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, cpu.y));
+}
+
+// --- Physics ---
+function update() {
+  if (state !== 'playing') return;
+
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // top/bottom wall bounce
+  if (ball.y - BALL_R < 0)  { ball.y = BALL_R;      ball.vy *= -1; }
+  if (ball.y + BALL_R > H)  { ball.y = H - BALL_R;  ball.vy *= -1; }
+
+  // paddle collision — player (left)
+  const p1Right = p1.x + PADDLE_W / 2;
+  if (
+    ball.vx < 0 &&
+    ball.x - BALL_R <= p1Right &&
+    ball.x - BALL_R >= p1Right - PADDLE_W - Math.abs(ball.vx) &&
+    ball.y >= p1.y - PADDLE_H / 2 &&
+    ball.y <= p1.y + PADDLE_H / 2
+  ) {
+    ball.x  = p1Right + BALL_R;
+    ball.vx = Math.abs(ball.vx);
+    const offset = (ball.y - p1.y) / (PADDLE_H / 2);
+    ball.vy = offset * ball.speed;
+    ball.speed = Math.min(ball.speed + .2, 14);
+  }
+
+  // paddle collision — cpu (right)
+  const cpuLeft = cpu.x - PADDLE_W / 2;
+  if (
+    ball.vx > 0 &&
+    ball.x + BALL_R >= cpuLeft &&
+    ball.x + BALL_R <= cpuLeft + PADDLE_W + Math.abs(ball.vx) &&
+    ball.y >= cpu.y - PADDLE_H / 2 &&
+    ball.y <= cpu.y + PADDLE_H / 2
+  ) {
+    ball.x  = cpuLeft - BALL_R;
+    ball.vx = -Math.abs(ball.vx);
+    const offset = (ball.y - cpu.y) / (PADDLE_H / 2);
+    ball.vy = offset * ball.speed;
+    ball.speed = Math.min(ball.speed + .2, 14);
+  }
+
+  // out of bounds
+  if (ball.x - BALL_R > COURT_RIGHT) { awardPoint('p1');  return; }
+  if (ball.x + BALL_R < COURT_LEFT)  { awardPoint('cpu'); return; }
+
+  updateCPU();
+}
+
+// --- Drawing ---
+function drawCourt() {
+  ctx.clearRect(0, 0, W, H);
+}
+
+function drawPaddle(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x - PADDLE_W / 2, y - PADDLE_H / 2, PADDLE_W, PADDLE_H, 4);
+  ctx.fill();
+}
+
+function drawBall() {
+  ctx.fillStyle = '#ccff00';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, BALL_R, 0.3, Math.PI + 0.3);
+  ctx.stroke();
+}
+
+function draw() {
+  drawCourt();
+  drawPaddle(p1.x,  p1.y,  '#ffffff');
+  drawPaddle(cpu.x, cpu.y, '#ffcc00');
+  if (state === 'playing' || state === 'point') drawBall();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// --- Start ---
+const overlay = document.getElementById('overlay');
+document.getElementById('start-btn').addEventListener('click', () => {
+  overlay.classList.add('hidden');
+  if (state === 'paused') {
+    state = 'playing';
+  } else {
+    reset();
+    serve();
+  }
+});
+
+reset();
+loop();
+</script>
+</body>
+</html>
