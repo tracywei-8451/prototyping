@@ -4,8 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tennis</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎾</text></svg>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --court-color: #ae442d;
+      --court-transition: background-color .4s ease, filter .4s ease;
+    }
 
     body {
       display: flex;
@@ -13,23 +19,36 @@
       height: 100vh;
       overflow: hidden;
       font-family: 'Inter', -apple-system, sans-serif;
+      background: white;
     }
 
     /* ── Sidebars ── */
     .sidebar {
       flex-shrink: 0;
-      background: #d2cab5;
+      background-color: var(--court-color);
+      filter: url(#clay-grain);
+      transition: var(--court-transition);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      position: relative;
     }
-    #sidebar-left  { width: 250px; border-right: 4px solid #fff; padding: 48px 24px; }
-    #sidebar-right { width: 250px; border-left:  4px solid #fff; padding: 48px 24px; }
+    #sidebar-left  { width: 250px; padding: 48px 24px; }
+    #sidebar-right { width: 250px; padding: 48px 24px; }
+
+    /* chalk-line dividers */
+    .chalk-divider {
+      flex-shrink: 0;
+      width: 2px;
+      height: 100vh;
+      background: rgba(255,255,255,.5);
+      transition: background .4s ease;
+    }
 
     .sidebar-label {
       font-size: 12px;
       font-weight: 400;
-      color: #000;
+      color: rgba(255,255,255,.65);
       letter-spacing: .02em;
       margin-bottom: 16px;
     }
@@ -42,7 +61,7 @@
     }
     .score-card {
       flex: 1;
-      background: rgba(0,0,0,.08);
+      background: rgba(0,0,0,.15);
       border-radius: 6px;
       padding: 12px 10px 14px;
       display: flex;
@@ -52,18 +71,51 @@
       min-height: 90px;
       justify-content: center;
     }
-    .score-card .name  { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(0,0,0,.45); }
-    .score-card .pts   { font-size: 32px; font-weight: 700; color: #1a1a1a; line-height: 1.1; }
-    .score-card .games { font-size: 10px; color: rgba(0,0,0,.35); margin-top: 2px; }
+    .score-card .name  { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+    .score-card .pts   { font-size: 32px; font-weight: 700; color: #fff; line-height: 1.1; }
+    .score-card .games { font-size: 10px; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+    /* ── Gameplay options ── */
+    .sidebar-section { margin-bottom: 28px; }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .option-label { font-size: 12px; color: rgba(255,255,255,.6); }
+
+    .radio-group { display: flex; gap: 6px; }
+    .radio-opt {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      cursor: pointer;
+    }
+    .radio-opt input { display: none; }
+    .radio-opt span {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.5);
+      transition: background .15s, color .15s;
+    }
+    .radio-opt input:checked + span {
+      background: rgba(255,255,255,.28);
+      color: #fff;
+    }
 
     /* ── Settings placeholder ── */
     .settings-link {
       font-size: 12px;
-      color: rgba(0,0,0,.5);
+      color: rgba(255,255,255,.35);
       text-decoration: none;
       margin-top: auto;
     }
-    .settings-link:hover { color: #000; }
+    .settings-link:hover { color: rgba(255,255,255,.75); }
 
     /* ── Theming circles ── */
     .circle-row { display: flex; gap: 13px; margin-bottom: 32px; }
@@ -76,12 +128,14 @@
       transition: transform .15s, opacity .15s;
     }
     .slam-btn:hover { transform: scale(1.1); }
+    .slam-btn.active { box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 0 4px rgba(255,255,255,.3); border-radius: 50%; }
     .slam-btn svg { display: block; }
 
     /* ── Center / court ── */
     #center {
       flex: 1;
-      background: #ae442d;
+      background: var(--court-color);
+      transition: var(--court-transition);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -90,12 +144,13 @@
     #court-bg {
       position: absolute;
       inset: 0;
-      background: #ae442d;
+      background: var(--court-color);
       filter: url(#clay-grain);
+      transition: var(--court-transition);
     }
 
     #canvas-wrap { position: relative; z-index: 1; width: 760px; height: 420px; }
-    #court-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+    #court-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: .8; }
     canvas { display: block; position: absolute; inset: 0; background: transparent; z-index: 1; }
 
     #overlay {
@@ -133,7 +188,7 @@
 <!-- SVG filter definitions -->
 <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
   <defs>
-    <filter id="clay-grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+<filter id="clay-grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
       <feFlood flood-opacity="0" result="bg"/>
       <feBlend mode="normal" in="SourceGraphic" in2="bg" result="shape"/>
       <feTurbulence type="fractalNoise" baseFrequency="2 2" stitchTiles="stitch" numOctaves="3" result="noise" seed="9927"/>
@@ -167,8 +222,27 @@
       <span class="games" id="p2-games">0 games</span>
     </div>
   </div>
+  <div class="sidebar-section">
+    <p class="sidebar-label">Gameplay</p>
+    <div class="option-row">
+      <span class="option-label">Position</span>
+      <div class="radio-group">
+        <label class="radio-opt">
+          <input type="radio" name="position" value="left" checked />
+          <span>Left</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="position" value="right" />
+          <span>Right</span>
+        </label>
+      </div>
+    </div>
+  </div>
   <a class="settings-link" href="#">settings</a>
 </div>
+
+<!-- chalk divider left -->
+<div class="chalk-divider"></div>
 
 <!-- Center / game -->
 <div id="center">
@@ -183,6 +257,9 @@
     <button id="start-btn">Serve</button>
   </div>
 </div>
+
+<!-- chalk divider right -->
+<div class="chalk-divider"></div>
 
 <!-- Right sidebar -->
 <div id="sidebar-right" class="sidebar">
@@ -251,6 +328,27 @@ const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
+// --- Themes ---
+const THEMES = {
+  french: { court: '#ae442d', paddlePlayer: '#ffffff', paddleCPU: '#e8c84a' },
+  us:     { court: '#2558a8', paddlePlayer: '#ffffff', paddleCPU: '#FFD109' },
+  aus:    { court: '#1a83c0', paddlePlayer: '#ffffff', paddleCPU: '#ffffff' },
+  wimb:   { court: '#3d7a42', paddlePlayer: '#ffffff', paddleCPU: '#c8a8e0' },
+};
+let theme = THEMES.french;
+
+document.querySelectorAll('.slam-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.slam;
+    theme = THEMES[key];
+    document.documentElement.style.setProperty('--court-color', theme.court);
+    document.querySelectorAll('.slam-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+// Mark French Open active by default
+document.querySelector('[data-slam="french"]').classList.add('active');
+
 // --- Game state ---
 // Paddles are now vertical bars on left/right
 const PADDLE_H = 80, PADDLE_W = 10;
@@ -261,6 +359,7 @@ const BALL_R = 7;
 const BASE_SPEED = 5;
 
 let ball, p1, cpu, state, p1Points, p2Points, p1Games, p2Games;
+let playerSide = 'left';
 
 const POINTS = ['0', '15', '30', '40'];
 
@@ -307,7 +406,8 @@ function awardPoint(winner) {
   updateScoreboard();
 
   if (p1Games >= 6 || p2Games >= 6) {
-    endMatch(p1Games > p2Games ? 'You' : 'CPU');
+    const playerWon = playerSide === 'left' ? p1Games > p2Games : p2Games > p1Games;
+    endMatch(playerWon ? 'You' : 'CPU');
     return;
   }
 
@@ -324,11 +424,15 @@ function pointLabel(p1p, p2p) {
 }
 
 function updateScoreboard() {
-  const [l1, l2] = pointLabel(p1Points, p2Points);
-  document.getElementById('p1-points').textContent = l1;
-  document.getElementById('p2-points').textContent = l2;
-  document.getElementById('p1-games').textContent  = p1Games + ' game' + (p1Games !== 1 ? 's' : '');
-  document.getElementById('p2-games').textContent  = p2Games + ' game' + (p2Games !== 1 ? 's' : '');
+  const youPts   = playerSide === 'left' ? p1Points : p2Points;
+  const cpuPts   = playerSide === 'left' ? p2Points : p1Points;
+  const youGames = playerSide === 'left' ? p1Games  : p2Games;
+  const cpuGames = playerSide === 'left' ? p2Games  : p1Games;
+  const [yl, cl] = pointLabel(youPts, cpuPts);
+  document.getElementById('p1-points').textContent = yl;
+  document.getElementById('p2-points').textContent = cl;
+  document.getElementById('p1-games').textContent  = youGames + ' game' + (youGames !== 1 ? 's' : '');
+  document.getElementById('p2-games').textContent  = cpuGames + ' game' + (cpuGames !== 1 ? 's' : '');
 }
 
 function endMatch(winner) {
@@ -355,23 +459,34 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// --- Mouse / touch control (vertical movement now) ---
+// --- Position toggle ---
+document.querySelectorAll('input[name="position"]').forEach(r => {
+  r.addEventListener('change', e => {
+    playerSide = e.target.value;
+    updateScoreboard();
+  });
+});
+
+// --- Mouse / touch control ---
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
-  p1.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.clientY - rect.top));
+  const y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.clientY - rect.top));
+  if (playerSide === 'left') p1.y = y; else cpu.y = y;
 });
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
-  p1.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.touches[0].clientY - rect.top));
+  const y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, e.touches[0].clientY - rect.top));
+  if (playerSide === 'left') p1.y = y; else cpu.y = y;
 }, { passive: false });
 
 // --- CPU AI ---
 function updateCPU() {
+  const bot = playerSide === 'left' ? cpu : p1;
   const speed = 3.5;
-  if (ball.y > cpu.y + 4)      cpu.y += speed;
-  else if (ball.y < cpu.y - 4) cpu.y -= speed;
-  cpu.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, cpu.y));
+  if (ball.y > bot.y + 4)      bot.y += speed;
+  else if (ball.y < bot.y - 4) bot.y -= speed;
+  bot.y = Math.max(PADDLE_H / 2, Math.min(H - PADDLE_H / 2, bot.y));
 }
 
 // --- Physics ---
@@ -450,8 +565,10 @@ function drawBall() {
 
 function draw() {
   drawCourt();
-  drawPaddle(p1.x,  p1.y,  '#ffffff');
-  drawPaddle(cpu.x, cpu.y, '#ffcc00');
+  const playerPaddle = playerSide === 'left' ? p1  : cpu;
+  const cpuPaddle    = playerSide === 'left' ? cpu : p1;
+  drawPaddle(playerPaddle.x, playerPaddle.y, theme.paddlePlayer);
+  drawPaddle(cpuPaddle.x,    cpuPaddle.y,    theme.paddleCPU);
   if (state === 'playing' || state === 'point') drawBall();
 }
 
