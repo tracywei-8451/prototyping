@@ -112,7 +112,15 @@
     .section--inventory .card-tag { background: #e4f6ed; color: #2c7a52; }
     .section--inventory .card:hover .card-arrow { color: #2c7a52; }
 
-    .card-title {
+    /* Instore section accent: orange */
+    .section--instore .card-tag { background: #fef0e7; color: #bf5a0e; }
+    .section--instore .card:hover .card-arrow { color: #bf5a0e; }
+
+    /* Decks section accent: slate */
+    .section--decks .card-tag { background: #f0f1f3; color: #444a58; }
+    .section--decks .card:hover .card-arrow { color: #444a58; }
+
+.card-title {
       font-size: 14px;
       font-weight: 600;
       letter-spacing: -0.14px;
@@ -151,7 +159,7 @@
 
   <main>
     <h1 class="page-title">Tracy Prototype Library</h1>
-    <p class="page-meta">Last updated: September 14, 2026
+    <p class="page-meta">Last updated: November 2, 2026
 
     <!-- Keyword Targeting -->
     <section class="section section--keyword">
@@ -188,6 +196,15 @@
           </div>
         </a>
 
+        <a class="card" href="keyword/single_page/index.html">
+          <span class="card-tag">single_page</span>
+          <span class="card-title">Bid Management — Single Page</span>
+          <div class="card-footer">
+            <span class="card-path">single_page/index.html</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+
       </div>
     </section>
 
@@ -204,6 +221,46 @@
           <span class="card-title">Premium Placements Inventory Management</span>
           <div class="card-footer">
             <span class="card-path">inventory_pp/index.html</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Decks -->
+    <section class="section section--decks">
+      <div class="section-header">
+        <span class="section-title">Decks</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="grid">
+
+        <a class="card" href="decks/index.html">
+          <span class="card-tag">mb&e + isdd</span>
+          <span class="card-title">MB&E + ISDD Overview</span>
+          <div class="card-footer">
+            <span class="card-path">decks/index.html</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Instore -->
+    <section class="section section--instore">
+      <div class="section-header">
+        <span class="section-title">Instore</span>
+        <div class="section-rule"></div>
+      </div>
+      <div class="grid" id="instore-grid">
+
+        <a class="card" href="instore/internal_campaign_form/index.html">
+          <span class="card-tag">internal_campaign_form</span>
+          <span class="card-title">Internal Campaign Form</span>
+          <div class="card-footer">
+            <span class="card-path">internal_campaign_form/index.html</span>
             <span class="card-arrow">→</span>
           </div>
         </a>
