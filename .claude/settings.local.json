@@ -39,7 +39,17 @@
       "Bash(node --input-type=module)",
       "Bash(node --check)",
       "Skill(update-config)",
-      "WebFetch(domain:www.figma.com)"
+      "WebFetch(domain:www.figma.com)",
+      "Read(//private/tmp/header_svgs/**)",
+      "Bash(sed -i '' 's|<a class=\"version-tab active\" href=\"index.html\">V1</a>|<a class=\"version-tab\" href=\"index.html\">V1</a>|' /Users/t160029/repo/prototyping/keyword/single_page/v2.html)",
+      "Bash(sed -i '' 's|<a class=\"version-tab\" href=\"v2.html\">V2</a>|<a class=\"version-tab active\" href=\"v2.html\">V2</a>|' /Users/t160029/repo/prototyping/keyword/single_page/v2.html)",
+      "Bash(grep -o \"side-nav-collapse.\\\\{0,300\\\\}\" /Users/t160029/repo/prototyping/archive/reordering_bulk/node_modules/@meridian/ui/index.js)",
+      "Bash(node *)",
+      "Bash(cp /tmp/deck_imgs/5.png /Users/t160029/repo/prototyping/decks/img-products.png)",
+      "Bash(cp /tmp/deck_imgs/2.png /Users/t160029/repo/prototyping/decks/img-creative.png)",
+      "Bash(cp /tmp/deck_imgs/6.png /Users/t160029/repo/prototyping/decks/img-keywords.png)",
+      "Bash(cp /tmp/deck_imgs/8.png /Users/t160029/repo/prototyping/decks/img-placements.png)",
+      "mcp__figma__create_session"
     ]
   }
 }

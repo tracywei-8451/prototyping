@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- head -->
+  <circle cx="16" cy="19" r="12" fill="#4ade80"/>
+  <!-- eye bumps -->
+  <circle cx="10" cy="9"  r="5.5" fill="#4ade80"/>
+  <circle cx="22" cy="9"  r="5.5" fill="#4ade80"/>
+  <!-- eye whites -->
+  <circle cx="10" cy="9"  r="4" fill="#fff"/>
+  <circle cx="22" cy="9"  r="4" fill="#fff"/>
+  <!-- pupils -->
+  <circle cx="10" cy="9"  r="2.2" fill="#1a1a1a"/>
+  <circle cx="22" cy="9"  r="2.2" fill="#1a1a1a"/>
+  <!-- eye shine -->
+  <circle cx="11" cy="7.5" r="0.9" fill="#fff" opacity="0.7"/>
+  <circle cx="23" cy="7.5" r="0.9" fill="#fff" opacity="0.7"/>
+  <!-- nostrils -->
+  <circle cx="14" cy="20" r="1"   fill="#22c55e"/>
+  <circle cx="18" cy="20" r="1"   fill="#22c55e"/>
+  <!-- smile -->
+  <path d="M 11 23 Q 16 28 21 23" stroke="#16a34a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+</svg>

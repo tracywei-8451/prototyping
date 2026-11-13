@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MB&E + ISDD Overview</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎃</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      background: #e9ebee;
+      color: #111;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Deck ── */
+    #deck { position: fixed; inset: 0; overflow: hidden; }
+
+    /* ── Slides ── */
+    .slide {
+      position: absolute; inset: 0;
+      background: #e9ebee;
+      will-change: transform;
+      transition: transform 700ms cubic-bezier(0.86, 0, 0.07, 1);
+    }
+
+    /* ── Content animation ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .anim { opacity: 0; }
+    .slide.active .anim         { animation: fadeUp 380ms 500ms ease both; }
+    .slide.active .anim.anim-2  { animation-delay: 600ms; }
+
+    /* ══ Title slide ══ */
+    .slide--title {
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .title-bg {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+    .slide-img {
+      position: absolute;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.55);
+    }
+    .title-scrim {
+      position: absolute; inset: 0;
+      background: rgba(0, 0, 0, 0.54);
+      pointer-events: none;
+    }
+    .title-body {
+      position: relative;
+      text-align: center;
+      z-index: 1;
+    }
+    .title-line {
+      font-size: clamp(22px, 3.4vw, 52px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      color: #fff;
+      text-transform: lowercase;
+    }
+    .title-plus {
+      font-size: clamp(18px, 2.6vw, 40px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      display: block;
+      margin: 16px 0;
+    }
+
+    .slide--title-light {
+      background: #e9ebee;
+    }
+    .slide--title-light .title-line {
+      color: #111;
+    }
+    .slide--title-light .title-plus {
+      color: rgba(0,0,0,0.35);
+    }
+
+    /* ══ Content slide ══ */
+    .slide--content {
+      display: flex;
+      flex-direction: column;
+      padding: 54px 84px;
+    }
+
+    /* Glow blobs — blurred organic shapes, one per corner.
+       ::after = bottom corner, ::before = top corner (for dual-corner slides).
+       Each corner has a distinct border-radius to break up symmetry. */
+
+    /* Shared blob base */
+    .gc-br::after, .gc-bl::after,
+    .gc-tr-bl::after, .gc-tl-br::after, .gc-tr-br::after, .gc-tl-bl::after,
+    .gc-tr-bl::before, .gc-tr-br::before, .gc-tl-br::before, .gc-tl-bl::before {
+      content: '';
+      position: absolute;
+      width: 56%;
+      height: 76%;
+      background: rgba(190, 70, 0, 0.54);
+      filter: blur(82px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Bottom-right blob */
+    .gc-br::after, .gc-tl-br::after, .gc-tr-br::after {
+      bottom: -40%; right: -20%;
+      border-radius: 58% 42% 36% 64% / 48% 62% 38% 52%;
+    }
+    /* Bottom-left blob */
+    .gc-bl::after, .gc-tr-bl::after, .gc-tl-bl::after {
+      bottom: -40%; left: -20%;
+      border-radius: 44% 56% 68% 32% / 54% 40% 60% 46%;
+    }
+    /* Top-right blob */
+    .gc-tr-bl::before, .gc-tr-br::before {
+      top: -40%; right: -20%;
+      border-radius: 32% 68% 54% 46% / 40% 56% 44% 60%;
+    }
+    /* Top-left blob */
+    .gc-tl-br::before, .gc-tl-bl::before {
+      top: -40%; left: -20%;
+      border-radius: 66% 34% 44% 56% / 52% 44% 56% 48%;
+    }
+
+    /* Lift content above blobs */
+    .slide--content > * { position: relative; z-index: 1; }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #111;
+      flex-shrink: 0;
+    }
+    .topic {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      font-size: clamp(26px, 3.8vw, 54px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 58%;
+    }
+
+    /* ══ Divider slide ══ */
+    .slide--divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .divider-label {
+      font-size: clamp(40px, 6.5vw, 96px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    /* ══ Night sky slide ══ */
+    .slide--night {
+      background: radial-gradient(ellipse at 50% 50%, #2a0a4e 0%, #12052a 50%, #060010 100%);
+      color: #fff;
+    }
+    .stars-layer {
+      position: absolute; inset: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      clip-path: polygon(50% 0%, 55% 44%, 100% 50%, 55% 56%, 50% 100%, 45% 56%, 0% 50%, 45% 44%);
+      animation: twinkle var(--dur, 3s) var(--delay, 0s) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: var(--min-op, 0.2); transform: scale(0.7) rotate(0deg); }
+      to   { opacity: var(--max-op, 1);   transform: scale(1.3) rotate(20deg); }
+    }
+    .moon {
+      position: absolute;
+      top: 9%; right: 11%;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: -30px 12px 0 12px rgba(255, 243, 175, 0.88);
+      filter: drop-shadow(0 0 18px rgba(255, 235, 130, 0.4));
+      z-index: 1;
+    }
+
+    /* ══ MB&E divider ══ */
+    .slide--divider-mbe {
+      background: linear-gradient(to bottom, #05020c 0%, #05020c 10%, #3d1200 42%, #af4611 100%);
+      color: #fff;
+    }
+    .slide--divider-mbe::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%, rgba(88,20,140,.35) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 40% at 50% 30%, rgba(60,10,100,.2) 0%, transparent 70%);
+    }
+
+    /* ══ ISDD divider ══ */
+    .slide--divider-isdd {
+      background: linear-gradient(to bottom, #f5c4a0 0%, #e8641a 22%, #7a2800 55%, #241228 80%, #130b1e 100%);
+      color: #fff;
+    }
+    .slide--divider-isdd::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%, rgba(255,120,30,.2) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 40% at 50% 30%, rgba(200,80,10,.15) 0%, transparent 70%);
+    }
+
+    /* ══ ISDD overview slide ══ */
+    .isdd-photo-wrap {
+      position: absolute;
+      left: 60.68%; top: 11.94%;
+      width: 28.13%; height: 76%;
+    }
+    .isdd-photo-wrap img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* ══ ISDD kap form slide ══ */
+    .kap-form-img {
+      position: absolute;
+      left: 8.33%; top: 30%;
+      width: 83.33%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.16));
+      border-radius: 8px;
+      transition: top 2200ms cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    /* ══ ISDD systems slide ══ */
+    .isdd-spreadsheet {
+      position: absolute;
+      left: 46.46%; top: 19.81%;
+      width: 30.68%;
+      filter: drop-shadow(0 6px 24px rgba(0,0,0,0.14));
+      border-radius: 4px;
+    }
+    .isdd-barrows {
+      position: absolute;
+      left: 62.29%; top: 44.81%;
+      width: 29.69%;
+      filter: drop-shadow(0 10px 36px rgba(0,0,0,0.20));
+      border-radius: 6px;
+    }
+
+    /* ══ Halloween slide ══ */
+    .slide--halloween {
+      background: #05020c !important;
+    }
+    .slide--halloween::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 90%, rgba(88,20,140,.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 20% 20%, rgba(30,10,60,.4) 0%, transparent 60%);
+    }
+    .slide--halloween .title-body { z-index: 20; }
+    .slide--halloween .title-scrim { background: rgba(0,0,0,0.68); }
+
+    /* Lightning */
+    .lightning {
+      position: absolute; inset: 0; pointer-events: none; z-index: 10;
+      opacity: 0;
+    }
+    @keyframes lightning-arrival {
+      0%   { opacity:1; background:rgba(200,220,255,.92); }
+      18%  { opacity:0; }
+      32%  { opacity:.9; background:rgba(200,220,255,.75); }
+      50%  { opacity:0; }
+      64%  { opacity:.65; background:rgba(200,220,255,.55); }
+      100% { opacity:0; }
+    }
+    @keyframes lightning-strike {
+      0%,82%,100% { opacity:0; background:transparent; }
+      83%  { opacity:1; background:rgba(190,215,255,.7); }
+      83.5%{ opacity:0; }
+      84%  { opacity:.75; background:rgba(190,215,255,.55); }
+      84.5%{ opacity:0; }
+      91%  { opacity:.9; background:rgba(190,215,255,.65); }
+      91.4%{ opacity:0; }
+      91.8%{ opacity:.5; background:rgba(190,215,255,.4); }
+      92%  { opacity:0; }
+    }
+
+    /* Bats */
+    .bat {
+      position: absolute; pointer-events: none; z-index: 5;
+      opacity: 0;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,.18));
+    }
+    .slide--halloween.active .bat {
+      animation: bat-float var(--dur,5s) ease-in-out infinite;
+      animation-delay: var(--delay,0s);
+      opacity: var(--op, 0.8);
+    }
+    @keyframes bat-float {
+      0%,100% { transform: translateY(0) rotate(var(--rot,-4deg)) scale(1); }
+      35%     { transform: translateY(-22px) rotate(calc(var(--rot,0deg) + 14deg)) scale(1.04); }
+      70%     { transform: translateY(-9px) rotate(calc(var(--rot,0deg) - 5deg)) scale(.97); }
+    }
+
+    /* SVG bolt */
+    .bolt-svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 11;
+      overflow: hidden;
+    }
+    .bolt-main, .bolt-fork, .bolt-twig {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .bolt-main {
+      stroke: #dceeff;
+      stroke-width: 6;
+      filter:
+        drop-shadow(0 0 3px #fff)
+        drop-shadow(0 0 10px #90bfff)
+        drop-shadow(0 0 30px rgba(70,130,255,.85))
+        drop-shadow(0 0 70px rgba(50,100,255,.45));
+    }
+    .bolt-fork {
+      stroke: #bcd6ff;
+      stroke-width: 3.5;
+      filter:
+        drop-shadow(0 0 2px #fff)
+        drop-shadow(0 0 8px #80b0ff)
+        drop-shadow(0 0 22px rgba(70,130,255,.7));
+    }
+    .bolt-twig {
+      stroke: rgba(185,212,255,.6);
+      stroke-width: 2;
+      filter: drop-shadow(0 0 6px rgba(100,160,255,.65));
+    }
+
+    /* ══ Team Ownership slide ══ */
+    .slide--ownership {
+      background: #e9ecf1;
+      overflow: hidden;
+    }
+
+    /* Shared slide label — top-left on all non-divider slides */
+    .slide-label {
+      position: absolute;
+      left: 95px;
+      top: 84px;
+      font-size: clamp(18px, 1.875vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111;
+      z-index: 1;
+    }
+    .slide-label--mbe  { color: #c0530a; }
+    .slide-label--isdd { color: #3d1d6e; }
+
+    /* Shared slide body copy */
+    .slide-body {
+      font-size: clamp(18px, 1.875vw, 36px);
+      font-weight: 300;
+      color: #1a1a1a;
+      line-height: 1.4;
+    }
+
+
+
+    /* ══ Section backgrounds ══ */
+    .slide--mbe  { background: #fcf5e8 !important; }
+    .slide--isdd { background: #e8e4f0 !important; }
+
+    /* ══ Workflow slides ══ */
+    .slide--workflow { background: #e9ecf1; overflow: hidden; }
+
+
+    .wf-img {
+      position: absolute;
+      left: 160px;
+      width: calc(100% - 320px);
+    }
+
+
+    /* ══ Product selection slide ══ */
+    .slide--ps { background: #e9ecf1; overflow: hidden; }
+
+    .ps-body {
+      position: absolute;
+      left: 6.35%; top: 47.22%;
+      font-size: clamp(14px, 1.25vw, 24px);
+      color: #888;
+      font-weight: 300;
+    }
+
+    .ps-prod {
+      position: absolute;
+      left: 38.23%; top: 35.93%;
+      width: 31%;
+    }
+
+    .ps-pane {
+      position: absolute;
+      left: 56.7%; top: 16.11%;
+      width: 35.73%;
+    }
+
+    /* ══ Two-pane selection slide ══ */
+    .tp-body {
+      position: absolute;
+      left: 6.46%; top: 36.11%;
+      max-width: 28%;
+    }
+    .tp-body ul {
+      margin-left: 1.2em;
+      margin-top: 0.5em;
+    }
+    .tp-container {
+      position: absolute;
+      left: 39.11%; top: 15.83%;
+      width: 57%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.18));
+    }
+
+    /* ══ Embedded iframe slide ══ */
+    .embed-wrapper {
+      position: absolute;
+      left: 42%; top: 11.94%;
+      width: 55%; bottom: 5%;
+      transform: translateX(-50%);
+      overflow: hidden;
+    }
+    .embed-wrapper iframe {
+      width: 960px;
+      height: 1100px;
+      border: none;
+      transform-origin: top left;
+    }
+
+    /* ══ Bidding slide ══ */
+    .kw-bid-img {
+      position: absolute;
+      left: 51.88%; top: 11.94%;
+      width: 38.85%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.18));
+    }
+
+    /* ══ Creative slide ══ */
+    .creative-img {
+      position: absolute;
+      left: 42.08%; top: 19.63%;
+      width: 50.48%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.18));
+    }
+
+    /* ══ Inventory management slide ══ */
+    .inv-img {
+      position: absolute;
+      left: 5.73%; top: 20.56%;
+      width: 42.08%;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.18));
+    }
+    .approve-img {
+      position: absolute;
+      left: 27.6%; top: 43.33%;
+      width: 30.81%;
+      filter: drop-shadow(0 12px 40px rgba(0,0,0,0.22));
+    }
+    .inv-body {
+      position: absolute;
+      left: 64.9%; top: 41.94%;
+      width: 28.39%;
+    }
+    .inv-caption {
+      position: absolute;
+      left: 64.9%; top: 62.59%;
+      width: 28.39%;
+      font-style: italic;
+      font-size: 0.6em;
+      font-weight:500;
+      color: #20203c;
+    }
+
+
+    /* ── Counter ── */
+    #counter {
+      position: fixed; bottom: 18px; right: 28px;
+      font-size: 11px; color: #aaa;
+      letter-spacing: 0.05em;
+      font-variant-numeric: tabular-nums;
+      z-index: 100;
+    }
+
+    /* ── Nav hint ── */
+  </style>
+</head>
+<body>
+
+<div id="deck">
+
+  <!-- 0: Title -->
+  <div class="slide slide--title slide--title-light">
+    <div class="title-body anim">
+      <div class="title-line">Media Buying & Execution (MB&E)</div>
+      <span class="title-plus">+</span>
+      <div class="title-line">In-Store Digital Display (ISDD)</div>
+    </div>
+  </div>
+
+  <!-- 1: Title (Halloween) -->
+  <div class="slide slide--title slide--halloween">
+    <div class="lightning"></div>
+    <svg class="bolt-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+      <!-- main trunk: top → bottom, zigzagging down -->
+      <path class="bolt-main"
+        d="M 940 10 L 860 170 L 980 310 L 830 480 L 770 670 L 700 870 L 740 1120"/>
+      <!-- right fork: splits at 310, goes right + down -->
+      <path class="bolt-fork"
+        d="M 980 310 L 1110 430 L 1180 600 L 1110 790 L 1160 1000"/>
+      <!-- left twig: splits from trunk at 670 -->
+      <path class="bolt-twig"
+        d="M 770 670 L 660 780 L 620 940 L 650 1080"/>
+      <!-- right twig: splits from fork at 600 -->
+      <path class="bolt-twig"
+        d="M 1180 600 L 1310 690 L 1370 840 L 1330 980"/>
+      <!-- tiny far-right twig off fork -->
+      <path class="bolt-twig"
+        d="M 1110 430 L 1220 510 L 1260 630"/>
+    </svg>
+    <img class="bat" src="bat.png" style="width:170px;top:17%;left:6%;--dur:4.6s;--delay:0s;--op:0.85;--rot:-18deg;" alt="">
+    <img class="bat" src="bat.png" style="width:115px;top:68%;left:14%;--dur:6s;--delay:-1.4s;--op:0.7;--rot:15deg;" alt="">
+    <img class="bat" src="bat.png" style="width:140px;top:21%;right:8%;--dur:5.2s;--delay:-2.8s;--op:0.8;--rot:-13deg;" alt="">
+    <img class="bat" src="bat.png" style="width:82px;top:74%;right:11%;--dur:7s;--delay:-3.5s;--op:0.6;--rot:22deg;" alt="">
+    <img class="bat" src="bat.png" style="width:100px;top:50%;right:5%;--dur:5.8s;--delay:-0.9s;--op:0.55;--rot:-22deg;" alt="">
+    <div class="title-body">
+      <div class="title-line">Media Buying & Execution (MB&E)</div>
+      <span class="title-plus">+</span>
+      <div class="title-line">In-Store Digital Display (ISDD)</div>
+    </div>
+  </div>
+
+  <!-- 2: Divider — MB&E -->
+  <div class="slide slide--divider slide--divider-mbe">
+    <div class="divider-label anim">mb&e</div>
+    <div style="position:absolute;bottom:0;left:0;right:0;height:250px;background:url(pumpkins.png) repeat-x bottom;background-size:auto 100%;pointer-events:none;"></div>
+  </div>
+
+  <!-- 3: MB&E — team ownership -->
+  <div class="slide slide--ownership slide--mbe">
+    <div class="slide-label slide-label--mbe anim">team responsibilities</div>
+    <p class="slide-body anim anim-2" style="position:absolute;left:95px;top:41.2%;max-width:28%;">mb&e supports core campaign capabilities, connecting data sources and creating reusable components across campaign types.</p>
+    <img src="diagram.png" class="anim" style="position:absolute;left:53%;top:7%;width:42%;z-index:1;filter:drop-shadow(0 8px 32px rgba(0,0,0,0.14));" alt="">
+  </div>
+
+  <!-- 4: Workflow — top -->
+  <div class="slide slide--workflow slide--mbe">
+    <div class="slide-label slide-label--mbe anim">within the workflow</div>
+    <img src="wf.png" class="wf-img" style="top: 205px;" alt="">
+  </div>
+
+  <!-- 5: Workflow — scroll 1 -->
+  <div class="slide slide--workflow slide--mbe">
+    <img src="wf.png" class="wf-img" style="top: -395px;" alt="">
+  </div>
+
+  <!-- 6: Workflow — scroll 2 -->
+  <div class="slide slide--workflow slide--mbe">
+    <img src="wf.png" class="wf-img" style="top: -1129px;" alt="">
+  </div>
+
+
+  <!-- 7: Product selection -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">product selection</div>
+    <div class="slide-body anim anim-2" style="position:absolute;left:95px;top:41%;max-width:28%;">redesigning selection experience & consolidating data sources for upcs. </div>
+    <img src="prod.png" class="ps-prod anim anim-2" alt="">
+    <img src="prodpane.png" class="ps-pane anim" alt="">
+  </div>
+
+  <!-- 8: Two-pane selection -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">two-pane selection</div>
+    <div class="tp-body slide-body anim anim-2">
+      creating reusable selection containers throughout kap.
+      <br><br>
+      currently in use:
+      <ul>
+        <li>sub-commodities</li>
+        <li>keywords</li>
+        <li>filters</li>
+      </ul>
+    </div>
+    <img src="container.png" class="tp-container anim" alt="">
+  </div>
+
+  <!-- 9: MB&E — bidding -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">bidding</div>
+    <div class="slide-body anim anim-2" style="position:absolute;left:6.77%;top:43.33%;max-width:28%;">most recently, working on bringing in keyword targeting, giving clients greater control over search terms & their ads.</div>
+    <img src="kw-bid.png" class="kw-bid-img anim" alt="">
+  </div>
+
+  <!-- 10: Bidding — embedded single page v3 -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">bidding</div>
+    <div class="slide-body anim anim-2" style="position:absolute;left:6.77%;top:43.33%;max-width:28%;">next, an embedded experience.</div>
+    <div class="embed-wrapper anim">
+      <iframe src="../keyword/single_page/v3.html?embed=keywords" title="Bid Management Single Page" allowtransparency="true" style="background:transparent"></iframe>
+    </div>
+  </div>
+
+  <!-- 11: MB&E — creative -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">creative</div>
+    <div class="slide-body anim anim-2" style="position:absolute;left:6.25%;top:34.26%;max-width:28%;">currently for TOAs &amp; carousel (video).<br><br>working with offsite &amp; managed teams to support other channels coming into kap.</div>
+    <img src="creative.png" class="creative-img anim" alt="">
+  </div>
+
+  <!-- 12: MB&E — inventory management -->
+  <div class="slide slide--ps slide--mbe">
+    <div class="slide-label slide-label--mbe anim">inventory management</div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 78%,rgba(230,90,20,0.45) 100%);pointer-events:none;"></div>
+    <img src="inventory.png" class="inv-img anim" alt="">
+    <img src="approve.png" class="approve-img anim anim-2" alt="">
+    <div class="slide-body inv-body anim anim-2">allowing internal teams to track and manage ad space to be sold.</div>
+    <div class="inv-caption anim anim-3">bye bye excel sheets!</div>
+  </div>
+
+  <!-- 13: Divider — ISDD -->
+  <div class="slide slide--divider slide--divider-isdd" id="isdd-slide">
+    <img id="isdd-ghost"  src="ghost.png"  alt="" style="position:absolute;width:160px;pointer-events:none;z-index:2;will-change:transform,left,top;">
+    <img id="isdd-ghost2" src="ghost2.png" alt="" style="position:absolute;width:160px;pointer-events:none;z-index:2;will-change:transform,left,top;">
+    <div class="divider-label anim" style="position:relative;z-index:3;">isdd</div>
+  </div>
+
+  <!-- 14: ISDD — overview -->
+  <div class="slide slide--ps slide--isdd">
+    <div class="slide-label slide-label--isdd anim">overview</div>
+    <div class="isdd-photo-wrap anim">
+      <img src="isdd-store.png" alt="">
+    </div>
+    <div class="slide-body anim anim-2" style="position:absolute;left:7.14%;top:38.89%;width:28.39%;">supports the physical digital ads in kroger stores.<br><br>previously in ~20, now over 200 stores.</div>
+  </div>
+
+  <!-- 15: ISDD — systems -->
+  <div class="slide slide--ps slide--isdd">
+    <div class="slide-label slide-label--isdd anim">systems</div>
+    <img src="isdd-spreadsheet.png" class="isdd-spreadsheet anim" alt="">
+    <img src="isdd-barrows.png" class="isdd-barrows anim anim-2" alt="">
+    <div class="slide-body anim anim-3" style="position:absolute;left:7.14%;top:28.61%;width:28.39%;">isdd relies on several platforms:<br><ul style="margin:.6em 0 0 1.2em;line-height:1.8"><li>salesforce</li><li>barrows (3rd party responsible for installation + ad serving)</li><li>microsoft forms</li></ul><br>the team is looking at consolidating data sources &amp; automating those processes.</div>
+  </div>
+
+  <!-- 16: ISDD — isdd in kap -->
+  <div class="slide slide--ps slide--isdd" data-scroll-slide>
+    <div class="slide-label slide-label--isdd anim">isdd in kap</div>
+    <img src="isdd-campaign.png" class="kap-form-img anim" alt="">
+  </div>
+
+  <!-- Questions -->
+  <div class="slide slide--divider slide--night">
+    <div class="stars-layer" id="night-stars"></div>
+    <div class="moon"></div>
+    <div class="divider-label anim" style="position:relative;z-index:1;">questions</div>
+  </div>
+
+</div>
+
+<div id="counter">1 / 17</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const N = slides.length;
+  let cur = 0, busy = false;
+
+  // Init: slide 0 at 0, rest below
+  slides.forEach((s, i) => {
+    s.style.transform = i === 0 ? 'translateY(0)' : 'translateY(100%)';
+    if (i === 0) s.classList.add('active');
+  });
+  render();
+
+  function fireBolt(slide) {
+    // [delay ms, duration ms] per path in DOM order: main, fork, twig×3
+    const timing = [[0,700],[130,580],[220,480],[265,460],[190,420]];
+    const paths = slide.querySelectorAll('.bolt-main, .bolt-fork, .bolt-twig');
+    paths.forEach((path, i) => {
+      const [delay, duration] = timing[i] ?? [300, 400];
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      path.getAnimations().forEach(a => a.cancel());
+      path.animate([
+        { strokeDashoffset: `${len}`, opacity: 1 },
+        { strokeDashoffset: '0',      opacity: 1,   offset: 0.58 },
+        { strokeDashoffset: '0',      opacity: 0.88, offset: 0.75 },
+        { strokeDashoffset: '0',      opacity: 0 }
+      ], { duration, delay, easing: 'ease-out', fill: 'forwards' });
+    });
+  }
+
+  function triggerLightning(slide) {
+    const flash = slide.querySelector('.lightning');
+    if (flash) {
+      flash.style.animation = 'none';
+      void flash.offsetWidth;
+      flash.style.animation = 'lightning-arrival 0.9s ease-out, lightning-strike 8s 2.8s infinite';
+    }
+    fireBolt(slide);
+  }
+
+  const scrollDone = new Set();
+
+  function go(to) {
+    if (to === cur || busy || to < 0 || to >= N) return;
+
+    // Scroll-slide: scroll to bottom first, then transition
+    if (to > cur) {
+      const slide = slides[cur];
+      if (slide.dataset.scrollSlide !== undefined && !scrollDone.has(cur)) {
+        scrollDone.add(cur);
+        const img = slide.querySelector('.kap-form-img');
+        if (img) img.style.top = '-329.1%';
+        const label = slide.querySelector('.slide-label');
+        if (label) {
+          label.style.transition = 'transform 2200ms cubic-bezier(0.4, 0, 0.6, 1)';
+          label.style.transform = 'translateY(-200px)';
+        }
+        setTimeout(() => go(to), 2300);
+        return;
+      }
+    }
+
+    // Reset when navigating back to a scroll-slide
+    if (to < cur && slides[to].dataset.scrollSlide !== undefined) {
+      scrollDone.delete(to);
+      const img = slides[to].querySelector('.kap-form-img');
+      if (img) img.style.top = '30%';
+      const label = slides[to].querySelector('.slide-label');
+      if (label) { label.style.transition = 'none'; label.style.transform = ''; }
+    }
+
+    busy = true;
+
+    const fwd = to > cur;
+    const prev = slides[cur];
+    const next = slides[to];
+
+    // Reset lightning when leaving a halloween slide
+    const leavingBolt = prev.querySelector('.lightning');
+    if (leavingBolt) leavingBolt.style.animation = 'none';
+
+    // 0 → 1: instant snap + lightning strike reveal
+    if (cur === 0 && to === 1) {
+      next.style.transition = 'none';
+      next.style.transform = 'translateY(0)';
+      prev.style.transition = 'none';
+      prev.style.transform = 'translateY(-100%)';
+      prev.classList.remove('active');
+      next.classList.add('active');
+      cur = to;
+      render();
+      triggerLightning(next);
+      setTimeout(() => { busy = false; }, 120);
+      return;
+    }
+
+    // Normal vertical transition
+    next.style.transition = 'none';
+    next.style.transform = fwd ? 'translateY(100%)' : 'translateY(-100%)';
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      next.style.transition = '';
+      prev.style.transition = 'transform 700ms cubic-bezier(0.86, 0, 0.07, 1)';
+
+      next.style.transform = 'translateY(0)';
+      prev.style.transform = fwd ? 'translateY(-100%)' : 'translateY(100%)';
+
+      prev.classList.remove('active');
+      next.classList.add('active');
+      cur = to;
+      render();
+
+      setTimeout(() => { busy = false; }, 740);
+    }));
+  }
+
+  function render() {
+    document.getElementById('counter').textContent = `${cur + 1} / ${N}`;
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (['ArrowDown', 'ArrowRight', ' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    if (['ArrowUp', 'ArrowLeft'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  });
+
+  // Wheel
+  let wheelLock = false;
+  document.addEventListener('wheel', e => {
+    if (wheelLock) return;
+    wheelLock = true;
+    e.deltaY > 0 ? go(cur + 1) : go(cur - 1);
+    setTimeout(() => { wheelLock = false; }, 860);
+  }, { passive: true });
+
+  // Click zones
+  document.getElementById('deck').addEventListener('click', e => {
+    e.clientX > window.innerWidth / 2 ? go(cur + 1) : go(cur - 1);
+  });
+
+  // Forward navigation from embedded iframes
+  window.addEventListener('message', e => {
+    if (!e.data || !e.data.deckKey) return;
+    const k = e.data.deckKey;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ') go(cur + 1);
+    if (k === 'ArrowLeft'  || k === 'ArrowUp') go(cur - 1);
+  });
+
+  // Scale embedded iframe to fit its wrapper at any viewport size
+  function fitEmbedIframe() {
+    const wrapper = document.querySelector('.embed-wrapper');
+    const iframe = wrapper && wrapper.querySelector('iframe');
+    if (!iframe) return;
+    const scale = wrapper.clientWidth / 960;
+    iframe.style.transform = `scale(${scale})`;
+  }
+  fitEmbedIframe();
+  window.addEventListener('resize', fitEmbedIframe);
+
+  // Floating ghosts on ISDD divider slide
+  (function() {
+    const slide = document.getElementById('isdd-slide');
+    if (!slide) return;
+
+    const ghosts = [
+      { el: document.getElementById('isdd-ghost'),  x: 300,  y: 280, vx:  0.9, vy:  0.18, frame: 0 },
+      { el: document.getElementById('isdd-ghost2'), x: 1400, y: 380, vx: -0.9, vy: -0.18, frame: 40 },
+    ];
+
+    let raf = null;
+
+    function tick() {
+      const W = slide.offsetWidth  || window.innerWidth;
+      const H = slide.offsetHeight || window.innerHeight;
+      const padY = H * 0.18;
+
+      ghosts.forEach(g => {
+        if (!g.el) return;
+        const gw = g.el.offsetWidth;
+        const gh = g.el.offsetHeight;
+
+        g.frame++;
+        if (g.frame % 120 === 0) {
+          g.vx += (Math.random() - 0.5) * 0.3;
+          g.vy += (Math.random() - 0.5) * 0.1;
+          g.vy = Math.max(-0.35, Math.min(0.35, g.vy));
+          const spdX = Math.abs(g.vx);
+          if (spdX > 1.2) g.vx = Math.sign(g.vx) * 1.2;
+          if (spdX < 0.5) g.vx = Math.sign(g.vx) * 0.5;
+        }
+
+        g.x += g.vx;
+        g.y += g.vy;
+
+        if (g.x <= 0)              { g.x = 0;               g.vx =  Math.abs(g.vx); }
+        if (g.x + gw >= W)         { g.x = W - gw;          g.vx = -Math.abs(g.vx); }
+        if (g.y <= padY)           { g.y = padY;             g.vy =  Math.abs(g.vy); }
+        if (g.y + gh >= H - padY)  { g.y = H - padY - gh;   g.vy = -Math.abs(g.vy); }
+
+        g.el.style.transform = g.vx > 0 ? 'scaleX(-1)' : 'scaleX(1)';
+        g.el.style.left = g.x + 'px';
+        g.el.style.top  = g.y + 'px';
+      });
+
+      raf = requestAnimationFrame(tick);
+    }
+
+    new MutationObserver(() => {
+      if (slide.classList.contains('active')) {
+        if (!raf) raf = requestAnimationFrame(tick);
+      } else {
+        cancelAnimationFrame(raf); raf = null;
+      }
+    }).observe(slide, { attributes: true, attributeFilter: ['class'] });
+  })();
+
+  // Generate night sky stars
+  (function() {
+    const layer = document.getElementById('night-stars');
+    if (!layer) return;
+    for (let i = 0; i < 140; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = Math.random() * 10 + 5;
+      s.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%; top:${Math.random()*100}%;
+        --dur:${(2 + Math.random()*5).toFixed(2)}s;
+        --delay:${(-Math.random()*7).toFixed(2)}s;
+        --min-op:${(0.05 + Math.random()*0.2).toFixed(2)};
+        --max-op:${(0.6 + Math.random()*0.4).toFixed(2)};
+      `;
+      layer.appendChild(s);
+    }
+  })();
+
+</script>
+
+</body>
+</html>

@@ -34,6 +34,36 @@
       100% { transform: translateX(-50%) translateY(0) rotate(-1deg); }
     }
 
+    @keyframes bubbleFloat {
+      0%   { transform: translateY(0) scale(1); }
+      50%  { transform: translateY(-6px) scale(1.08); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    #back-bubbles {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      width: 52px;
+      height: 52px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #back-bubbles .bubble {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.9;
+      animation: bubbleFloat ease-in-out infinite;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.1) 40%, transparent 60%),
+        radial-gradient(circle at 68% 72%, rgba(0,0,0,0.12) 0%, transparent 50%),
+        conic-gradient(from 0deg, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff, #d4baff, #ffb3ba);
+    }
+    #back-bubbles .b1 { width: 24px; height: 24px; top: 0; left: 4px; animation-duration: 2.8s; animation-delay: 0s; }
+    #back-bubbles .b2 { width: 20px; height: 20px; top: 20px; left: 24px; animation-duration: 3.3s; animation-delay: .4s; }
+    #back-bubbles .b3 { width: 18px; height: 18px; top: 24px; left: 2px; animation-duration: 2.5s; animation-delay: .8s; }
+    #back-bubbles:hover .bubble { opacity: 1; filter: saturate(3) brightness(1.05); transition: filter .2s; }
+
     #nate {
       position: fixed;
       left: 50%;
@@ -54,7 +84,17 @@
   </style>
 </head>
 <body>
+  <a id="back-bubbles" href="../index.html" title="Back to library">
+    <div class="bubble b1"></div>
+    <div class="bubble b2"></div>
+    <div class="bubble b3"></div>
+  </a>
   <div class="game-grid">
+    <a class="game-card" href="buddy/index.html">
+      <div class="icon">🐾</div>
+      <span>fren</span>
+    </a>
+
     <a class="game-card" href="tennis/index.html">
       <div class="icon">🎾</div>
       <span>Grand Slam</span>
