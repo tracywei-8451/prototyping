@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keyword Single Page — Figma</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --font: 'Inter', sans-serif; }
+    html, body { height: 100%; font-family: var(--font); }
+    body { display: flex; flex-direction: column; }
+
+    .version-bar {
+      position: relative;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .back-to-library {
+      position: absolute;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px;
+      border-radius: 4px; border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    iframe {
+      flex: 1;
+      border: none;
+      display: block;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="version-bar">
+    <a class="back-to-library" href="../../index.html">← Library</a>
+    <a class="version-tab" href="index.html">V1</a>
+    <a class="version-tab" href="v2.html">V2</a>
+    <a class="version-tab" href="v3.html">V3</a>
+    <a class="version-tab" href="v4.html">V4</a>
+    <a class="version-tab" href="v5.html">V5</a>
+    <a class="version-tab active" href="figma.html">Figma</a>
+  </div>
+  <iframe
+    src="https://embed.figma.com/design/4I7FCQP7hr60MHVPwhaj1p/%E2%9C%A8-Media-Buying--2025-?node-id=8388-45920&t=yJloZTIM9YwpSMFC-1&embed-host=share"
+    allowfullscreen
+  ></iframe>
+</body>
+</html>

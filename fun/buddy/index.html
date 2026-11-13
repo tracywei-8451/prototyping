@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fren</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: #eff2f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .back {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      font-size: 12px;
+      color: #888;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: "Inter", sans-serif;
+    }
+    .back:hover { color: #333; }
+
+    /* ── Onboarding ── */
+    #onboarding {
+      text-align: center;
+      max-width: 300px;
+    }
+    #onboarding h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #20203c;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    #onboarding p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    #name-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e3e8;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      margin-bottom: 10px;
+      color: #20203c;
+    }
+    #name-input:focus { border-color: #a78bfa; }
+    #meet-btn {
+      width: 100%;
+      padding: 10px;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #meet-btn:hover { background: #6d28d9; }
+
+    /* ── Buddy screen ── */
+    #buddy-screen { display: none; }
+
+    .buddy-panel {
+      background: linear-gradient(135deg, #0d1117 0%, #111620 100%);
+      border-radius: 20px;
+      padding: 20px 24px 22px;
+      width: 320px;
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    /* slow-panning rainbow overlay */
+    .buddy-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        125deg,
+        hsl(0,   100%, 65%) 0%,
+        hsl(55,  100%, 65%) 16%,
+        hsl(120, 100%, 65%) 33%,
+        hsl(200, 100%, 65%) 50%,
+        hsl(260, 100%, 65%) 67%,
+        hsl(320, 100%, 65%) 84%,
+        hsl(360, 100%, 65%) 100%
+      );
+      background-size: 400% 400%;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 1;
+      animation: holo-pan 12s ease-in-out infinite;
+    }
+    @keyframes holo-pan {
+      0%   { background-position: 0% 0%;     opacity: 0.07; }
+      40%  { background-position: 100% 100%; opacity: 0.16; }
+      100% { background-position: 0% 0%;     opacity: 0.07; }
+    }
+
+    /* gloss sweep */
+    .buddy-panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -70%;
+      width: 55%; height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.055),
+        transparent
+      );
+      pointer-events: none;
+      z-index: 2;
+      animation: gloss-sweep 10s ease-in-out infinite;
+    }
+    @keyframes gloss-sweep {
+      0%   { left: -70%; }
+      45%  { left: 130%; }
+      100% { left: 130%; }
+    }
+
+    .rarity-badge {
+      position: absolute;
+      top: 15px;
+      right: 14px;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'SF Mono', monospace;
+      font-weight: 600;
+    }
+    .r-common    { background: #0d2010; color: #4ade80; border: 1px solid #1a3a20; }
+    .r-uncommon  { background: #0d1a2a; color: #60a5fa; border: 1px solid #1a2a3f; }
+    .r-rare      { background: #1e0d2a; color: #c084fc; border: 1px solid #2d1a3f; }
+    .r-legendary { background: #2a1a05; color: #fbbf24; border: 1px solid #3f2a0d; }
+
+    .art-container {
+      text-align: center;
+      margin: 4px 0 6px;
+      min-height: 88px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .hat-line {
+      color: #fbbf24;
+      font-size: 14px;
+      line-height: 1.2;
+      display: block;
+    }
+    pre.art {
+      font-size: 15px;
+      line-height: 1.55;
+      color: #e6edf3;
+      white-space: pre;
+      display: inline-block;
+    }
+    .art-container.shiny pre.art {
+      animation: rainbow 2s linear infinite;
+    }
+    @keyframes rainbow {
+      0%   { color: #ff8080; }
+      14%  { color: #ffbf60; }
+      28%  { color: #80ff80; }
+      42%  { color: #60e0ff; }
+      57%  { color: #8080ff; }
+      71%  { color: #e060ff; }
+      85%  { color: #ff60b0; }
+      100% { color: #ff8080; }
+    }
+
+    .species-label {
+      font-size: 10px;
+      color: #555;
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .speech {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 9px;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+    }
+    .speech-prompt { color: #3fb950; font-size: 12px; flex-shrink: 0; }
+    .speech-text   { color: #c9d1d9; font-size: 12px; transition: opacity 0.25s; }
+
+    .mood-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .mood-label-txt { font-size: 10px; color: #444; letter-spacing: 0.08em; text-transform: uppercase; }
+    .mood-pct       { font-size: 10px; color: #3fb950; }
+    .mood-track {
+      width: 100%;
+      height: 3px;
+      background: #161b22;
+      border-radius: 2px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .mood-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #3fb950;
+      transition: width 0.6s ease, background 0.4s;
+    }
+    .mood-fill.ok  { background: #e3b341; }
+    .mood-fill.low { background: #f85149; }
+
+    .stats {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-lbl {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #444;
+      width: 72px;
+      flex-shrink: 0;
+    }
+    .pips { display: flex; gap: 3px; }
+    .pip {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: #161b22;
+    }
+    .pip.on { background: #58a6ff; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .act-btn {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 9px;
+      padding: 9px 6px 7px;
+      cursor: pointer;
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      color: #8b949e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .act-btn:hover {
+      background: #1c2128;
+      border-color: #58a6ff;
+      color: #e6edf3;
+    }
+    .act-btn:active { transform: scale(0.96); }
+    .act-icon { font-size: 16px; line-height: 1; }
+
+    .footer-label {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 10px;
+      color: #555;
+      font-family: 'SF Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 11px;
+      font-family: "Inter", sans-serif;
+      cursor: pointer;
+      margin-top: 6px;
+      text-align: center;
+      display: block;
+      width: 100%;
+      padding: 4px;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+    .reset-btn:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+
+<a class="back" href="../index.html">← back</a>
+
+<!-- Onboarding -->
+<div id="onboarding">
+  <h1>meet your fren</h1>
+  <p>enter your name and we'll find out who's been waiting for you</p>
+  <input id="name-input" type="text" placeholder="your name..." maxlength="32" autocomplete="off" spellcheck="false" />
+  <button id="meet-btn">→ meet them</button>
+</div>
+
+<!-- Buddy screen -->
+<div id="buddy-screen">
+  <div class="buddy-panel" id="buddy-panel">
+    <span class="rarity-badge" id="rarity-badge">common</span>
+
+    <div class="art-container" id="art-container"></div>
+
+    <div class="species-label" id="species-label"></div>
+
+    <div class="speech">
+      <span class="speech-prompt">&gt;</span>
+      <span class="speech-text" id="speech-text">...</span>
+    </div>
+
+    <div class="mood-header">
+      <span class="mood-label-txt">mood</span>
+      <span class="mood-pct" id="mood-pct">100%</span>
+    </div>
+    <div class="mood-track">
+      <div class="mood-fill" id="mood-fill" style="width:100%"></div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="actions">
+      <button class="act-btn" id="btn-pet">
+        <span class="act-icon">🤲</span>pet
+      </button>
+      <button class="act-btn" id="btn-feed">
+        <span class="act-icon">🍖</span>feed
+      </button>
+      <button class="act-btn" id="btn-poke">
+        <span class="act-icon">👉</span>poke
+      </button>
+    </div>
+  </div>
+  <div class="footer-label" id="footer-label"></div>
+  <button class="reset-btn" id="reset-btn">not my fren (reset)</button>
+</div>
+
+<script>
+const SPECIES = [
+  {
+    id: 'capybara', name: 'Capybara', rarity: 'common', weight: 24,
+    artHappy:  ['  n────n  ', ' (ᵔ ᴗ ᵔ) ', '  U────U  '],
+    art:       ['  n────n  ', ' (ᵔ ᴥ ᵔ) ', '  U────U  '],
+    artSad:    ['  n────n  ', ' (ᵔ ᴖ ᵔ) ', '  U────U  '],
+    hat: false,
+    stats: { Debugging: 4, Patience: 9, Chaos: 2, Wisdom: 8, Snark: 1 },
+    idle:  ['...', 'just vibing', 'no rush', 'grass thoughts', ':)'],
+    petted:['(happy capybara noises)', 'mmmm yes', 'this is fine', '★'],
+    fed:   ['nom nom nom', 'more please', 'yum'],
+    poked: ['hey', '...', 'rude but ok'],
+  },
+  {
+    id: 'duck', name: 'Duck', rarity: 'common', weight: 23,
+    artHappy:  ['   ___  ', '  (‿ ) ', ' >( )( ', '   """  '],
+    art:       ['   ___  ', '  (o ) ', ' >( )( ', '   """  '],
+    artSad:    ['   ___  ', '  (╥ ) ', ' >( )( ', '   """  '],
+    hat: false,
+    stats: { Debugging: 6, Patience: 3, Chaos: 9, Wisdom: 4, Snark: 7 },
+    idle:  ['quack', 'QUACK', 'quack?', '*waddles*', 'bread???'],
+    petted:['QUACK!!!', 'happy quack', 'quack quack', 'yes'],
+    fed:   ['QUACK QUACK', 'MORE BREAD', 'nom nom quack'],
+    poked: ['QUACK', 'do NOT', 'excuse me'],
+  },
+  {
+    id: 'cat', name: 'Cat', rarity: 'common', weight: 20,
+    artHappy:  ['  ^ ^ ^  ', ' (◕ ᴗ ◕)', '  > ♡ <  '],
+    art:       ['  ^ _ ^  ', ' (◕ ω ◕)', '  > ♡ <  '],
+    artSad:    ['  ^ _ ^  ', ' (◕ ᴖ ◕)', '  > . <  '],
+    hat: false,
+    stats: { Debugging: 7, Patience: 2, Chaos: 6, Wisdom: 7, Snark: 10 },
+    idle:  ['...', 'hmm', '*judges you*', 'whatever', 'fine I guess'],
+    petted:['...fine', 'I allow this', '*purrs reluctantly*', 'adequate'],
+    fed:   ['finally', 'acceptable', 'I demand more'],
+    poked: ['excuse me???', 'I will end you', '*hiss*'],
+  },
+  {
+    id: 'frog', name: 'Frog', rarity: 'uncommon', weight: 15,
+    artHappy:  ['  @ @  ', ' (•ᴗ•) ', ' / | \\  ', '  U U  '],
+    art:       ['  @ @  ', ' (•_•) ', ' / | \\  ', '  U U  '],
+    artSad:    ['  @ @  ', ' (•ᴖ•) ', ' / | \\  ', '  U U  '],
+    hat: false,
+    stats: { Debugging: 10, Patience: 6, Chaos: 5, Wisdom: 7, Snark: 3 },
+    idle:  ['ribbit', 'found a bug', '*blinks*', 'analyzing...', 'ribbit...'],
+    petted:['ribbit!!!', ':D', 'ribbit~', 'ty'],
+    fed:   ['ribbit yum', 'num num', 'fly? yes'],
+    poked: ['ribbit?', ':|', 'was that necessary'],
+  },
+  {
+    id: 'bunny', name: 'Bunny', rarity: 'uncommon', weight: 10,
+    artHappy:  [' (  ) ', ' (°ᴗ°)', ' (> <)'],
+    art:       [' (  ) ', ' (°ω°)', ' (> <)'],
+    artSad:    [' (  ) ', ' (°ᴖ°)', ' (> <)'],
+    hat: false,
+    stats: { Debugging: 5, Patience: 5, Chaos: 8, Wisdom: 4, Snark: 2 },
+    idle:  ['*hops*', ':3', '*sniffs*', 'hi!!!', '*zooms*'],
+    petted:['!!!!', '*binkies*', 'yes yes yes', 'eeeee'],
+    fed:   ['*thump thump*', 'YUM', 'more!!'],
+    poked: ['*thump*', 'hey!', ':o'],
+  },
+  {
+    id: 'sloth', name: 'Sloth', rarity: 'rare', weight: 5,
+    artHappy:  [' ≋≋≋≋≋ ', '(˘ ᴗ ˘)', ' | __ | ', ' \\    / '],
+    art:       [' ≋≋≋≋≋ ', '(˘ ᵕ ˘)', ' | __ | ', ' \\    / '],
+    artSad:    [' ≋≋≋≋≋ ', '(˘ ᴖ ˘)', ' | __ | ', ' \\    / '],
+    hat: true,
+    stats: { Debugging: 3, Patience: 10, Chaos: 1, Wisdom: 9, Snark: 4 },
+    idle:  ['...', '........', 'slow is good', 'zzz...', '...maybe'],
+    petted:['...ty', '(slow blink)', '......:)', '...nice'],
+    fed:   ['...yum', '...slowly consuming', '...good'],
+    poked: ['...', '...rude', '...ok fine'],
+  },
+  {
+    id: 'penguin', name: 'Penguin', rarity: 'rare', weight: 2,
+    artHappy:  ['  .__.  ', ' (o ᴗo) ', ' | == | ', ' (    ) '],
+    art:       ['  .__.  ', ' (o  o) ', ' | == | ', ' (    ) '],
+    artSad:    ['  .__.  ', ' (o ᴖo) ', ' | == | ', ' (    ) '],
+    hat: true,
+    stats: { Debugging: 8, Patience: 7, Chaos: 3, Wisdom: 8, Snark: 6 },
+    idle:  ['*slides*', 'greetings', 'waddle waddle', 'very professional', 'honk'],
+    petted:['honk!', '*happy waddle*', 'greetings accepted', ':D'],
+    fed:   ['fish!', 'excellent', 'more fish please'],
+    poked: ['*stern look*', 'unprofessional', 'honk'],
+  },
+  {
+    id: 'dragon', name: 'Dragon', rarity: 'legendary', weight: 1,
+    artHappy:  ['  ~))~  ', ' (◉ᴗ◉) ', '  ~WW~  '],
+    art:       ['  ~))~  ', ' (◉ω◉) ', '  ~WW~  '],
+    artSad:    ['  ~))~  ', ' (◉ᴖ◉) ', '  ~WW~  '],
+    hat: true,
+    stats: { Debugging: 9, Patience: 5, Chaos: 10, Wisdom: 10, Snark: 8 },
+    idle:  ['*breathes fire*', 'BEHOLD', 'legendary indeed', 'quite rare', '*smoke*'],
+    petted:['YOU MAY LIVE', '*scales shimmer*', 'acceptable', 'fine fine'],
+    fed:   ['*incinerate*', 'acceptable tribute', 'more gold pls'],
+    poked: ['YOU DARE', '*smoke*', 'interesting choice'],
+  },
+];
+
+function fnv(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+function selectSpecies(name) {
+  const h = fnv(name.toLowerCase().trim());
+  const total = SPECIES.reduce((s, sp) => s + sp.weight, 0);
+  let pick = h % total;
+  for (const sp of SPECIES) {
+    if (pick < sp.weight) return sp;
+    pick -= sp.weight;
+  }
+  return SPECIES[0];
+}
+
+function isShiny(name) {
+  return (fnv(name.toLowerCase().trim() + '__shiny') % 100) === 0;
+}
+
+function statVariance(name, stat) {
+  return (fnv(name.toLowerCase().trim() + stat) % 3) - 1;
+}
+
+function rng(arr, seed) {
+  return arr[seed % arr.length];
+}
+
+// ── State ──
+let species = null;
+let mood = 100;
+let moodTimer = null;
+let idleTimer = null;
+let artEl = null;
+
+function speak(txt) {
+  const el = document.getElementById('speech-text');
+  el.style.opacity = '0';
+  setTimeout(() => { el.textContent = txt; el.style.opacity = '1'; }, 220);
+}
+
+function updateFace() {
+  if (!artEl || !species) return;
+  const a = mood > 75 ? species.artHappy : mood < 50 ? species.artSad : species.art;
+  artEl.textContent = a.join('\n');
+}
+
+function updateMood() {
+  mood = Math.max(0, Math.min(100, mood));
+  const fill = document.getElementById('mood-fill');
+  fill.style.width = mood + '%';
+  fill.className = 'mood-fill' + (mood <= 25 ? ' low' : mood <= 55 ? ' ok' : '');
+  document.getElementById('mood-pct').textContent = Math.round(mood) + '%';
+  updateFace();
+}
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (!species) return;
+    const msgs = species.idle;
+    speak(msgs[Math.floor(Math.random() * msgs.length)]);
+    resetIdle();
+  }, 5000 + Math.random() * 8000);
+}
+
+function render(name) {
+  species = selectSpecies(name);
+  const shiny = isShiny(name);
+  const h = fnv(name.toLowerCase().trim());
+
+  // rarity badge
+  const badge = document.getElementById('rarity-badge');
+  badge.textContent = species.rarity;
+  badge.className = 'rarity-badge r-' + species.rarity;
+
+  // art
+  const container = document.getElementById('art-container');
+  container.innerHTML = '';
+  container.className = 'art-container' + (shiny ? ' shiny' : '');
+
+  if (species.hat) {
+    const hat = document.createElement('span');
+    hat.className = 'hat-line';
+    hat.textContent = '   ∩∩  ';
+    container.appendChild(hat);
+  }
+
+  const pre = document.createElement('pre');
+  pre.className = 'art';
+  pre.textContent = species.art.join('\n');
+  container.appendChild(pre);
+  artEl = pre;
+
+  // species label
+  document.getElementById('species-label').textContent =
+    (shiny ? '✦ ' : '') + species.name + (shiny ? ' ✦' : '');
+
+  // stats
+  const statsEl = document.getElementById('stats');
+  statsEl.innerHTML = '';
+  for (const [stat, base] of Object.entries(species.stats)) {
+    const val = Math.max(1, Math.min(10, base + statVariance(name, stat)));
+    const row = document.createElement('div');
+    row.className = 'stat-row';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'stat-lbl';
+    lbl.textContent = stat;
+
+    const pips = document.createElement('div');
+    pips.className = 'pips';
+    for (let i = 0; i < 10; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip' + (i < val ? ' on' : '');
+      pips.appendChild(pip);
+    }
+
+    row.appendChild(lbl);
+    row.appendChild(pips);
+    statsEl.appendChild(row);
+  }
+
+  // footer
+  document.getElementById('footer-label').textContent =
+    'buddy #' + String(h).padStart(8, '0').slice(0, 8) + '  ·  ' + name;
+
+  // first speech
+  speak(rng(species.idle, h));
+  updateMood();
+  resetIdle();
+
+  // mood decay
+  clearInterval(moodTimer);
+  moodTimer = setInterval(() => {
+    mood -= 0.4;
+    updateMood();
+    if (mood > 8 && mood <= 8.4) speak('...hungry');
+  }, 3000);
+}
+
+function launch(name) {
+  localStorage.setItem('fren-name', name);
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('buddy-screen').style.display = 'block';
+  render(name);
+}
+
+// ── Boot ──
+const saved = localStorage.getItem('fren-name');
+if (saved) {
+  launch(saved);
+}
+
+document.getElementById('meet-btn').addEventListener('click', () => {
+  const v = document.getElementById('name-input').value.trim();
+  if (v) launch(v);
+});
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('meet-btn').click();
+});
+
+document.getElementById('btn-pet').addEventListener('click', () => {
+  const msgs = species.petted;
+  speak(msgs[Math.floor(Math.random() * msgs.length)]);
+  mood = Math.min(100, mood + 10);
+  updateMood();
+  resetIdle();
+});
+document.getElementById('btn-feed').addEventListener('click', () => {
+  const msgs = species.fed;
+  speak(msgs[Math.floor(Math.random() * msgs.length)]);
+  mood = Math.min(100, mood + 22);
+  updateMood();
+  resetIdle();
+});
+document.getElementById('btn-poke').addEventListener('click', () => {
+  const msgs = species.poked;
+  speak(msgs[Math.floor(Math.random() * msgs.length)]);
+  mood = Math.max(0, mood - 8);
+  updateMood();
+  resetIdle();
+});
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('forget your fren?')) return;
+  localStorage.removeItem('fren-name');
+  clearInterval(moodTimer);
+  clearTimeout(idleTimer);
+  species = null;
+  mood = 100;
+  document.getElementById('buddy-screen').style.display = 'none';
+  document.getElementById('onboarding').style.display = 'block';
+  document.getElementById('name-input').value = '';
+});
+
+</script>
+</body>
+</html>

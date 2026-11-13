@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Campaign — Instore KAP</title>
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --ink-primary:     #20203c;
+      --ink-darker:      #535665;
+      --ink-dark:        #888b9a;
+      --ink-light:       #b8bec6;
+      --ink-lighter:     #cdd0d6;
+      --surface-primary: #ffffff;
+      --surface-light:   #eff2f5;
+      --surface-lighter: #f8f9fa;
+      --edge-lighter:    #e7eaee;
+      --edge-light:      #dadde1;
+      --edge-primary:    #d1d5db;
+      --edge-dark:       #c7cad1;
+      --accent-primary:  #2874c1;
+      --accent-lightest: #f0f7ff;
+      --accent-lighter:  #c3daf2;
+      --brand-primary:   #8451ec;
+      --brand-lightest:  #f8f8fe;
+      --radius-sm:  4px;
+      --radius-md:  8px;
+      --radius-lg:  16px;
+      --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4286;
+      color: var(--ink-primary);
+      background: var(--surface-light);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+    }
+
+    /* ── Version bar ── */
+    .version-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      z-index: 200;
+    }
+    .back-to-library {
+      position: absolute;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px;
+      border-radius: 4px; border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed;
+      top: 36px; left: 0; right: 0;
+      height: 72px;
+      background: var(--surface-primary);
+      box-shadow: 0 1px 0 var(--edge-lighter), 0 2px 12px rgba(33,35,44,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+    .top-bar-side {
+      display: flex; align-items: center;
+      min-width: 120px;
+    }
+    .top-bar-side.right { justify-content: flex-end; gap: 8px; }
+    .top-bar-title {
+      flex: 1; text-align: center;
+      font-size: 22px; font-weight: 700;
+      letter-spacing: -0.5px; line-height: 28px;
+    }
+
+    /* ── Buttons ── */
+    .icon-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md); border: none;
+      background: transparent; color: var(--ink-darker); cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--surface-light); }
+    .icon-btn svg { display: block; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center;
+      height: 40px; padding: 0 20px;
+      border-radius: var(--radius-md); border: none;
+      background: var(--accent-primary); color: white;
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer;
+    }
+    .btn-primary:hover { background: #1f5fa8; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center;
+      height: 36px; padding: 0 16px;
+      border-radius: var(--radius-md); border: none;
+      background: transparent; color: var(--ink-darker);
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--surface-light); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center;
+      height: 36px; padding: 0 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--accent-primary);
+      background: transparent; color: var(--accent-primary);
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; cursor: pointer;
+    }
+    .btn-secondary:hover { background: var(--accent-lightest); }
+
+    /* ── Page body ── */
+    .page-body {
+      margin-top: 108px;
+      padding: 40px 40px 80px;
+      min-height: calc(100vh - 108px);
+      position: relative;
+    }
+
+    /* ── Stepper (left sidebar) ── */
+    .stepper {
+      width: 264px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: fixed;
+      top: 148px;
+      left: 40px;
+    }
+
+    .stepper-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      border-radius: var(--radius-lg);
+      background: rgba(32,32,60,0.02);
+      padding-bottom: 16px;
+    }
+
+    .stepper-trigger {
+      display: flex; align-items: center; gap: 16px;
+      height: 40px; padding: 8px 16px;
+      border-radius: var(--radius-md);
+    }
+    .trigger-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; flex-shrink: 0;
+      color: var(--ink-darker);
+    }
+    .trigger-label {
+      font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; color: var(--ink-darker);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .stepper-summary { display: flex; flex-direction: column; gap: 8px; padding-left: 40px; }
+    .summary-rows { display: flex; flex-direction: column; gap: 4px; }
+    .summary-row { display: flex; align-items: center; font-size: 14px; letter-spacing: -0.14px; line-height: 20px; }
+    .summary-label { flex: 1; color: var(--ink-dark); }
+    .summary-value { flex: 1; color: var(--ink-darker); }
+    .status-light { display: flex; align-items: center; gap: 6px; flex: 1; color: var(--ink-darker); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--edge-dark); flex-shrink: 0; }
+
+    .hide-summary-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font); font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; color: var(--accent-primary); padding: 0;
+    }
+    .hide-summary-btn:hover { color: #1f5fa8; }
+
+    /* ── Step list ── */
+    .step-list {
+      background: var(--surface-primary);
+      border-radius: var(--radius-md);
+      padding: 8px;
+      display: flex; flex-direction: column; gap: 4px;
+      margin-left: 8px;
+    }
+    .step-item {
+      display: flex; align-items: center;
+      height: 32px; padding: 0 8px;
+      border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 700;
+      letter-spacing: -0.14px; color: var(--ink-darker);
+      cursor: pointer; background: none; border: none;
+      font-family: inherit; width: 100%; text-align: left;
+      transition: background 120ms, color 120ms;
+    }
+    .step-item:hover { background: rgba(33,35,44,0.04); }
+    .step-item.active { background: var(--accent-lightest); color: var(--accent-primary); }
+
+    /* ── Main content ── */
+    .main-content {
+      max-width: 746px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 2px rgba(33,35,44,.08), 0 0 .5px rgba(33,35,44,.04), 0 1px .5px rgba(33,35,44,.04);
+      padding: 32px;
+      width: 746px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .card-title {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 28px;
+    }
+
+    /* ── Form elements ── */
+    .form-row { display: flex; gap: 24px; }
+    .form-row > * { flex: 1; min-width: 0; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-field-label { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+
+    .field-input {
+      height: 44px; width: 100%;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 0 12px;
+      font: inherit; font-size: 14px; color: var(--ink-primary);
+      background: var(--surface-primary); outline: none;
+      transition: border-color 120ms, box-shadow 120ms;
+    }
+    .field-input::placeholder { color: var(--ink-dark); }
+    .field-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+    .field-input:disabled { background: var(--surface-lighter); color: var(--ink-light); cursor: not-allowed; }
+
+    .field-select {
+      height: 44px; width: 100%;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 0 36px 0 12px;
+      font: inherit; font-size: 14px; color: var(--ink-darker);
+      background: var(--surface-primary); outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8l5 5 5-5' stroke='%23888b9a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+    }
+    .field-select:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+    .field-select:disabled { background-color: var(--surface-lighter); color: var(--ink-light); cursor: not-allowed; }
+
+    /* ── Meridian-style single-select popover ── */
+    .mds-select { position: relative; width: 100%; }
+
+    .mds-select-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 44px; width: 100%;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 0 10px 0 12px;
+      font: inherit; font-size: 14px;
+      background: var(--surface-primary); cursor: pointer;
+      transition: border-color 120ms, box-shadow 120ms;
+      text-align: left;
+    }
+    .mds-select-trigger:hover { border-color: var(--edge-primary); }
+    .mds-select-trigger.open,
+    .mds-select-trigger:focus-visible {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(40,116,193,.18);
+      outline: none;
+    }
+    .mds-select-trigger.disabled {
+      background: var(--surface-lighter); color: var(--ink-light);
+      cursor: not-allowed; pointer-events: none;
+    }
+    .mds-select-trigger-label {
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mds-select-trigger-label.placeholder { color: var(--ink-dark); }
+    .mds-select-trigger-icons {
+      display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+    }
+    .mds-select-clear {
+      display: none; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      border: none; background: none; cursor: pointer; padding: 0;
+      color: var(--ink-dark);
+    }
+    .mds-select-clear:hover { background: var(--surface-light); color: var(--ink-darker); }
+    .mds-select-clear svg { display: block; }
+    .mds-select.has-value .mds-select-clear { display: flex; }
+    .mds-select-chevron { color: var(--ink-dark); display: flex; align-items: center; transition: transform 150ms; }
+    .mds-select-trigger.open .mds-select-chevron { transform: rotate(180deg); }
+
+    .mds-select-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,0.12), 0 1px 4px rgba(33,35,44,0.08);
+      z-index: 500;
+      overflow: hidden;
+      min-width: 100%;
+    }
+    .mds-select-dropdown.open { display: block; }
+    .mds-select-list { padding: 4px; display: flex; flex-direction: column; }
+    .mds-select-item {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 36px; padding: 0 10px;
+      border-radius: var(--radius-sm);
+      font: inherit; font-size: 14px; color: var(--ink-darker);
+      cursor: pointer; user-select: none;
+      transition: background 100ms;
+    }
+    .mds-select-item:hover { background: var(--surface-light); }
+    .mds-select-item.selected { color: var(--accent-primary); font-weight: 600; }
+    .mds-select-item-check {
+      display: none; color: var(--accent-primary);
+    }
+    .mds-select-item.selected .mds-select-item-check { display: flex; }
+
+    .field-date-wrap { position: relative; }
+    .field-date-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; color: var(--ink-dark); pointer-events: none;
+    }
+    .field-date-wrap .field-input { padding-left: 36px; }
+
+    /* ── Meridian-style datepicker ── */
+    .mds-datepicker { position: relative; width: 100%; }
+    .mds-datepicker-trigger {
+      display: flex; align-items: center; gap: 8px;
+      height: 44px; width: 100%;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 0 12px;
+      font: inherit; font-size: 14px; color: var(--ink-primary);
+      background: var(--surface-primary); cursor: pointer; text-align: left;
+      transition: border-color 120ms, box-shadow 120ms;
+    }
+    .mds-datepicker-trigger:hover { border-color: var(--edge-primary); }
+    .mds-datepicker-trigger.open,
+    .mds-datepicker-trigger:focus-visible {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(40,116,193,.18);
+      outline: none;
+    }
+    .mds-datepicker-trigger-icon { color: var(--ink-dark); flex-shrink: 0; display: flex; }
+    .mds-datepicker-trigger-label { flex: 1; }
+    .mds-datepicker-trigger-label.placeholder { color: var(--ink-dark); }
+
+    .mds-datepicker-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 4px); left: 0;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,0.12), 0 1px 4px rgba(33,35,44,0.08);
+      z-index: 500; width: 280px; padding: 12px;
+    }
+    .mds-datepicker-dropdown.open { display: block; }
+
+    .dp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .dp-nav-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      border: none; background: none; cursor: pointer; color: var(--ink-darker);
+      transition: background 100ms;
+    }
+    .dp-nav-btn:hover { background: var(--surface-light); }
+    .dp-month-label {
+      font-size: 13px; font-weight: 700; color: var(--ink-primary);
+      letter-spacing: -0.1px;
+    }
+
+    .dp-dow-row {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 2px;
+    }
+    .dp-dow {
+      text-align: center; font-size: 11px; font-weight: 600;
+      color: var(--ink-dark); padding: 4px 0;
+      letter-spacing: 0.02em;
+    }
+
+    .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .dp-day {
+      display: flex; align-items: center; justify-content: center;
+      height: 32px; border-radius: var(--radius-sm);
+      font-size: 13px; color: var(--ink-darker);
+      cursor: pointer; border: none; background: none; font-family: inherit;
+      transition: background 100ms, color 100ms;
+    }
+    .dp-day:hover:not(.dp-day--other):not(.dp-day--disabled) { background: var(--surface-light); }
+    .dp-day--other { color: var(--ink-light); }
+    .dp-day--disabled { color: var(--ink-light); cursor: not-allowed; }
+    .dp-day--today { font-weight: 700; color: var(--accent-primary); }
+    .dp-day--selected {
+      background: var(--accent-primary) !important;
+      color: white !important; font-weight: 700;
+    }
+
+    /* ── Radio ── */
+    .radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .radio-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-circle {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--edge-dark); background: var(--surface-primary);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: border-color 120ms, background 120ms;
+    }
+    .radio-circle::after {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: white; opacity: 0; transition: opacity 120ms;
+    }
+    .radio-input:checked + .radio-circle { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .radio-input:checked + .radio-circle::after { opacity: 1; }
+    .radio-label { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; }
+
+    /* ── Checkbox ── */
+    .check-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .check-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .check-box {
+      width: 16px; height: 16px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--edge-primary); background: var(--surface-primary);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: background 120ms, border-color 120ms;
+    }
+    .check-box svg { width: 10px; height: 10px; display: none; }
+    .check-input:checked + .check-box { background: var(--accent-primary); border-color: var(--accent-primary); color: #fff; }
+    .check-input:checked + .check-box svg { display: block; }
+    .check-label { font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px; }
+
+    .div-sub-item.is-disabled { cursor: default; }
+    .div-sub-item.is-disabled:hover { background: transparent; }
+    .div-sub-item.is-disabled .check-box { background: var(--surface-lighter); border: 1px solid var(--edge-lighter); color: var(--ink-lighter); }
+    .div-sub-item.is-disabled .div-sub-label { color: var(--ink-primary); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      background: var(--surface-lighter);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
+    }
+    .empty-state p { font-size: 14px; color: var(--ink-dark); max-width: 320px; line-height: 20px; letter-spacing: -0.14px; }
+
+    /* ── Placement cards ── */
+    .placement-list { display: flex; flex-direction: column; gap: 8px; }
+    .placement-card {
+      display: flex; align-items: center; gap: 16px;
+      border: 1px solid var(--edge-light); border-radius: var(--radius-md);
+      padding: 16px 24px; background: var(--surface-primary);
+      cursor: pointer; transition: border-color 150ms, box-shadow 150ms;
+    }
+    .placement-card:hover { border-color: var(--edge-primary); }
+    .placement-card.checked { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.1); }
+    .placement-card__body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .placement-card__name { font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px; }
+    .placement-card__price { font-size: 14px; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .placement-card__img {
+      width: 108px; height: 61px; border-radius: var(--radius-sm);
+      object-fit: cover; flex-shrink: 0; background: var(--surface-light);
+    }
+
+    /* ── Divisions ── */
+    .divisions-empty {
+      font-size: 14px; color: var(--ink-dark); letter-spacing: -0.14px; text-align: center; padding: 8px 0;
+    }
+    .div-list { display: flex; gap: 32px; }
+    .div-col  { flex: 1; display: flex; flex-direction: column; }
+
+    .div-row {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 28px; padding: 0 8px; border-radius: var(--radius-sm);
+      cursor: pointer; user-select: none;
+    }
+    .div-row:hover { background: var(--surface-light); }
+    .div-row-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .div-row-label { font-size: 14px; color: var(--ink-primary); letter-spacing: -0.14px; white-space: nowrap; }
+    .div-chevron { color: var(--ink-dark); display: flex; flex-shrink: 0; transition: transform 150ms; }
+    .div-row.open .div-chevron { transform: rotate(180deg); }
+
+    .div-sub-list { display: none; flex-direction: column; padding: 4px 0 4px 32px; }
+    .div-sub-list.open { display: flex; }
+    .div-sub-item {
+      display: flex; align-items: center; gap: 8px;
+      height: 28px; padding: 0 8px; border-radius: var(--radius-sm);
+      cursor: pointer; user-select: none;
+    }
+    .div-sub-item:hover { background: var(--surface-light); }
+    .div-sub-label { font-size: 14px; color: var(--ink-primary); letter-spacing: -0.14px; }
+
+    /* ── Info message ── */
+    .info-message {
+      display: flex; gap: 12px;
+      background: #eef5fc; border: 1px solid #c3daf2;
+      border-radius: var(--radius-md); padding: 14px 16px;
+    }
+    .info-message-icon { flex-shrink: 0; color: var(--accent-primary); margin-top: 1px; }
+    .info-message-icon svg { display: block; }
+    .info-message-body { display: flex; flex-direction: column; gap: 2px; }
+    .info-message-title { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .info-message-desc  { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; line-height: 1.5; }
+
+    /* ── Billing help icon ── */
+    .billing-q-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px;
+    }
+    .help-icon {
+      color: var(--ink-dark); display: inline-flex; align-items: center; cursor: default;
+    }
+    .help-icon svg { width: 16px; height: 16px; }
+
+    /* ── Warning input ── */
+    .field-input--warning { border-color: #d97706; }
+    .field-input--warning:focus { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.18); outline: none; }
+    .field-warning {
+      display: flex; align-items: flex-start; gap: 6px;
+      font-size: 12px; color: #92400e; letter-spacing: -0.06px; line-height: 16px;
+    }
+    .field-warning-icon { color: #d97706; flex-shrink: 0; margin-top: 1px; display: flex; }
+
+    /* ── Divider ── */
+    .card-divider { height: 1px; background: var(--edge-lighter); margin: 0 -32px; }
+
+    /* ── Scrollspy target offset ── */
+    .form-section { scroll-margin-top: 128px; }
+  </style>
+</head>
+<body>
+
+  <!-- Version bar -->
+  <div class="version-bar">
+    <a class="back-to-library" href="../../index.html">← Library</a>
+    <a class="version-tab active" href="index.html">Prototype</a>
+    <a class="version-tab" href="figma.html">Figma</a>
+  </div>
+
+  <!-- Top bar -->
+  <header class="top-bar">
+    <div class="top-bar-side">
+      <button class="icon-btn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="top-bar-title">Create Campaign</div>
+    <div class="top-bar-side right">
+      <button class="btn-primary">Send to Client</button>
+      <button class="icon-btn" aria-label="Help">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="5" r="0.625" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- Stepper sidebar -->
+    <aside class="stepper">
+      <div class="stepper-section">
+        <div class="stepper-trigger">
+          <div class="trigger-icon">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <span class="trigger-label" id="sidebar-campaign-name">Campaign Name</span>
+        </div>
+        <div class="stepper-summary">
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span class="summary-label">Status</span>
+              <span class="status-light"><span class="status-dot"></span>Draft</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Start Date</span>
+              <span class="summary-value" id="sidebar-start">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">End Date</span>
+              <span class="summary-value" id="sidebar-end">—</span>
+            </div>
+          </div>
+          <button class="hide-summary-btn" id="summary-toggle">
+            Hide summary
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 10L8 6L12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="step-list">
+          <button class="step-item active" data-target="sec-details">Details</button>
+          <button class="step-item" data-target="sec-products">Products</button>
+          <button class="step-item" data-target="sec-creative">Creative Details</button>
+          <button class="step-item" data-target="sec-placements">Placements</button>
+          <button class="step-item" data-target="sec-divisions">Divisions</button>
+          <button class="step-item" data-target="sec-billing">Billing Information</button>
+          <button class="step-item" data-target="sec-contacts">Contacts</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Details -->
+      <div class="form-card form-section" id="sec-details">
+        <h2 class="card-title">Details</h2>
+        <div class="form-field">
+          <label class="form-field-label" for="campaign-name">Campaign Name</label>
+          <input id="campaign-name" class="field-input" type="text" placeholder="Enter campaign name">
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label">Account</label>
+            <div class="mds-select" id="account-select">
+              <button type="button" class="mds-select-trigger" aria-haspopup="listbox" aria-expanded="false" data-placeholder="Select account">
+                <span class="mds-select-trigger-label placeholder">Select account</span>
+                <span class="mds-select-trigger-icons">
+                  <span class="mds-select-clear" role="button" tabindex="-1" aria-label="Clear">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="mds-select-chevron">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="mds-select-dropdown" role="listbox">
+                <div class="mds-select-list">
+                  <div class="mds-select-item" data-value="Pepsi Co">Pepsi Co<span class="mds-select-item-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                  <div class="mds-select-item" data-value="Coca-Cola">Coca-Cola<span class="mds-select-item-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                  <div class="mds-select-item" data-value="Nestlé">Nestlé<span class="mds-select-item-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-field-label">Brand</label>
+            <div class="mds-select" id="brand-select">
+              <button type="button" class="mds-select-trigger" aria-haspopup="listbox" aria-expanded="false" data-placeholder="Select brand">
+                <span class="mds-select-trigger-label placeholder">Select brand</span>
+                <span class="mds-select-trigger-icons">
+                  <span class="mds-select-clear" role="button" tabindex="-1" aria-label="Clear">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="mds-select-chevron">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="mds-select-dropdown" role="listbox">
+                <div class="mds-select-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-row" id="agency-field" style="display:none">
+          <div class="form-field">
+            <span class="form-field-label">Is an agency involved with this campaign?</span>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="agency-involved" value="yes">
+                <span class="radio-circle"></span>
+                <span class="radio-label">Yes</span>
+              </label>
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="agency-involved" value="no">
+                <span class="radio-circle"></span>
+                <span class="radio-label">No</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-field" id="agency-select-field" style="display:none">
+            <label class="form-field-label">Agency</label>
+            <div class="mds-select" id="agency-select">
+              <button type="button" class="mds-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="mds-select-trigger-label placeholder">Select Agency</span>
+                <span class="mds-select-trigger-icons">
+                  <span class="mds-select-clear" role="button" tabindex="-1" aria-label="Clear">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </span>
+                  <span class="mds-select-chevron">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                </span>
+              </button>
+              <div class="mds-select-dropdown" role="listbox">
+                <div class="mds-select-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label">Start Date</label>
+            <div class="mds-datepicker" id="start-date-picker">
+              <button type="button" class="mds-datepicker-trigger">
+                <span class="mds-datepicker-trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M5 1v3M11 1v3M1.5 6.5h13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+                </span>
+                <span class="mds-datepicker-trigger-label placeholder">MM/DD/YYYY</span>
+              </button>
+              <div class="mds-datepicker-dropdown">
+                <div class="dp-header">
+                  <button type="button" class="dp-nav-btn dp-prev"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  <span class="dp-month-label"></span>
+                  <button type="button" class="dp-nav-btn dp-next"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                </div>
+                <div class="dp-dow-row">
+                  <span class="dp-dow">Su</span><span class="dp-dow">Mo</span><span class="dp-dow">Tu</span>
+                  <span class="dp-dow">We</span><span class="dp-dow">Th</span><span class="dp-dow">Fr</span><span class="dp-dow">Sa</span>
+                </div>
+                <div class="dp-grid"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-field-label">End Date</label>
+            <div class="mds-datepicker" id="end-date-picker">
+              <button type="button" class="mds-datepicker-trigger">
+                <span class="mds-datepicker-trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M5 1v3M11 1v3M1.5 6.5h13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+                </span>
+                <span class="mds-datepicker-trigger-label placeholder">MM/DD/YYYY</span>
+              </button>
+              <div class="mds-datepicker-dropdown">
+                <div class="dp-header">
+                  <button type="button" class="dp-nav-btn dp-prev"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                  <span class="dp-month-label"></span>
+                  <button type="button" class="dp-nav-btn dp-next"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                </div>
+                <div class="dp-dow-row">
+                  <span class="dp-dow">Su</span><span class="dp-dow">Mo</span><span class="dp-dow">Tu</span>
+                  <span class="dp-dow">We</span><span class="dp-dow">Th</span><span class="dp-dow">Fr</span><span class="dp-dow">Sa</span>
+                </div>
+                <div class="dp-grid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products -->
+      <div class="form-card form-section" id="sec-products">
+        <h2 class="card-title">Products</h2>
+        <div class="form-field">
+          <span class="form-field-label">Are you promoting products sold at Kroger?</span>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input class="radio-input" type="radio" name="endemic" value="yes">
+              <span class="radio-circle"></span>
+              <span class="radio-label">Yes</span>
+            </label>
+            <label class="radio-item">
+              <input class="radio-input" type="radio" name="endemic" value="no">
+              <span class="radio-circle"></span>
+              <span class="radio-label">No</span>
+            </label>
+          </div>
+        </div>
+        <div class="empty-state" id="products-empty" style="display:none">
+          <p>No product has been selected for this campaign</p>
+          <button class="btn-secondary">Select UPC</button>
+        </div>
+
+        <div class="form-field" id="sensitivity-field" style="display:none">
+          <span class="form-field-label" style="display:flex;align-items:center;gap:6px;">
+            Are you promoting products in any of the following sensitive categories?
+            <span class="help-icon" title="Sensitive categories may require additional review before campaign approval.">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="5" r="0.625" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+            </span>
+          </span>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:2px;">
+            <label class="check-item">
+              <input class="check-input" type="checkbox" name="sensitivity" value="baby">
+              <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="check-label" style="font-weight:400;">Baby</span>
+            </label>
+            <label class="check-item">
+              <input class="check-input" type="checkbox" name="sensitivity" value="beauty-care">
+              <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="check-label" style="font-weight:400;">Beauty Care</span>
+            </label>
+            <label class="check-item">
+              <input class="check-input" type="checkbox" name="sensitivity" value="medication">
+              <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="check-label" style="font-weight:400;">Medication</span>
+            </label>
+            <label class="check-item">
+              <input class="check-input" type="checkbox" name="sensitivity" value="none">
+              <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="check-label" style="font-weight:400;">None</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Creative Details -->
+      <div class="form-card form-section" id="sec-creative">
+        <h2 class="card-title">Creative Details</h2>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="creative-name">Creative Contact Name</label>
+            <input id="creative-name" class="field-input" type="text" placeholder="Enter Creative Contact Name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="creative-email">Creative Contact Email Address</label>
+            <input id="creative-email" class="field-input" type="text" placeholder="Enter Creative Contact Email">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <span class="form-field-label">Do you need Creative Services?</span>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="creative-services" value="yes">
+                <span class="radio-circle"></span>
+                <span class="radio-label">Yes</span>
+              </label>
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="creative-services" value="no">
+                <span class="radio-circle"></span>
+                <span class="radio-label">No</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-field" id="value-add-field" style="display:none">
+            <span class="form-field-label">Is this creative a value add?</span>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="value-add" value="yes">
+                <span class="radio-circle"></span>
+                <span class="radio-label">Yes</span>
+              </label>
+              <label class="radio-item">
+                <input class="radio-input" type="radio" name="value-add" value="no">
+                <span class="radio-circle"></span>
+                <span class="radio-label">No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shown when CS = Yes -->
+        <div id="creative-cs-fields" style="display:none">
+          <div class="info-message" id="creative-info-msg">
+            <span class="info-message-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#2874c1"/><circle cx="8" cy="5" r="0.75" fill="white"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+            </span>
+            <div class="info-message-body">
+              <span class="info-message-title" id="creative-msg-title">Full creative production will add a $4,000 service fee.</span>
+              <span class="info-message-desc" id="creative-msg-desc">Creative production will forward work to provide brand context to ensure the campaign start date.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placements -->
+      <div class="form-card form-section" id="sec-placements">
+        <h2 class="card-title">Placements</h2>
+        <div class="placement-list">
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="bunker">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Bunker</span>
+              <span class="placement-card__price">Starting from $7,500</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/c9c7e.png" alt="Bunker">
+          </label>
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="entry-standee">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Entry Standee</span>
+              <span class="placement-card__price">Starting from $7,500</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/146de.png" alt="Entry Standee">
+          </label>
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="entry-billboard">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Entry Billboard</span>
+              <span class="placement-card__price">Starting from $12,500</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/b5b40.png" alt="Entry Billboard">
+          </label>
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="dry-grocery-endcap">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Dry Grocery Endcap</span>
+              <span class="placement-card__price">Starting from $7,500</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/8be29.png" alt="Dry Grocery Endcap">
+          </label>
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="household-endcap">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Household Endcap</span>
+              <span class="placement-card__price">Starting from $7,500</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/86255.png" alt="Household Endcap">
+          </label>
+
+          <label class="placement-card">
+            <input class="check-input" type="checkbox" data-placement="pharmacy-standee">
+            <span class="check-box"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="placement-card__body">
+              <span class="placement-card__name">Pharmacy Standee</span>
+              <span class="placement-card__price">Starting from $5,000</span>
+            </div>
+            <img class="placement-card__img" src="https://www.figma.com/api/mcp/asset/3257c41a-d4a9-458a-af09-630408860e9a/2a2b9.png" alt="Pharmacy Standee">
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Divisions -->
+      <div class="form-card form-section" id="sec-divisions">
+        <h2 class="card-title">Divisions</h2>
+        <p class="divisions-empty" id="divisions-empty">Complete the Placements section above to unlock divisions</p>
+        <div class="div-list" id="divisions-list" style="display:none">
+          <div class="div-col" id="div-col-0"></div>
+          <div class="div-col" id="div-col-1"></div>
+        </div>
+      </div>
+
+      <!-- Billing Information -->
+      <div class="form-card form-section" id="sec-billing">
+        <h2 class="card-title">Billing Information</h2>
+
+        <!-- Agency billed — only shown when agency is involved (set in Details) -->
+        <div class="form-field" id="billing-agency-q" style="display:none">
+          <span class="billing-q-label">
+            Is the agency being billed for this campaign?
+            <span class="help-icon" title="The agency is the media-buying agency of record for this brand.">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="5" r="0.625" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+            </span>
+          </span>
+          <div class="radio-group">
+            <label class="radio-item"><input class="radio-input" type="radio" name="agency-billed" value="yes"><span class="radio-circle"></span><span class="radio-label">Yes</span></label>
+            <label class="radio-item"><input class="radio-input" type="radio" name="agency-billed" value="no"><span class="radio-circle"></span><span class="radio-label">No</span></label>
+          </div>
+        </div>
+
+        <!-- IO required — only shown when agency is involved -->
+        <div class="form-row" id="billing-io-row" style="display:none">
+          <div class="form-field">
+            <span class="billing-q-label">
+              Is an Insertion Order required?
+              <span class="help-icon" title="An IO is a formal agreement between the advertiser and the publisher.">
+                <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="5" r="0.625" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+              </span>
+            </span>
+            <div class="radio-group">
+              <label class="radio-item"><input class="radio-input" type="radio" name="io-required" value="yes"><span class="radio-circle"></span><span class="radio-label">Yes</span></label>
+              <label class="radio-item"><input class="radio-input" type="radio" name="io-required" value="no"><span class="radio-circle"></span><span class="radio-label">No</span></label>
+            </div>
+          </div>
+          <div class="form-field" id="billing-io-number" style="display:none">
+            <label class="form-field-label">Insertion Order Number</label>
+            <input id="io-number-input" class="field-input" type="text" placeholder="Enter an insertion order number">
+            <span class="field-warning" id="io-number-warning" style="display:none">
+              <span class="field-warning-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#d97706"/><path d="M7 4v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="10" r="0.75" fill="white"/></svg></span>
+              IO number will be required for activation
+            </span>
+          </div>
+        </div>
+
+        <!-- PO required — always shown -->
+        <div class="form-row">
+          <div class="form-field">
+            <span class="billing-q-label">
+              Is a Purchase Order required?
+              <span class="help-icon" title="A PO number is used for internal accounting and tracking.">
+                <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25"/><circle cx="8" cy="5" r="0.625" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+              </span>
+            </span>
+            <div class="radio-group">
+              <label class="radio-item"><input class="radio-input" type="radio" name="po-required" value="yes"><span class="radio-circle"></span><span class="radio-label">Yes</span></label>
+              <label class="radio-item"><input class="radio-input" type="radio" name="po-required" value="no"><span class="radio-circle"></span><span class="radio-label">No</span></label>
+            </div>
+          </div>
+          <div class="form-field" id="billing-po-number" style="display:none">
+            <label class="form-field-label">Purchase Order Number</label>
+            <input id="po-number-input" class="field-input" type="text" placeholder="Enter a purchase order number">
+            <span class="field-warning" id="po-number-warning" style="display:none">
+              <span class="field-warning-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#d97706"/><path d="M7 4v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="10" r="0.75" fill="white"/></svg></span>
+              PO number will be required for activation
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contacts -->
+      <div class="form-card form-section" id="sec-contacts">
+        <h2 class="card-title">Contacts</h2>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="billing-name">Billing Contact Name</label>
+            <input id="billing-name" class="field-input" type="text" placeholder="Enter billing contact name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="billing-email">Billing Contact Email Address</label>
+            <input id="billing-email" class="field-input" type="text" placeholder="Enter billing contact email address">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="primary-name">Primary Client Contact Name</label>
+            <input id="primary-name" class="field-input" type="text" placeholder="Enter primary client contact name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="primary-email">Primary Client Contact Email</label>
+            <input id="primary-email" class="field-input" type="text" placeholder="Enter primary client contact email address">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label" for="billing-addr">Billing Address</label>
+          <input id="billing-addr" class="field-input" type="text" placeholder="Enter billing address">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label" for="corporate-addr">Corporate Address (Tax Address)</label>
+          <input id="corporate-addr" class="field-input" type="text" placeholder="Enter corporate address">
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="secondary-name">Secondary Client Contact Name</label>
+            <input id="secondary-name" class="field-input" type="text" placeholder="Enter secondary client contact name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="secondary-email">Secondary Client Contact Email</label>
+            <input id="secondary-email" class="field-input" type="text" placeholder="Enter secondary client contact email address">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="inv1-name">Invoice Contact 1 Name</label>
+            <input id="inv1-name" class="field-input" type="text" placeholder="Enter invoice contact 1 name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="inv1-email">Invoice Contact 1 Email Address</label>
+            <input id="inv1-email" class="field-input" type="text" placeholder="Enter invoice contact 1 email address">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-field-label" for="inv2-name">Invoice Contact 2 Name</label>
+            <input id="inv2-name" class="field-input" type="text" placeholder="Enter invoice contact 2 name">
+          </div>
+          <div class="form-field">
+            <label class="form-field-label" for="inv2-email">Invoice Contact 2 Email Address</label>
+            <input id="inv2-email" class="field-input" type="text" placeholder="Enter invoice contact 2 email address">
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    /* ── Campaign name → sidebar ── */
+    document.getElementById('campaign-name').addEventListener('input', function() {
+      document.getElementById('sidebar-campaign-name').textContent = this.value || 'Campaign Name';
+    });
+
+    /* ── Meridian-style datepicker ── */
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function initDatepicker(container, { minDateGetter, onChange } = {}) {
+      const trigger   = container.querySelector('.mds-datepicker-trigger');
+      const label     = container.querySelector('.mds-datepicker-trigger-label');
+      const dropdown  = container.querySelector('.mds-datepicker-dropdown');
+      const grid      = container.querySelector('.dp-grid');
+      const monthLbl  = container.querySelector('.dp-month-label');
+      const prevBtn   = container.querySelector('.dp-prev');
+      const nextBtn   = container.querySelector('.dp-next');
+
+      const today = new Date(); today.setHours(0,0,0,0);
+      let cursor = new Date(today.getFullYear(), today.getMonth(), 1);
+      let selected = null;
+
+      function fmt(d) {
+        return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+
+      function render() {
+        const year = cursor.getFullYear(), month = cursor.getMonth();
+        monthLbl.textContent = `${MONTHS[month]} ${year}`;
+        const first = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month+1, 0).getDate();
+        const daysInPrev  = new Date(year, month, 0).getDate();
+        const minDate = minDateGetter?.() || null;
+        let html = '';
+        for (let i = 0; i < first; i++) {
+          html += `<button class="dp-day dp-day--other" type="button" disabled>${daysInPrev - first + 1 + i}</button>`;
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+          const date = new Date(year, month, d);
+          const isToday    = date.getTime() === today.getTime();
+          const isSelected = selected && date.getTime() === selected.getTime();
+          const isDisabled = minDate && date < minDate;
+          let cls = 'dp-day';
+          if (isToday)    cls += ' dp-day--today';
+          if (isSelected) cls += ' dp-day--selected';
+          if (isDisabled) cls += ' dp-day--disabled';
+          html += `<button class="${cls}" type="button" data-date="${date.toISOString()}"${isDisabled?' disabled':''}>${d}</button>`;
+        }
+        const trailing = 42 - first - daysInMonth;
+        for (let i = 1; i <= trailing; i++) {
+          html += `<button class="dp-day dp-day--other" type="button" disabled>${i}</button>`;
+        }
+        grid.innerHTML = html;
+      }
+
+      function open() {
+        trigger.classList.add('open');
+        dropdown.classList.add('open');
+        render();
+      }
+      function close() {
+        trigger.classList.remove('open');
+        dropdown.classList.remove('open');
+      }
+
+      trigger.addEventListener('click', () => dropdown.classList.contains('open') ? close() : open());
+      prevBtn.addEventListener('click', () => { cursor = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1); render(); });
+      nextBtn.addEventListener('click', () => { cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1); render(); });
+      grid.addEventListener('click', e => {
+        const btn = e.target.closest('.dp-day[data-date]');
+        if (!btn) return;
+        selected = new Date(btn.dataset.date);
+        label.textContent = fmt(selected);
+        label.classList.remove('placeholder');
+        close();
+        onChange?.(selected);
+      });
+      document.addEventListener('click', e => { if (!container.contains(e.target)) close(); });
+
+      return { getValue: () => selected };
+    }
+
+    const startPicker = initDatepicker(document.getElementById('start-date-picker'), {
+      onChange(d) {
+        document.getElementById('sidebar-start').textContent =
+          `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+    });
+    const endPicker = initDatepicker(document.getElementById('end-date-picker'), {
+      minDateGetter: () => {
+        const s = startPicker.getValue();
+        if (!s) return null;
+        const min = new Date(s); min.setDate(min.getDate()+1); return min;
+      },
+      onChange(d) {
+        document.getElementById('sidebar-end').textContent =
+          `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+    });
+
+    /* ── Hide/Show summary toggle ── */
+    const summaryToggle = document.getElementById('summary-toggle');
+    const summaryRows   = document.querySelector('.summary-rows');
+    let summaryVisible  = true;
+    summaryToggle.addEventListener('click', () => {
+      summaryVisible = !summaryVisible;
+      summaryRows.style.display = summaryVisible ? '' : 'none';
+      summaryToggle.childNodes[0].textContent = summaryVisible ? 'Hide summary ' : 'Show summary ';
+    });
+
+    /* ── Meridian-style single select ── */
+    const brandOptionMap = {
+      'Pepsi Co':  ['Pepsi', 'Mountain Dew', 'Gatorade'],
+      'Coca-Cola': ['Coca-Cola Classic', 'Sprite', 'Fanta'],
+      'Nestlé':    ['Nestlé Pure Life', 'Perrier', 'Nespresso'],
+    };
+
+    const agencyMap = {
+      'Pepsi Co': ['Publicis Media', 'Starcom', 'Zenith'],
+      'Nestlé':   ['GroupM', 'MindShare', 'MediaCom'],
+    };
+
+    function initSelect(container, { onChange } = {}) {
+      const trigger   = container.querySelector('.mds-select-trigger');
+      const label     = container.querySelector('.mds-select-trigger-label');
+      const clearBtn  = container.querySelector('.mds-select-clear');
+      const dropdown  = container.querySelector('.mds-select-dropdown');
+      let value = null;
+
+      function open() {
+        if (trigger.disabled) return;
+        trigger.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        dropdown.classList.add('open');
+      }
+      function close() {
+        trigger.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+        dropdown.classList.remove('open');
+      }
+      function select(val) {
+        value = val;
+        label.textContent = val;
+        label.classList.remove('placeholder');
+        container.classList.add('has-value');
+        container.querySelectorAll('.mds-select-item').forEach(i => {
+          i.classList.toggle('selected', i.dataset.value === val);
+        });
+        close();
+        onChange?.(val);
+      }
+      function clear() {
+        value = null;
+        label.textContent = trigger.dataset.placeholder || label.textContent;
+        label.classList.add('placeholder');
+        container.classList.remove('has-value');
+        container.querySelectorAll('.mds-select-item').forEach(i => i.classList.remove('selected'));
+        onChange?.(null);
+      }
+
+      trigger.addEventListener('click', () => dropdown.classList.contains('open') ? close() : open());
+      clearBtn.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); clear(); });
+      dropdown.addEventListener('click', e => {
+        const item = e.target.closest('.mds-select-item');
+        if (item) select(item.dataset.value);
+      });
+      document.addEventListener('click', e => {
+        if (!container.contains(e.target)) close();
+      });
+
+      return {
+        getValue: () => value,
+        setItems(items) {
+          const list = container.querySelector('.mds-select-list');
+          list.innerHTML = items.map(v => `
+            <div class="mds-select-item" data-value="${v}">${v}
+              <span class="mds-select-item-check"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>`).join('');
+          list.querySelectorAll('.mds-select-item').forEach(i => {
+            i.addEventListener('click', () => select(i.dataset.value));
+          });
+        },
+        setDisabled(disabled) {
+          trigger.disabled = disabled;
+          trigger.classList.toggle('disabled', disabled);
+          if (disabled) { clear(); close(); }
+        },
+        clear,
+      };
+    }
+
+    const agencyField     = document.getElementById('agency-field');
+    const agencySelField  = document.getElementById('agency-select-field');
+
+    function resetAgencyField() {
+      document.querySelectorAll('input[name="agency-involved"]').forEach(r => r.checked = false);
+      agencySelField.style.display = 'none';
+      agencySel.clear();
+    }
+
+    const accountSel = initSelect(document.getElementById('account-select'), {
+      onChange(val) {
+        const brandOpts  = brandOptionMap[val] || [];
+        brandSel.setItems(brandOpts);
+        brandSel.clear();
+
+        const agencies = agencyMap[val] || [];
+        if (agencies.length) {
+          agencyField.style.display = '';
+          agencySel.setItems(agencies);
+        } else {
+          agencyField.style.display = 'none';
+        }
+        resetAgencyField();
+      }
+    });
+    const brandSel  = initSelect(document.getElementById('brand-select'));
+    const agencySel = initSelect(document.getElementById('agency-select'));
+
+    document.querySelectorAll('input[name="agency-involved"]').forEach(r => {
+      r.addEventListener('change', () => {
+        agencySelField.style.display = r.value === 'yes' ? '' : 'none';
+        if (r.value === 'no') agencySel.clear();
+      });
+    });
+
+    /* ── Sensitivity "None" mutex ── */
+    const sensitivityNone = document.querySelector('input[name="sensitivity"][value="none"]');
+    const sensitivityOthers = [...document.querySelectorAll('input[name="sensitivity"]:not([value="none"])')];
+    sensitivityNone.addEventListener('change', () => {
+      if (sensitivityNone.checked) {
+        sensitivityOthers.forEach(cb => { cb.checked = false; cb.disabled = true; cb.closest('.check-item').style.opacity = '0.4'; });
+      } else {
+        sensitivityOthers.forEach(cb => { cb.disabled = false; cb.closest('.check-item').style.opacity = ''; });
+      }
+    });
+
+    /* ── Products endemic toggle ── */
+    document.querySelectorAll('input[name="endemic"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.getElementById('products-empty').style.display    = r.value === 'yes' ? '' : 'none';
+        document.getElementById('sensitivity-field').style.display = r.value === 'no'  ? '' : 'none';
+      });
+    });
+
+    /* ── Creative Services toggle ── */
+    const csFields      = document.getElementById('creative-cs-fields');
+    const valueAddField = document.getElementById('value-add-field');
+    const msgTitle      = document.getElementById('creative-msg-title');
+    const msgDesc       = document.getElementById('creative-msg-desc');
+
+    document.querySelectorAll('input[name="creative-services"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isYes = r.value === 'yes';
+        csFields.style.display      = isYes ? 'block' : 'none';
+        valueAddField.style.display = isYes ? '' : 'none';
+        if (!isYes) {
+          document.querySelectorAll('input[name="value-add"]').forEach(v => v.checked = false);
+          msgTitle.textContent = 'Full creative production will add a $4,000 service fee.';
+          msgDesc.textContent  = 'Creative production will forward work to provide brand context to ensure the campaign start date.';
+        }
+      });
+    });
+
+    document.querySelectorAll('input[name="value-add"]').forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.value === 'yes') {
+          msgTitle.textContent = 'Creative for this campaign will be a value add.';
+          msgDesc.textContent  = 'Client will not be billed for production work at this time. No further fee required.';
+        } else {
+          msgTitle.textContent = 'Full creative production will add a $4,000 service fee.';
+          msgDesc.textContent  = 'Creative production will forward work to provide brand context to ensure the campaign start date.';
+        }
+      });
+    });
+
+    /* ── Billing number input warning on blur ── */
+    function initWarningInput(inputId, warningId) {
+      const input   = document.getElementById(inputId);
+      const warning = document.getElementById(warningId);
+      input.addEventListener('blur', () => {
+        const empty = input.value.trim() === '';
+        input.classList.toggle('field-input--warning', empty);
+        warning.style.display = empty ? '' : 'none';
+      });
+      input.addEventListener('input', () => {
+        if (input.value.trim() !== '') {
+          input.classList.remove('field-input--warning');
+          warning.style.display = 'none';
+        }
+      });
+    }
+    initWarningInput('io-number-input', 'io-number-warning');
+    initWarningInput('po-number-input', 'po-number-warning');
+
+    /* ── Billing IO / PO toggles ── */
+    document.querySelectorAll('input[name="io-required"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.getElementById('billing-io-number').style.display = r.value === 'yes' ? '' : 'none';
+      });
+    });
+
+    document.querySelectorAll('input[name="po-required"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.getElementById('billing-po-number').style.display = r.value === 'yes' ? '' : 'none';
+      });
+    });
+
+    /* Show/hide agency billing rows when agency-involved changes in Details */
+    document.querySelectorAll('input[name="agency-involved"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isYes = r.value === 'yes';
+        document.getElementById('billing-agency-q').style.display = isYes ? '' : 'none';
+        document.getElementById('billing-io-row').style.display    = isYes ? '' : 'none';
+        if (!isYes) {
+          document.querySelectorAll('input[name="agency-billed"], input[name="io-required"]')
+            .forEach(v => v.checked = false);
+          document.getElementById('billing-io-number').style.display = 'none';
+        }
+      });
+    });
+
+    /* ── Placements → Divisions ── */
+    const ALL_DIVISIONS = [
+      { id: '011', name: '011 Atlanta',      stores: ['011_00210','011_00212','011_00214','011_00218','011_00247'] },
+      { id: '014', name: '014 Cincinnati',   stores: ['014_00100','014_00102','014_00104','014_00106'] },
+      { id: '016', name: '016 Columbus',     stores: ['016_00200','016_00202','016_00204','016_00206'] },
+      { id: '017', name: '017 Nashville',    stores: ['017_00300','017_00302','017_00304'] },
+      { id: '018', name: '018 Delta',        stores: ['018_00400','018_00402','018_00404','018_00408'] },
+      { id: '021', name: '021 Fred Meyer',   stores: ['021_00500','021_00502','021_00504'] },
+      { id: '026', name: '026 Fry\'s',       stores: ['026_00600','026_00602','026_00604'] },
+      { id: '027', name: '027 King Soopers', stores: ['027_00700','027_00702','027_00704','027_00706'] },
+      { id: '028', name: '028 Ralphs',       stores: ['028_00800','028_00802','028_00804'] },
+      { id: '029', name: '029 Smith\'s',     stores: ['029_00900','029_00902','029_00904','029_00906'] },
+    ];
+
+    const PLACEMENT_DIVISIONS = {
+      'bunker':             ['011','014','016','017','018'],
+      'entry-standee':      ['011','014','016','017'],
+      'entry-billboard':    ['011','016','026','027'],
+      'dry-grocery-endcap': ['014','016','017','018'],
+      'household-endcap':   ['014','016','017','021'],
+      'pharmacy-standee':   ['011','017','028','029'],
+    };
+
+    const _CHKSVG  = `<svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const _CHEVSVG = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    function updateDivisions() {
+      const checked = [...document.querySelectorAll('.check-input[data-placement]:checked')]
+        .map(i => i.dataset.placement);
+      const divIds = [...new Set(checked.flatMap(p => PLACEMENT_DIVISIONS[p] || []))].sort();
+      const divs   = ALL_DIVISIONS.filter(d => divIds.includes(d.id));
+
+      const empty = document.getElementById('divisions-empty');
+      const list  = document.getElementById('divisions-list');
+      const col0  = document.getElementById('div-col-0');
+      const col1  = document.getElementById('div-col-1');
+
+      if (divs.length === 0) {
+        empty.style.display = '';
+        list.style.display  = 'none';
+        return;
+      }
+
+      empty.style.display = 'none';
+      list.style.display  = '';
+
+      const half = Math.ceil(divs.length / 2);
+
+      [col0, col1].forEach((col, ci) => {
+        const slice = divs.slice(ci === 0 ? 0 : half, ci === 0 ? half : divs.length);
+        col.innerHTML = slice.map(d => `
+          <div class="div-row" data-div="${d.id}">
+            <div class="div-row-left">
+              <label class="check-item" onclick="event.stopPropagation()">
+                <input class="check-input" type="checkbox">
+                <span class="check-box">${_CHKSVG}</span>
+              </label>
+              <span class="div-row-label">${d.name}</span>
+            </div>
+            <span class="div-chevron">${_CHEVSVG}</span>
+          </div>
+          <div class="div-sub-list">
+            ${d.stores.map(s => `
+              <label class="div-sub-item">
+                <input class="check-input" type="checkbox">
+                <span class="check-box">${_CHKSVG}</span>
+                <span class="div-sub-label">${s}</span>
+              </label>`).join('')}
+          </div>`).join('');
+
+        col.querySelectorAll('.div-row').forEach(row => {
+          const subList    = row.nextElementSibling;
+          const divCheck   = row.querySelector('.check-input');
+          const storeBoxes = [...subList.querySelectorAll('.check-input')];
+          const storeItems = [...subList.querySelectorAll('.div-sub-item')];
+
+          row.addEventListener('click', e => {
+            if (e.target.closest('label')) return;
+            const open = row.classList.toggle('open');
+            subList.classList.toggle('open', open);
+          });
+
+          divCheck.addEventListener('change', () => {
+            if (divCheck.checked) {
+              row.classList.add('open');
+              subList.classList.add('open');
+              storeBoxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
+              storeItems.forEach(el => el.classList.add('is-disabled'));
+            } else {
+              storeBoxes.forEach(cb => { cb.checked = false; cb.disabled = false; });
+              storeItems.forEach(el => el.classList.remove('is-disabled'));
+            }
+          });
+        });
+      });
+    }
+
+    document.querySelectorAll('.check-input[data-placement]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.placement-card').classList.toggle('checked', cb.checked);
+        updateDivisions();
+      });
+    });
+
+    /* ── Nav → scroll ── */
+    document.querySelectorAll('.step-item[data-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById(btn.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    /* ── Scrollspy ── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          document.querySelectorAll('.step-item').forEach(n => n.classList.remove('active'));
+          document.querySelector(`.step-item[data-target="${e.target.id}"]`)?.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -60% 0px' });
+    document.querySelectorAll('.form-section').forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>

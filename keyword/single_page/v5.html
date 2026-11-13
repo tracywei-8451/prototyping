@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keyword Bids</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --ink-primary:   #20203c;
+      --ink-darker:    #535665;
+      --ink-dark:      #888b9a;
+      --ink-light:     #b8bec6;
+      --surface-primary:  #ffffff;
+      --surface-light:    #eff2f5;
+      --surface-lighter:  #f8f9fa;
+      --surface-dark:     #e9ecf1;
+      --surface-darker:   #dfe3e7;
+      --edge-lighter: #e7eaee;
+      --edge-light:   #dadde1;
+      --edge-primary: #d1d5db;
+      --edge-dark:    #c7cad1;
+      --brand-primary:  #8451ec;
+      --brand-lightest: #f8f8fe;
+      --accent-primary:  #2874c1;
+      --accent-lightest: #f0f7ff;
+      --radius-sm:  4px;
+      --radius-md:  8px;
+      --radius-lg:  16px;
+      --radius-xxl: 32px;
+      --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4286;
+      color: var(--ink-primary);
+      background: var(--surface-light);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+    }
+
+    /* ── Version bar ── */
+    .version-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 36px; background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center; gap: 4px; z-index: 200;
+    }
+    .back-to-library {
+      position: absolute; left: 12px;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5);
+      text-decoration: none; letter-spacing: -0.1px; transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px; border-radius: 4px;
+      border: none; background: transparent;
+      color: rgba(255,255,255,0.5); font-family: var(--font);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* ── Page layout ── */
+    .page-body {
+      margin-top: 36px;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .panel {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 4px rgba(33,35,44,.08), 0 0 1px rgba(33,35,44,.04), 0 1px 1px 1px rgba(33,35,44,.04);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 960px;
+    }
+
+    /* ── Panel header ── */
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header-left { display: flex; align-items: center; gap: 10px; }
+    .panel-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 28px; }
+    .badge {
+      background: var(--surface-dark);
+      border-radius: var(--radius-xxl);
+      padding: 4px 8px;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: -0.06px; line-height: 16px;
+    }
+
+    /* ── Keyword panel wrap ── */
+    .kw-panel-wrap {
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface-primary);
+    }
+
+    /* ── Default bid chip ── */
+    .default-bid {
+      display: flex; align-items: center;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      height: 36px;
+    }
+    .default-bid__label {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px; font-size: 14px; font-weight: 500;
+      letter-spacing: -0.14px; white-space: nowrap;
+    }
+    .default-bid__sep { width: 1px; height: 24px; background: var(--edge-lighter); flex-shrink: 0; }
+    .default-bid__value {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 8px; font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+
+    /* ── Radio ── */
+    .form-field { display: flex; flex-direction: column; gap: 8px; }
+    .form-label { font-size: 14px; font-weight: 700; letter-spacing: -0.14px; }
+    .radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .radio-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-circle {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--edge-dark); background: var(--surface-primary);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: border-color 120ms, background 120ms;
+    }
+    .radio-circle::after {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: white; opacity: 0; transition: opacity 120ms;
+    }
+    .radio-input:checked + .radio-circle { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .radio-input:checked + .radio-circle::after { opacity: 1; }
+    .radio-label-text { font-size: 14px; font-weight: 400; letter-spacing: -0.14px; }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--edge-lighter); margin: 0 -32px; }
+
+    /* ── Sections ── */
+    .section { display: flex; flex-direction: column; gap: 16px; }
+    .section-title-row { display: flex; align-items: center; justify-content: space-between; }
+    .section-title-left { display: flex; align-items: center; gap: 8px; }
+    .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.12px; line-height: 22px; }
+    .section-desc { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; line-height: 20px; margin-top: 4px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; padding: 10px 16px;
+      border-radius: var(--radius-md); cursor: pointer;
+      white-space: nowrap; transition: background 120ms;
+    }
+    .btn-outline {
+      border: 1px solid var(--accent-primary);
+      background: transparent; color: var(--accent-primary);
+    }
+    .btn-outline:hover { background: rgba(40,116,193,.07); }
+    .btn-ghost {
+      border: none; background: transparent; color: var(--accent-primary);
+    }
+    .btn-ghost:hover { background: rgba(40,116,193,.07); }
+    .controls-row { display: flex; align-items: center; justify-content: space-between; }
+    .btn-group { display: flex; gap: 8px; }
+
+    /* ── Products table ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; color: var(--ink-darker);
+      border-bottom: 1px solid var(--edge-dark);
+      padding: 14px 16px; white-space: nowrap; vertical-align: middle;
+    }
+    td { border-bottom: 1px solid var(--edge-lighter); padding: 14px 16px; vertical-align: top; color: var(--ink-darker); }
+    .prod-slim td { vertical-align: middle; height: 72px; padding: 0 8px; }
+    .prod-slim th { padding: 14px 8px; }
+    .prod-img {
+      width: 32px; height: 32px; border-radius: 4px;
+      background: var(--surface-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .prod-name { font-size: 14px; color: var(--ink-darker); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+    .prod-upc  { font-size: 12px; color: var(--ink-dark); letter-spacing: -0.06px; }
+
+    /* ── Sub-commodities ── */
+    .subcoms-title {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 18px; font-weight: 600; letter-spacing: -0.12px;
+    }
+    .subcom-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .subcom-tag {
+      display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+      border-radius: 12px; border: 1px solid var(--edge-lighter);
+      background: var(--surface-primary); font-size: 12px; font-weight: 600;
+      letter-spacing: -0.06px; color: var(--ink-darker);
+    }
+
+    /* ── Toolbar ── */
+    .kw-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; border-bottom: 1px solid var(--edge-primary); flex-shrink: 0;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 16px; }
+
+    /* search */
+    .search-wrap { position: relative; }
+    .search-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px; color: var(--ink-dark); pointer-events: none;
+    }
+    .search-input {
+      height: 40px; padding: 10px 16px 10px 40px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      font: inherit; font-size: 14px; color: var(--ink-primary);
+      background: var(--surface-primary); width: 310px;
+    }
+    .search-input::placeholder { color: var(--ink-dark); }
+    .search-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+
+    /* chip buttons */
+    .chip-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 4px 16px;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-dark);
+      border-radius: var(--radius-md);
+      font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; color: var(--ink-darker);
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .chip-btn:hover { background: var(--surface-lighter); }
+    .chip-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .chip-btn--muted {
+      background: var(--surface-lighter); border-color: transparent;
+      color: var(--ink-light); cursor: default;
+    }
+    .chip-btn--muted:hover { background: var(--surface-lighter); }
+
+    /* filter menu popover */
+    .filter-menu-wrap { position: relative; }
+    .filter-menu-popover {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+      min-width: 220px; background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      overflow: hidden;
+    }
+    .filter-list-item {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 10px 16px;
+      background: none; border: none; font: inherit; font-size: 14px;
+      color: var(--ink-darker); cursor: pointer; text-align: left; letter-spacing: -0.14px;
+    }
+    .filter-list-item:hover { background: var(--surface-lighter); }
+    .filter-list-item.has-selection { color: var(--accent-primary); font-weight: 600; }
+    .filter-list-item svg { width: 16px; height: 16px; color: var(--ink-dark); }
+    .filter-menu-header {
+      display: flex; align-items: center;
+      padding: 10px 14px; border-bottom: 1px solid var(--edge-lighter);
+    }
+    .filter-back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; padding: 0; cursor: pointer;
+      font: inherit; font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .filter-back-btn:hover { color: var(--ink-primary); }
+    .filter-back-btn svg { width: 14px; height: 14px; display: block; }
+    .filter-menu-list { max-height: 220px; overflow-y: auto; }
+    .filter-menu-actions {
+      padding: 8px 12px; border-top: 1px solid var(--edge-lighter);
+      display: flex; justify-content: flex-end;
+    }
+    .filter-apply-btn {
+      height: 30px; padding: 0 16px;
+      background: var(--accent-primary); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .filter-apply-btn:hover { background: #1a5fa8; }
+    .chip-dd-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; cursor: pointer;
+      font-size: 14px; color: var(--ink-primary); user-select: none;
+    }
+    .chip-dd-item:hover { background: var(--surface-lighter); }
+    .chip-dd-item input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-mds-check {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border: 1.5px solid var(--ink-light); border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface-primary); transition: background 120ms, border-color 120ms;
+    }
+    .chip-dd-item input[type="checkbox"]:checked + .chip-mds-check { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .chip-dd-item input[type="checkbox"]:checked + .chip-mds-check svg { display: block; }
+    .chip-mds-check svg { display: none; width: 10px; height: 10px; }
+
+    /* applied filters row */
+    .applied-filters-row {
+      display: none; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 12px 16px; border-bottom: 1px solid var(--edge-light);
+    }
+    .applied-filters-row.visible { display: flex; }
+    .ac-chip {
+      display: inline-flex; align-items: center;
+      height: 32px; padding: 0 8px; gap: 8px;
+      background: var(--surface-dark); border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md); font-size: 14px; letter-spacing: -0.14px;
+      white-space: nowrap; cursor: pointer;
+    }
+    .ac-chip:hover { border-color: var(--edge-dark); }
+    .ac-chip-label { color: var(--ink-darker); font-weight: 400; }
+    .ac-chip-sep { width: 1px; height: 80%; background: var(--edge-light); flex-shrink: 0; }
+    .ac-chip-value { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-primary); font-weight: 600; }
+    .ac-chip-x {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; margin-left: 2px;
+      background: none; border: none; cursor: pointer;
+      color: var(--ink-darker); border-radius: var(--radius-sm); flex-shrink: 0;
+    }
+    .ac-chip-x:hover { background: var(--surface-darker); }
+    .ac-chip-x svg { width: 10px; height: 10px; display: block; }
+    .ac-clear {
+      background: none; border: none; padding: 0;
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--accent-primary); cursor: pointer; white-space: nowrap;
+    }
+    .ac-clear:hover { color: #1a5fa8; }
+
+    /* ── Two-panel body ── */
+    .kw-panels { display: flex; height: 600px; overflow: hidden; }
+
+    /* ── Panel collapse ── */
+    .panel-collapse-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border: none; background: transparent;
+      color: var(--ink-dark); cursor: pointer; border-radius: var(--radius-sm);
+      flex-shrink: 0; transition: background 120ms;
+    }
+    .panel-collapse-btn:hover { background: var(--surface-lighter); }
+    .panel-collapse-btn svg { width: 16px; height: 16px; transition: transform 200ms; }
+
+    /* ── Left panel ── */
+    .kw-left {
+      width: 367px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--edge-primary);
+      background: var(--surface-primary);
+      transition: width 200ms ease;
+      overflow: hidden;
+    }
+    .kw-left.collapsed {
+      width: 32px; min-width: 32px;
+    }
+    .kw-left.collapsed .kw-left-inner { display: none; }
+    .kw-left-collapse-rail {
+      display: none; align-items: center; justify-content: center;
+      flex: 1;
+    }
+    .kw-left.collapsed .kw-left-collapse-rail { display: flex; }
+
+    /* Controls: Default Bid + Match Type */
+    .kw-left-controls {
+      padding: 16px; display: flex; flex-direction: column; gap: 16px;
+      border-bottom: 1px solid var(--edge-primary); flex-shrink: 0;
+    }
+    .kw-ctrl-row { display: flex; align-items: center; gap: 16px; }
+    .kw-ctrl-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; letter-spacing: -0.14px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .kw-ctrl-value { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+    .bid-inline-wrap {
+      display: flex; align-items: center; gap: 2px;
+      font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .bid-inline-input {
+      border: none; background: transparent; font: inherit; font-size: 14px;
+      color: var(--ink-darker); width: 48px; padding: 0; letter-spacing: -0.14px;
+    }
+    .bid-inline-input:focus { outline: none; }
+
+    /* icon btns */
+    .icon-btn {
+      border: none; background: transparent; padding: 0;
+      width: 20px; height: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--ink-dark); border-radius: var(--radius-md); flex-shrink: 0;
+    }
+    .icon-btn:hover { color: var(--ink-primary); }
+    .icon-btn svg { width: 16px; height: 16px; display: block; }
+    .icon-btn--accent { color: var(--accent-primary); }
+    .icon-btn--accent:hover { color: #1a5fa8; }
+
+    /* match type checks */
+    .match-type-checks { display: flex; gap: 16px; align-items: center; }
+    .mt-check {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      user-select: none; font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .mt-check input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .mds-check {
+      width: 16px; height: 16px; border-radius: 3px;
+      border: 1.5px solid var(--edge-primary); background: var(--surface-primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .12s, border-color .12s; flex-shrink: 0;
+    }
+    .mds-check svg { width: 10px; height: 10px; display: none; }
+    .mt-check input[type="checkbox"]:checked + .mds-check { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .mt-check input[type="checkbox"]:checked + .mds-check svg { display: block; }
+
+    /* ── Tabs ── */
+    .kw-tabs-bar {
+      height: 56px; display: flex; align-items: flex-end;
+      padding: 0 24px; gap: 24px;
+      border-bottom: 1px solid var(--edge-light);
+      background: var(--surface-primary); flex-shrink: 0;
+    }
+    .kw-tab {
+      height: 40px; display: flex; align-items: center; justify-content: center;
+      padding-bottom: 16px; gap: 8px;
+      background: none; border: none; border-bottom: 3px solid transparent;
+      font: inherit; font-size: 14px; font-weight: 400;
+      color: var(--ink-darker); cursor: pointer;
+      letter-spacing: -0.14px; white-space: nowrap;
+      transition: color 120ms, border-color 120ms;
+    }
+    .kw-tab.active { font-weight: 700; color: var(--ink-primary); border-bottom-color: var(--accent-primary); }
+    .kw-tab:hover:not(.active) { color: var(--ink-primary); }
+
+    /* ── Keyword list ── */
+    .kw-list-wrap { flex: 1; overflow-y: auto; }
+    .kw-list-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .kw-list-table th {
+      font-size: 14px; font-weight: 600; color: var(--ink-darker);
+      letter-spacing: -0.14px; padding: 14px 16px;
+      border-bottom: 1px solid var(--edge-dark);
+      white-space: nowrap; background: var(--surface-primary);
+      position: sticky; top: 0; z-index: 2; text-align: left;
+    }
+    .kw-list-table td {
+      font-size: 14px; color: var(--ink-darker);
+      padding: 12px 16px; border-bottom: 1px solid var(--edge-lighter);
+      vertical-align: middle;
+    }
+    .kw-list-table th:first-child, .kw-list-table td:first-child { text-align: center; padding-left: 8px; padding-right: 8px; }
+    .kw-list-table th:last-child, .kw-list-table td:last-child { text-align: right; padding-right: 12px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag {
+      display: inline-flex; align-items: center;
+      background: var(--surface-light); border-radius: var(--radius-sm);
+      padding: 2px 8px; font-size: 12px; line-height: 16px;
+      letter-spacing: -0.06px; white-space: nowrap; color: var(--ink-primary);
+    }
+    .add-btn {
+      display: inline-block; font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; padding: 0 12px; height: 28px;
+      border: none; border-radius: var(--radius-sm);
+      cursor: pointer; white-space: nowrap; transition: background 120ms;
+      color: var(--accent-primary); background: transparent;
+    }
+    .add-btn:hover { background: rgba(132,81,236,.07); }
+    .add-btn.added { color: var(--ink-light); cursor: default; }
+    .add-btn.added:hover { background: transparent; }
+    .add-btn.cap-reached { color: var(--ink-light); cursor: default; opacity: 0.5; }
+    .add-btn.cap-reached:hover { background: transparent; }
+    .add-all-btn {
+      background: none; border: none; font: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--accent-primary); cursor: pointer; padding: 0;
+    }
+    .add-all-btn:hover { color: #1a5fa8; }
+    .add-all-btn:disabled { color: var(--ink-light); cursor: default; }
+
+    /* cap tooltip */
+    .cap-tooltip-wrap { position: relative; display: inline-block; }
+    .cap-tooltip-wrap[data-tooltip]::after {
+      content: attr(data-tooltip);
+      opacity: 0; pointer-events: none;
+      transition: opacity .12s ease;
+      position: absolute; z-index: 20;
+      right: calc(100% + 8px); top: 50%;
+      transform: translateY(-50%);
+      background: var(--surface-primary);
+      color: var(--ink-primary);
+      border: 1px solid var(--edge-light);
+      padding: 6px 10px; border-radius: var(--radius-sm);
+      font-size: 12px; line-height: 16px; font-weight: 400;
+      letter-spacing: -0.06px; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(32,32,60,0.12), 0 1px 3px rgba(32,32,60,0.06);
+    }
+    .cap-tooltip-wrap[data-tooltip]:hover::after { opacity: 1; }
+    .cap-tooltip-wrap button:disabled { pointer-events: none; }
+
+    /* ── Pagination ── */
+    .kw-pagination {
+      display: flex; align-items: center; justify-content: center; gap: 2px;
+      padding: 8px 12px; border-top: 1px solid var(--edge-light);
+      background: var(--surface-primary); flex-shrink: 0;
+    }
+    .pg-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 32px; height: 32px; padding: 0 4px; border-radius: var(--radius-md);
+      border: none; background: transparent; font: inherit; font-size: 14px;
+      letter-spacing: -0.14px; color: var(--ink-darker); cursor: pointer; transition: background 120ms;
+    }
+    .pg-btn:hover:not(:disabled):not(.active) { background: var(--surface-dark); }
+    .pg-btn.active { background: transparent; color: var(--ink-primary); font-weight: 700; border: 1.5px solid var(--accent-primary); pointer-events: none; }
+    .pg-btn:disabled { color: var(--ink-light); cursor: default; }
+    .pg-btn svg { width: 16px; height: 16px; display: block; }
+
+    /* ── Custom panel ── */
+    .kw-custom-panel {
+      flex: 1; display: flex; flex-direction: column; gap: 20px;
+      padding: 20px 16px; overflow-y: auto;
+    }
+    .kw-custom-section { display: flex; flex-direction: column; gap: 10px; }
+    .kw-section-head { display: flex; align-items: center; justify-content: space-between; min-height: 24px; }
+    .kw-section-label { font-size: 14px; font-weight: 600; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .kw-csv-link {
+      display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+      padding: 4px 0; font: inherit; font-size: 13px; font-weight: 600;
+      color: var(--accent-primary); cursor: pointer; letter-spacing: -0.06px;
+    }
+    .kw-csv-link:hover { color: #1f5fa8; text-decoration: underline; }
+    .kw-csv-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .kw-dropzone {
+      border: 1px dashed var(--edge-primary); border-radius: var(--radius-md);
+      background: var(--surface-primary); padding: 24px 16px; min-height: 100px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; text-align: center; cursor: pointer; transition: background 120ms, border-color 120ms;
+    }
+    .kw-dropzone:hover, .kw-dropzone.is-dragover { background: var(--accent-lightest); border-color: var(--accent-primary); }
+    .kw-dropzone .filetypes { font-size: 13px; color: var(--ink-dark); }
+    .kw-dropzone .drop-action { font-size: 13px; font-weight: 600; color: var(--accent-primary); background: none; border: none; padding: 0; cursor: pointer; }
+    .upload-error { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: #c0392b; }
+    .kw-textarea {
+      width: 100%; min-height: 110px; border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 10px 12px; font: inherit; font-size: 13px; line-height: 1.5;
+      color: var(--ink-primary); resize: vertical; background: var(--surface-primary); outline: none;
+    }
+    .kw-textarea::placeholder { color: var(--ink-dark); }
+    .kw-textarea:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+    .kw-custom-actions { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 4px; }
+    .kw-enter-btn {
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      padding: 8px 16px; border: 1px solid var(--accent-primary); border-radius: var(--radius-md);
+      color: var(--accent-primary); background: var(--surface-primary); cursor: pointer;
+    }
+    .kw-enter-btn:hover:not(:disabled) { background: var(--accent-lightest); }
+    .kw-enter-btn:disabled { border-color: var(--edge-dark); color: var(--ink-light); cursor: default; }
+
+    /* ── Right panel ── */
+    .kw-right {
+      flex: 1; display: flex; flex-direction: column;
+      background: var(--surface-light);
+      transition: width 200ms ease, flex 200ms ease;
+      overflow: hidden;
+    }
+    .kw-right.collapsed {
+      flex: none; width: 32px; min-width: 32px;
+    }
+    .kw-right.collapsed .kw-right-inner { display: none; }
+    .kw-right-collapse-rail {
+      display: none; align-items: center; justify-content: center;
+      flex: 1; background: var(--surface-light);
+    }
+    .kw-right.collapsed .kw-right-collapse-rail { display: flex; }
+    .kw-right-header {
+      background: var(--surface-primary);
+      padding: 0 12px 0 24px;
+      border-bottom: 1px solid var(--edge-primary);
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px; flex-shrink: 0;
+    }
+    .kw-right-count { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+.remove-all-btn {
+      background: none; border: none; font: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--ink-light); cursor: default; padding: 0;
+    }
+    .remove-all-btn.active { color: var(--accent-primary); cursor: pointer; }
+    .remove-all-btn.active:hover { color: #1a5fa8; }
+    .kw-right-list { flex: 1; overflow-y: auto; }
+
+    /* Right panel table */
+    .kw-right-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .kw-right-table thead th {
+      font-size: 14px; font-weight: 600; color: var(--ink-darker);
+      letter-spacing: -0.14px; padding: 8px;
+      border-bottom: 1px solid var(--edge-dark);
+      white-space: nowrap; background: var(--surface-primary);
+      position: sticky; top: 0; z-index: 2; text-align: left;
+    }
+    .kw-right-table thead th:first-child { text-align: center; }
+    .kw-right-table thead th:last-child { text-align: center; }
+
+    /* keyword summary row */
+    tr.kw-summary-row td {
+      background: var(--surface-primary);
+      padding: 8px 12px;
+      border-bottom: none;
+      border-top: 1px solid var(--edge-light);
+    }
+    tr.kw-summary-row:first-child td { border-top: none; }
+    tr.kw-summary-row td:first-child { padding: 8px; text-align: center; }
+    .kw-summary-content { display: flex; align-items: center; gap: 8px; }
+    .kw-summary-name { font-size: 14px; font-weight: 700; color: var(--ink-primary); letter-spacing: -0.14px; }
+    .type-badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 8px; border-radius: var(--radius-xxl);
+      font-size: 12px; font-weight: 700; letter-spacing: -0.06px; white-space: nowrap; line-height: 16px;
+    }
+    .type-badge--manual      { background: var(--surface-dark); color: var(--ink-primary); }
+    .type-badge--recommended { background: #e6f9ef; color: #1a6640; }
+
+    /* detail rows */
+    tr.kw-detail-row td {
+      border-bottom: none;
+      padding: 6px 8px;
+      vertical-align: middle;
+      background: var(--surface-primary);
+    }
+    tr.kw-detail-row.kw-group-last td { border-bottom: 1px solid var(--edge-dark); }
+
+    /* checkbox cell */
+    .kw-cb-cell { text-align: center; }
+    .kw-cb {
+      width: 16px; height: 16px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--edge-primary); background: var(--surface-primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; vertical-align: middle;
+      transition: background 120ms, border-color 120ms;
+    }
+    .kw-cb.checked { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .kw-cb.checked::after { content: ''; display: block; width: 9px; height: 5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+
+    /* Actions dropdown */
+    .actions-wrap { position: relative; }
+    .chip-btn--muted.active {
+      background: var(--surface-primary); border-color: var(--edge-dark);
+      color: var(--ink-darker); cursor: pointer;
+    }
+    .chip-btn--muted.active:hover { background: var(--surface-lighter); }
+    .actions-popover {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+      min-width: 180px; background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.1), 0 1px 4px rgba(33,35,44,.06);
+      overflow: hidden;
+    }
+    .actions-item {
+      display: block; width: 100%; padding: 10px 16px;
+      background: none; border: none; font: inherit; font-size: 14px;
+      color: var(--ink-darker); text-align: left; cursor: pointer; letter-spacing: -0.14px;
+    }
+    .actions-item:hover { background: var(--surface-lighter); }
+    .actions-item--danger { color: #c0392b; }
+    .actions-item--danger:hover { background: #fff5f5; }
+
+    /* suggested bid cell */
+    .sug-cell { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .sug-amount { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; }
+    .sug-apply {
+      font: inherit; font-size: 14px; color: var(--accent-primary);
+      background: none; border: none; padding: 0;
+      cursor: pointer; white-space: nowrap; letter-spacing: -0.14px;
+    }
+    .sug-apply:hover:not(:disabled) { text-decoration: underline; }
+    .sug-apply:disabled { color: var(--ink-light); cursor: default; }
+    .strong-bid-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #e4f6ed; border-radius: 100px;
+      padding: 0 8px; height: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: -0.06px;
+      color: #2c7a52; white-space: nowrap;
+    }
+
+    /* switch */
+    .switch {
+      display: flex; align-items: center;
+      width: 40px; height: 20px; border-radius: 100px;
+      padding: 4px; cursor: pointer; border: none;
+      transition: background 150ms; flex-shrink: 0;
+    }
+    .switch[data-on="false"] { background: var(--ink-light); justify-content: flex-start; }
+    .switch[data-on="true"]  { background: var(--accent-primary); justify-content: flex-end; }
+    .switch__knob { width: 12px; height: 12px; border-radius: 100px; background: white; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+
+    /* bid cell */
+    .bid-cell { display: flex; align-items: center; gap: 16px; }
+    .mt-label { font-size: 12px; color: var(--ink-darker); letter-spacing: -0.06px; flex: 1; min-width: 0; }
+    .bid-input {
+      display: flex; align-items: center;
+      width: 76px; height: 24px; padding: 0 6px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); font: inherit; font-size: 14px;
+      color: var(--ink-dark); flex-shrink: 0;
+    }
+    .bid-input.disabled { background: var(--surface-lighter); }
+    .bid-input .dollar { flex-shrink: 0; margin-right: 1px; color: var(--ink-dark); }
+    .bid-input input {
+      border: none; background: transparent; font: inherit; font-size: 14px;
+      color: inherit; width: 100%; padding: 0; min-width: 0;
+    }
+    .bid-input.disabled input { color: var(--ink-light); }
+    .bid-input input:focus { outline: none; }
+    .bid-input:not(.disabled):focus-within { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+    .bid-row-x {
+      background: none; border: none; cursor: pointer; padding: 0; color: var(--ink-light);
+      display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0;
+    }
+    .bid-row-x:hover { color: var(--ink-darker); }
+    .bid-row-x svg { width: 10px; height: 10px; display: block; }
+
+    [hidden] { display: none !important; }
+
+    /* ── Column config ── */
+    .col-config-wrap { position: relative; display: inline-flex; }
+    .col-config-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      border: none; background: transparent; cursor: pointer;
+      color: var(--ink-dark); transition: background 120ms, color 120ms;
+    }
+    .col-config-btn:hover { background: var(--surface-dark); color: var(--ink-primary); }
+    .col-config-btn.open { background: var(--accent-lightest); color: var(--accent-primary); }
+    .col-config-btn svg { width: 16px; height: 16px; display: block; }
+    .col-config-popover {
+      position: absolute; top: calc(100% + 6px); right: 0; z-index: 300;
+      width: 280px; background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter); border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(33,35,44,.12), 0 1px 4px rgba(33,35,44,.06);
+      overflow: hidden;
+    }
+    .col-config-fixed {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--edge-lighter);
+      font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+    .col-config-section-label {
+      padding: 12px 16px 4px;
+      font-size: 13px; font-weight: 700; letter-spacing: -0.06px;
+      color: var(--ink-primary);
+    }
+    .col-config-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px;
+    }
+    .col-drag-handle {
+      color: var(--ink-light); flex-shrink: 0;
+      display: flex; align-items: center; cursor: grab;
+    }
+    .col-drag-handle svg { width: 12px; height: 12px; display: block; }
+    .col-config-name { flex: 1; font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; }
+    .col-config-footer {
+      padding: 10px 16px; border-top: 1px solid var(--edge-lighter);
+      display: flex; justify-content: flex-end;
+    }
+    .col-reset-btn {
+      background: none; border: none; padding: 0; cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--accent-primary);
+    }
+    .col-reset-btn:hover { color: #1a5fa8; }
+
+    /* keyword column in detail rows */
+    tr.kw-detail-row td.kw-name-cell {
+      font-size: 14px; font-weight: 400; color: var(--ink-primary);
+      letter-spacing: -0.14px; vertical-align: top; padding-top: 6px;
+      max-width: 130px;
+    }
+    tr.kw-detail-row td.kw-name-cell > div {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    tr.kw-detail-row td.kw-name-cell .type-badge {
+      margin-top: 4px; padding: 2px 6px; font-size: 11px;
+    }
+
+    /* column hiding via table class — cols shift +1 due to keyword column */
+    .kw-right-table.hide-col-suggested th:nth-child(3),
+    .kw-right-table.hide-col-suggested td:nth-child(3) { display: none; }
+    .kw-right-table.hide-col-usedefault th:nth-child(4),
+    .kw-right-table.hide-col-usedefault td:nth-child(4) { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="version-bar">
+    <a class="back-to-library" href="../../index.html">← Library</a>
+    <a class="version-tab" href="index.html">V1</a>
+    <a class="version-tab" href="v2.html">V2</a>
+    <a class="version-tab" href="v3.html">V3</a>
+    <a class="version-tab" href="v4.html">V4</a>
+    <a class="version-tab active" href="v5.html">V5</a>
+    <a class="version-tab" href="component.html">Component</a>
+    <a class="version-tab" href="figma.html">Figma</a>
+  </div>
+
+  <div class="page-body">
+    <div class="panel">
+
+      <!-- Panel header -->
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h1 class="panel-title">Bid Management</h1>
+          <button class="icon-btn" aria-label="Help">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M7.0382 5.59678C6.86008 5.77207 6.71908 6.05617 6.84678 6.56699C6.94724 6.96884 6.70291 7.37603 6.30106 7.47649C5.89922 7.57695 5.49202 7.33262 5.39156 6.93077C5.14447 5.94234 5.40246 5.102 5.98605 4.52767C6.53447 3.98796 7.30025 3.75 7.99326 3.75C8.64298 3.75 9.32229 3.90938 9.84667 4.37427C10.3873 4.85352 10.6479 5.55426 10.6479 6.3928C10.6479 6.96882 10.4772 7.42801 10.2072 7.79984C9.95421 8.14823 9.63038 8.3939 9.39293 8.57035C8.83804 8.98269 8.74326 9.07956 8.74326 9.31692V9.76213C8.74323 10.1763 8.40742 10.513 7.99321 10.513C7.57899 10.5129 7.24323 10.1771 7.24326 9.76292V9.31694C7.24324 8.27794 7.98116 7.74225 8.40522 7.4344C8.4383 7.41038 8.46948 7.38775 8.49825 7.36638C8.73696 7.18898 8.8893 7.06189 8.99344 6.91847C9.08057 6.79849 9.14793 6.64682 9.14793 6.3928C9.14793 5.86888 8.99431 5.62321 8.85159 5.49669C8.69267 5.35579 8.41965 5.25 7.99326 5.25C7.61016 5.25 7.2515 5.38686 7.0382 5.59678Z" fill="currentColor"/><path d="M8.75 12C8.75 12.4142 8.41421 12.75 8 12.75C7.58579 12.75 7.25 12.4142 7.25 12C7.25 11.5858 7.58579 11.25 8 11.25C8.41421 11.25 8.75 11.5858 8.75 12Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1.5 8C1.5 4.41015 4.41015 1.5 8 1.5C11.5899 1.5 14.5 4.41015 14.5 8C14.5 11.5899 11.5899 14.5 8 14.5C4.41015 14.5 1.5 11.5899 1.5 8Z" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="default-bid" data-bid="1.00">
+          <div class="default-bid__label">Default Bid
+            <button class="icon-btn" aria-label="About default bid">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="default-bid__sep"></div>
+          <div class="default-bid__value">$1.00
+            <button class="icon-btn icon-btn--accent" aria-label="Edit default bid">
+              <svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.2732 0.61777C12.4495 -0.205884 11.1141 -0.205929 10.2904 0.61767L1.02351 9.88336C0.728191 10.1786 0.527173 10.555 0.445936 10.9646L0.0236379 13.0941C-0.143031 13.9345 0.597299 14.6748 1.43773 14.5082L3.5672 14.0859C3.97685 14.0047 4.35317 13.8037 4.64846 13.5083L13.9142 4.24139C14.7377 3.41768 14.7377 2.08228 13.9141 1.25863L13.2732 0.61777ZM11.351 1.6784C11.5889 1.44052 11.9746 1.44053 12.2125 1.67843L12.8534 2.31929C13.0913 2.55719 13.0913 2.94288 12.8534 3.1808L12.4294 3.60486L10.927 2.10241L11.351 1.6784ZM9.86623 3.163L2.0841 10.9441C1.99881 11.0294 1.94075 11.1381 1.91728 11.2564L1.58132 12.9505L3.27543 12.6146C3.39375 12.5911 3.50244 12.533 3.58773 12.4477L11.3688 4.66559L9.86623 3.163Z" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Radio group -->
+      <div class="form-field">
+        <span class="form-label">How would you like to bid?</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="bid-type" value="products" class="radio-input">
+            <span class="radio-circle"></span>
+            <span class="radio-label-text">Products</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="bid-type" value="keywords" class="radio-input" checked>
+            <span class="radio-circle"></span>
+            <span class="radio-label-text">Keywords</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Products section -->
+      <div class="section" id="products-section">
+        <div>
+          <div class="section-title-row">
+            <div class="section-title-left">
+              <span class="section-title">Products</span>
+              <span class="badge">5</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-ghost" style="padding:6px 16px;">Copy 5 UPCs</button>
+              <button class="btn btn-outline" style="padding:6px 16px;">Edit UPCs</button>
+            </div>
+          </div>
+          <p class="section-desc">Select UPCs to be featured On-Site.</p>
+        </div>
+        <div class="controls-row">
+          <div class="search-wrap" style="width:358px; flex:none;">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input class="search-input" style="height:40px; padding:10px 16px 10px 40px;" type="text" placeholder="Search UPCs or descriptions">
+          </div>
+        </div>
+        <table class="prod-slim">
+          <colgroup>
+            <col style="width:56px"><col><col style="width:72px">
+            <col style="min-width:110px"><col style="width:60px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Packshot</th><th>Description</th><th>Quantity</th>
+              <th>Sub-Commodity</th><th>Price</th>
+            </tr>
+          </thead>
+          <tbody id="p-slim-tbody"></tbody>
+        </table>
+        <div class="section" style="gap:12px; padding-bottom:16px;">
+          <div class="subcoms-title">Eligible Sub-commodities
+            <button class="icon-btn" aria-label="Help"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          </div>
+          <div class="subcom-tags">
+            <span class="subcom-tag">Drinks &gt; Soda</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Keywords section -->
+      <div class="section" id="keywords-section">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <span class="section-title">Keyword Bids</span>
+            <span class="badge" id="kw-count-badge">0</span>
+          </div>
+        </div>
+
+      <!-- Keyword panel -->
+      <div class="kw-panel-wrap">
+
+        <!-- Toolbar -->
+        <div class="kw-toolbar">
+          <div class="toolbar-left">
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input class="search-input" type="search" placeholder="Search" id="kw-search">
+            </div>
+            <div class="filter-menu-wrap" id="filter-menu-wrap">
+              <button class="chip-btn" id="filters-btn">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Filters
+              </button>
+              <div class="filter-menu-popover" id="filter-menu-popover" hidden>
+                <div id="filter-level-1">
+                  <button class="filter-list-item" id="filter-open-strategy">
+                    Strategy
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="filter-list-item" id="filter-open-type">
+                    Type
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="filter-list-item" id="filter-open-matchtype">
+                    Match Type
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+                <div id="filter-level-2" hidden>
+                  <div class="filter-menu-header">
+                    <button class="filter-back-btn" id="filter-back-btn">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Filter by: Strategy
+                    </button>
+                  </div>
+                  <div class="filter-menu-list" id="strategy-options"></div>
+                  <div class="filter-menu-actions">
+                    <button class="filter-apply-btn" id="filter-apply-btn">Apply</button>
+                  </div>
+                </div>
+                <div id="filter-level-3" hidden>
+                  <div class="filter-menu-header">
+                    <button class="filter-back-btn" id="filter-back-btn-type">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Filter by: Type
+                    </button>
+                  </div>
+                  <div class="filter-menu-list" id="type-options"></div>
+                  <div class="filter-menu-actions">
+                    <button class="filter-apply-btn" id="filter-apply-type-btn">Apply</button>
+                  </div>
+                </div>
+                <div id="filter-level-4" hidden>
+                  <div class="filter-menu-header">
+                    <button class="filter-back-btn" id="filter-back-btn-matchtype">
+                      <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Filter by: Match Type
+                    </button>
+                  </div>
+                  <div class="filter-menu-list" id="matchtype-options"></div>
+                  <div class="filter-menu-actions">
+                    <button class="filter-apply-btn" id="filter-apply-matchtype-btn">Apply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="actions-wrap" id="actions-wrap">
+              <button class="chip-btn chip-btn--muted" id="actions-btn" disabled>
+                Actions
+                <svg viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="actions-popover" id="actions-popover" hidden>
+                <button class="actions-item" data-action="select-all">Select all</button>
+                <button class="actions-item" data-action="deselect-all">Deselect all</button>
+                <button class="actions-item" data-action="copy-selected">Copy selected</button>
+                <button class="actions-item" data-action="enter-bid">Enter new bid</button>
+                <button class="actions-item" data-action="use-default">Use default</button>
+                <button class="actions-item" data-action="use-suggested">Use suggested</button>
+                <button class="actions-item actions-item--danger" data-action="remove">Remove</button>
+              </div>
+            </div>
+          </div>
+          <button class="chip-btn" id="export-btn">
+            <img src="export.svg" alt="" style="width:16px;height:16px;">
+            Export
+          </button>
+        </div>
+
+        <!-- Applied filters (conditional) -->
+        <div class="applied-filters-row" id="applied-filters-row">
+          <div id="applied-chips" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"></div>
+          <button class="ac-clear" id="clear-filters-btn">Clear Filters</button>
+        </div>
+
+        <!-- Two-panel body -->
+        <div class="kw-panels">
+
+          <!-- LEFT: keyword browser -->
+          <div class="kw-left" id="kw-left">
+            <!-- collapse rail shown when collapsed -->
+            <div class="kw-left-collapse-rail">
+              <button class="panel-collapse-btn" id="kw-left-expand" aria-label="Expand panel" title="Expand">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+
+            <!-- all visible content -->
+            <div class="kw-left-inner">
+
+            <!-- Default Bid + Match Type -->
+            <div class="kw-left-controls">
+              <div class="kw-ctrl-row">
+                <div class="kw-ctrl-label">
+                  Default Bid
+                  <button class="icon-btn" aria-label="About default bid">
+                    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
+                <div class="kw-ctrl-value">
+                  <div class="bid-inline-wrap">
+                    <span>$</span>
+                    <input class="bid-inline-input" type="text" value="1.00" id="default-bid-val" aria-label="Default bid amount">
+                  </div>
+                  <button class="icon-btn icon-btn--accent" aria-label="Edit default bid">
+                    <svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.2732 0.61777C12.4495 -0.205884 11.1141 -0.205929 10.2904 0.61767L1.02351 9.88336C0.728191 10.1786 0.527173 10.555 0.445936 10.9646L0.0236379 13.0941C-0.143031 13.9345 0.597299 14.6748 1.43773 14.5082L3.5672 14.0859C3.97685 14.0047 4.35317 13.8037 4.64846 13.5083L13.9142 4.24139C14.7377 3.41768 14.7377 2.08228 13.9141 1.25863L13.2732 0.61777ZM11.351 1.6784C11.5889 1.44052 11.9746 1.44053 12.2125 1.67843L12.8534 2.31929C13.0913 2.55719 13.0913 2.94288 12.8534 3.1808L12.4294 3.60486L10.927 2.10241L11.351 1.6784ZM9.86623 3.163L2.0841 10.9441C1.99881 11.0294 1.94075 11.1381 1.91728 11.2564L1.58132 12.9505L3.27543 12.6146C3.39375 12.5911 3.50244 12.533 3.58773 12.4477L11.3688 4.66559L9.86623 3.163Z" fill="currentColor"/></svg>
+                  </button>
+                  <button class="panel-collapse-btn" id="kw-left-collapse" aria-label="Collapse panel" title="Collapse" style="margin-left:auto;">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="kw-ctrl-row">
+                <div class="kw-ctrl-label">
+                  Match Type
+                  <button class="icon-btn" aria-label="About match type">
+                    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
+                <div class="match-type-checks">
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-exact" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Exact
+                  </label>
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-phrase" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Phrase
+                  </label>
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-broad" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Broad
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="kw-tabs-bar">
+              <button class="kw-tab active" data-tab="search">Search</button>
+              <button class="kw-tab" data-tab="custom">Custom</button>
+            </div>
+
+            <!-- Keyword list (Search tab) -->
+            <div class="kw-list-wrap" id="kw-list-wrap">
+              <table class="kw-list-table">
+                <colgroup>
+                  <col style="width:52px">
+                  <col style="width:110px">
+                  <col>
+                  <col style="width:76px">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Keyword</th>
+                    <th>Strategy</th>
+                    <th><span class="cap-tooltip-wrap" id="add-all-wrap"><button class="add-all-btn" id="add-all-btn">Add All</button></span></th>
+                  </tr>
+                </thead>
+                <tbody id="kw-list-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="kw-pagination" id="kw-pagination">
+              <button class="pg-btn" id="pg-first" aria-label="First page">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M4 4v8M8 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="pg-btn" id="pg-prev" aria-label="Previous page">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="pg-numbers" style="display:flex;gap:2px;"></div>
+              <button class="pg-btn" id="pg-next" aria-label="Next page">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="pg-btn" id="pg-last" aria-label="Last page">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M12 4v8M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+
+            <!-- Custom panel -->
+            <div class="kw-custom-panel" id="kw-custom-panel" hidden>
+              <div class="kw-custom-section">
+                <div class="kw-section-head">
+                  <span class="kw-section-label">File Upload</span>
+                  <button type="button" class="kw-csv-link">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4v9M6 9l4 4 4-4"/><path d="M4 15v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+                    Download CSV Template
+                  </button>
+                </div>
+                <label class="kw-dropzone">
+                  <span class="filetypes">Only .csv, .xls and .xlsx files.</span>
+                  <span class="drop-action">Drag and drop or upload file(s)</span>
+                  <input type="file" accept=".csv,.xls,.xlsx" style="position:absolute;opacity:0;width:0;height:0;" />
+                </label>
+                <p class="upload-error" id="upload-error" hidden>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L1 14h14L8 1.5z" fill="#c0392b" opacity=".15"/><path d="M8 1.5L1 14h14L8 1.5z" stroke="#c0392b" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6v4" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".75" fill="#c0392b"/></svg>
+                  File contains more than 250 bids. Upload a file with 250 bids or less.
+                </p>
+              </div>
+              <div class="kw-custom-section">
+                <div class="kw-section-head">
+                  <span class="kw-section-label">Keywords</span>
+                </div>
+                <textarea class="kw-textarea" id="kw-custom-text" rows="5"
+                  placeholder="Keywords should be entered in this format:&#10;keyword, match type (optional), bid amount (optional)&#10;e.g. seasonal, exact, 1.00"></textarea>
+              </div>
+              <div class="kw-custom-actions">
+                <span class="cap-tooltip-wrap" id="enter-btn-wrap">
+                  <button class="kw-enter-btn" id="kw-enter-btn" type="button" disabled>Enter Keywords</button>
+                </span>
+              </div>
+            </div>
+
+            </div><!-- /kw-left-inner -->
+          </div><!-- /kw-left -->
+
+          <!-- RIGHT: selected keywords + bid config -->
+          <div class="kw-right" id="kw-right">
+            <!-- collapse rail shown when collapsed -->
+            <div class="kw-right-collapse-rail">
+              <button class="panel-collapse-btn" id="kw-right-expand" aria-label="Expand panel" title="Expand">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+
+            <!-- all visible content -->
+            <div class="kw-right-inner" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+            <div class="kw-right-header">
+              <span class="kw-right-count" id="kw-right-count">0 bids · 0 keywords</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button class="remove-all-btn" id="remove-all-btn">Remove All</button>
+                <button class="panel-collapse-btn" id="kw-right-collapse" aria-label="Collapse panel" title="Collapse">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="kw-right-list">
+              <table class="kw-right-table">
+                <colgroup>
+                  <col style="width:48px">
+                  <col style="width:110px">
+                  <col style="width:88px">
+                  <col style="width:76px">
+                  <col>
+                  <col style="width:52px; min-width:52px; max-width:52px;">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>
+                      <div class="kw-cb" id="select-all-cb" style="margin:0 auto;cursor:pointer;"></div>
+                    </th>
+                    <th>Keyword</th>
+                    <th>Sugg. Bid</th>
+                    <th>Default</th>
+                    <th>Bid Amount</th>
+                    <th style="text-align:center; position:relative; overflow:visible; padding-right:12px; width:52px; min-width:52px; max-width:52px;">
+                      <div class="col-config-wrap">
+                        <button class="col-config-btn" id="col-config-btn" aria-label="Configure columns">
+                          <svg viewBox="0 0 16.2316 16.2316" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.1158 8.11579C11.1158 9.77265 9.77265 11.1158 8.11579 11.1158C6.45894 11.1158 5.11579 9.77265 5.11579 8.11579C5.11579 6.45894 6.45894 5.11579 8.11579 5.11579C9.77265 5.11579 11.1158 6.45894 11.1158 8.11579ZM9.61579 8.11579C9.61579 8.94422 8.94422 9.61579 8.11579 9.61579C7.28736 9.61579 6.61579 8.94422 6.61579 8.11579C6.61579 7.28736 7.28736 6.61579 8.11579 6.61579C8.94422 6.61579 9.61579 7.28736 9.61579 8.11579Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.48133 0.645562C7.40099 -0.215187 8.8306 -0.215187 9.75025 0.645562L10.1457 1.01564C10.5689 1.41178 11.1216 1.64073 11.701 1.65989L12.2423 1.6778C13.5012 1.71946 14.5121 2.73034 14.5538 3.98928L14.5717 4.53056C14.5909 5.10996 14.8198 5.66267 15.2159 6.08593L15.586 6.48133C16.4468 7.40099 16.4468 8.8306 15.586 9.75025L15.2159 10.1457C14.8198 10.5689 14.5909 11.1216 14.5717 11.701L14.5538 12.2423C14.5121 13.5012 13.5012 14.5121 12.2423 14.5538L11.701 14.5717C11.1216 14.5909 10.5689 14.8198 10.1457 15.2159L9.75025 15.586C8.8306 16.4468 7.40099 16.4468 6.48133 15.586L6.08593 15.2159C5.66267 14.8198 5.10996 14.5909 4.53056 14.5717L3.98928 14.5538C2.73034 14.5121 1.71946 13.5012 1.6778 12.2423L1.65989 11.701C1.64073 11.1216 1.41178 10.5689 1.01564 10.1457L0.645562 9.75025C-0.215187 8.8306 -0.215187 7.40099 0.645562 6.48133L1.01564 6.08593C1.41178 5.66267 1.64073 5.10996 1.65989 4.53056L1.6778 3.98928C1.71946 2.73034 2.73034 1.71946 3.98928 1.6778L4.53056 1.65989C5.10996 1.64073 5.66267 1.41178 6.08593 1.01564L6.48133 0.645562ZM8.72525 1.74072L9.12065 2.11079C9.80933 2.75536 10.7087 3.12788 11.6514 3.15907L12.1927 3.17698C12.6621 3.19251 13.0391 3.56945 13.0546 4.03888L13.0725 4.58016C13.1037 5.52291 13.4762 6.42225 14.1208 7.11093L14.4909 7.50634C14.8118 7.84926 14.8118 8.38233 14.4909 8.72525L14.1208 9.12065C13.4762 9.80933 13.1037 10.7087 13.0725 11.6514L13.0546 12.1927C13.0391 12.6621 12.6621 13.0391 12.1927 13.0546L11.6514 13.0725C10.7087 13.1037 9.80933 13.4762 9.12065 14.1208L8.72525 14.4909C8.38233 14.8118 7.84926 14.8118 7.50634 14.4909L7.11093 14.1208C6.42225 13.4762 5.52291 13.1037 4.58016 13.0725L4.03888 13.0546C3.56945 13.0391 3.19251 12.6621 3.17698 12.1927L3.15907 11.6514C3.12788 10.7087 2.75536 9.80933 2.11079 9.12065L1.74072 8.72525C1.41976 8.38233 1.41976 7.84926 1.74072 7.50634L2.11079 7.11093C2.75536 6.42225 3.12788 5.52291 3.15907 4.58016L3.17698 4.03888C3.19251 3.56945 3.56945 3.19251 4.03888 3.17698L4.58016 3.15907C5.52291 3.12788 6.42225 2.75536 7.11093 2.11079L7.50634 1.74072C7.84926 1.41976 8.38233 1.41976 8.72525 1.74072Z" fill="currentColor"/></svg>
+                        </button>
+                        <div class="col-config-popover" id="col-config-popover" hidden>
+                          <div class="col-config-fixed">Keyword</div>
+                          <div class="col-config-section-label">Available columns</div>
+                          <div id="col-config-list"></div>
+                          <div class="col-config-footer">
+                            <button class="col-reset-btn" id="col-reset-btn">Reset Columns</button>
+                          </div>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="kw-right-tbody"></tbody>
+              </table>
+            </div>
+            </div><!-- /kw-right-inner -->
+          </div><!-- /kw-right -->
+
+        </div><!-- /kw-panels -->
+
+      </div><!-- /kw-panel-wrap -->
+      </div><!-- /keywords-section -->
+
+    </div><!-- /panel -->
+  </div>
+
+  <script>
+    /* ── Products ── */
+    const PRODUCTS = [
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$3.19', qty: '2 liter',  subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$2.75', qty: '2 liter',  subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$1.19', qty: '20 fl oz', subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$2.19', qty: '8 pk',     subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$3.45', qty: '12 pk',    subcom: 'Zero Sugar Soda' },
+    ];
+    function packshot() {
+      return `<div class="prod-img"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--ink-light)" stroke-width="1.5"/><path d="M2 10l3-3 2 2 3-4 4 5" stroke="var(--ink-light)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    }
+    document.getElementById('p-slim-tbody').replaceChildren(
+      ...PRODUCTS.map(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${packshot()}</td><td><div class="prod-name">${p.name}</div><div class="prod-upc">${p.upc}</div></td><td>${p.qty}</td><td>${p.subcom}</td><td>${p.price}</td>`;
+        return tr;
+      })
+    );
+    document.querySelectorAll('input[name="bid-type"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isKw = r.value === 'keywords';
+        document.getElementById('products-section').hidden = !isKw;
+        document.getElementById('keywords-section').hidden = !isKw;
+      });
+    });
+
+    /* ── Keyword data ── */
+    const KW_DATA = [
+      { kw: 'soft drinks',     tags: ['Drives Clicks', 'High Traffic'],                type: 'Recommended' },
+      { kw: 'soda',            tags: ['Defend', 'Previously Used'],                    type: 'Recommended' },
+      { kw: 'fizzy drinks',    tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'beverage',        tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'sugar free',      tags: ['Defend', 'Previously Used', 'High Traffic'],    type: 'Recommended' },
+      { kw: 'cola',            tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'diet soda',       tags: ['Competitive', 'High Traffic'],                  type: 'Recommended' },
+      { kw: 'sparkling water', tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'energy drink',    tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'zero calorie',    tags: ['Potential'],                                    type: 'Recommended' },
+    ];
+
+    const addedKws = new Map(); // kw -> Set<matchType>
+    const ALL_MATCH_TYPES = ['Exact', 'Phrase', 'Broad'];
+    const ALL_STRATEGIES  = [...new Set(KW_DATA.flatMap(k => k.tags))].sort();
+    const filterState = { strategies: new Set(), types: new Set(), matchTypes: new Set() };
+
+    const PAGE_SIZE = 5;
+    let currentPage = 1;
+
+    function getActiveMatchTypes() {
+      return ALL_MATCH_TYPES.filter(mt => document.getElementById('mt-' + mt.toLowerCase()).checked);
+    }
+
+    /* ── Badge counter ── */
+    function updateGroupBorders() {
+      const rtbody = document.getElementById('kw-right-tbody');
+      const BORDER = '1px solid var(--edge-dark)';
+      rtbody.querySelectorAll('tr.kw-detail-row').forEach(r => r.classList.remove('kw-group-last'));
+      rtbody.querySelectorAll('.kw-cb-cell, .kw-name-cell').forEach(c => c.style.borderBottom = 'none');
+      addedKws.forEach((_, kw) => {
+        const rows = [...rtbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kw)}"]`)];
+        const visibleRows = rows.filter(r => !r.hidden);
+        if (!visibleRows.length) return;
+        visibleRows[visibleRows.length - 1].classList.add('kw-group-last');
+        const spanRow = rows.find(r => r.querySelector('.kw-cb-cell'));
+        spanRow?.querySelector('.kw-cb-cell')?.style.setProperty('border-bottom', BORDER);
+        spanRow?.querySelector('.kw-name-cell')?.style.setProperty('border-bottom', BORDER);
+      });
+    }
+
+    function updateBadge() {
+      const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+      document.getElementById('kw-count-badge').textContent = totalBids;
+      const count = document.getElementById('kw-right-count');
+      count.innerHTML = `${totalBids} / 250 <span style="color:var(--ink-dark)">bids</span> <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--ink-light);vertical-align:middle;margin:0 4px"></span>${addedKws.size} <span style="color:var(--ink-dark)">keyword${addedKws.size !== 1 ? 's' : ''}</span>`;
+      document.getElementById('remove-all-btn').classList.toggle('active', addedKws.size > 0);
+      const atCap = totalBids >= 250;
+      const addAllBtn = document.getElementById('add-all-btn');
+      const addAllWrap = document.getElementById('add-all-wrap');
+      addAllBtn.disabled = atCap;
+      if (atCap) {
+        addAllWrap.dataset.tooltip = '250 keyword limit reached';
+      } else {
+        delete addAllWrap.dataset.tooltip;
+      }
+      const enterBtn = document.getElementById('kw-enter-btn');
+      const enterWrap = document.getElementById('enter-btn-wrap');
+      if (atCap) {
+        enterBtn.disabled = true;
+        enterWrap.dataset.tooltip = '250 keyword limit reached';
+      } else {
+        enterBtn.disabled = !document.getElementById('kw-custom-text')?.value.trim();
+        delete enterWrap.dataset.tooltip;
+      }
+    }
+
+    /* ── Pagination ── */
+    function renderPagination(totalItems) {
+      const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+      const pgEl = document.getElementById('kw-pagination');
+      pgEl.hidden = totalPages <= 1 || kwListWrap.hidden;
+      document.getElementById('pg-first').disabled = currentPage === 1;
+      document.getElementById('pg-prev').disabled  = currentPage === 1;
+      document.getElementById('pg-next').disabled  = currentPage === totalPages;
+      document.getElementById('pg-last').disabled  = currentPage === totalPages;
+      const pgNumbers = document.getElementById('pg-numbers');
+      pgNumbers.innerHTML = '';
+      for (let p = 1; p <= totalPages; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'pg-btn' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.addEventListener('click', () => { currentPage = p; renderLeftList(document.getElementById('kw-search').value); });
+        pgNumbers.appendChild(btn);
+      }
+      document.getElementById('pg-first').onclick = () => { currentPage = 1; renderLeftList(document.getElementById('kw-search').value); };
+      document.getElementById('pg-prev').onclick  = () => { if (currentPage > 1) { currentPage--; renderLeftList(document.getElementById('kw-search').value); } };
+      document.getElementById('pg-next').onclick  = () => { if (currentPage < totalPages) { currentPage++; renderLeftList(document.getElementById('kw-search').value); } };
+      document.getElementById('pg-last').onclick  = () => { currentPage = totalPages; renderLeftList(document.getElementById('kw-search').value); };
+    }
+
+    /* ── Left panel render ── */
+    function renderLeftList(filter = '') {
+      const q = filter.toLowerCase();
+      const filtered = KW_DATA.filter(k => {
+        const matchesSearch   = !q || k.kw.includes(q);
+        const matchesStrategy = filterState.strategies.size === 0 || k.tags.some(t => filterState.strategies.has(t));
+        return matchesSearch && matchesStrategy;
+      });
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const tbody = document.getElementById('kw-list-tbody');
+      tbody.innerHTML = '';
+      filtered.slice(start, start + PAGE_SIZE).forEach(k => {
+        const rank = KW_DATA.indexOf(k) + 1;
+        const added = addedKws.has(k.kw);
+        const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+        const atCap = totalBids >= 250;
+        const tr = document.createElement('tr');
+        const addDisabled = atCap;
+        const addClass = atCap ? 'add-btn cap-reached' : 'add-btn';
+        tr.innerHTML = `
+          <td style="text-align:center;color:var(--ink-darker)">${rank}</td>
+          <td style="color:var(--ink-primary)">${k.kw}</td>
+          <td><div class="tag-list">${k.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></td>
+          <td style="text-align:right"><span class="${addDisabled ? 'cap-tooltip-wrap' : ''}" ${addDisabled ? 'data-tooltip="250 keyword limit reached"' : ''}><button class="${addClass}" data-kw="${k.kw}" ${addDisabled ? 'disabled' : ''}>Add</button></span></td>`;
+        if (!addDisabled) tr.querySelector('.add-btn').addEventListener('click', () => addKeyword(k));
+        tbody.appendChild(tr);
+      });
+      renderPagination(filtered.length);
+    }
+
+    /* ── Filter right panel ── */
+    function filterRightPanel() {
+      const q = document.getElementById('kw-search').value.toLowerCase();
+      const tbody = document.getElementById('kw-right-tbody');
+
+      addedKws.forEach((mts, kw) => {
+        const kwVisible = !q || kw.toLowerCase().includes(q);
+        const rows = [...tbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kw)}"]`)];
+        if (!rows.length) return;
+
+        // determine visibility per row
+        const visible = rows.map(r => {
+          const mtVisible = filterState.matchTypes.size === 0 || filterState.matchTypes.has(r.dataset.mt);
+          return kwVisible && mtVisible;
+        });
+
+        const firstVisibleIdx = visible.indexOf(true);
+
+        // find where the spanning cells currently live
+        let spanRow = rows.find(r => r.querySelector('.kw-name-cell'));
+
+        // move spanning cells to first visible row (or keep on first row if all hidden)
+        const targetRow = firstVisibleIdx >= 0 ? rows[firstVisibleIdx] : rows[0];
+        if (spanRow && spanRow !== targetRow) {
+          const nameCell = spanRow.querySelector('.kw-name-cell');
+          const cbCell   = spanRow.querySelector('.kw-cb-cell');
+          // insert before the first td in target row
+          const firstTd = targetRow.querySelector('td');
+          if (cbCell)   targetRow.insertBefore(cbCell, firstTd);
+          if (nameCell) targetRow.insertBefore(nameCell, firstTd);
+        }
+
+        // update rowspan to match visible count
+        const visibleCount = visible.filter(Boolean).length || 1;
+        targetRow.querySelector('.kw-name-cell') && (targetRow.querySelector('.kw-name-cell').rowSpan = visibleCount);
+        targetRow.querySelector('.kw-cb-cell')   && (targetRow.querySelector('.kw-cb-cell').rowSpan   = visibleCount);
+
+        // show/hide rows
+        rows.forEach((r, i) => { r.hidden = !visible[i]; });
+      });
+
+      updateGroupBorders();
+    }
+
+    /* ── Add keyword ── */
+    // overrides: { mts: ['Exact',...], bids: { 'Exact': '1.25', ... } }
+    function addKeyword(k, skipRerender = false, overrides = null) {
+      const SUG = '$0.75';
+      const sugNum = 0.75;
+      const selectedMts = overrides?.mts?.length ? overrides.mts
+        : (getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad']);
+
+      if (!addedKws.has(k.kw)) addedKws.set(k.kw, new Set());
+      const existingMts = addedKws.get(k.kw);
+      const newMts = selectedMts.filter(mt => !existingMts.has(mt));
+      if (!newMts.length) {
+        if (!skipRerender) { renderLeftList(document.getElementById('kw-search').value); updateBadge(); filterRightPanel(); updateGroupBorders(); }
+        return;
+      }
+
+      const tbody = document.getElementById('kw-right-tbody');
+
+      /* find detail rows for this keyword */
+      function getDetailRows(kwName) {
+        return [...tbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kwName)}"]`)];
+      }
+
+      const isFirstAdd = !addedKws.has(k.kw) || getDetailRows(k.kw).length === 0;
+
+      newMts.forEach((mt, idx) => {
+        existingMts.add(mt);
+
+        const detailRow = document.createElement('tr');
+        detailRow.className = 'kw-detail-row';
+        detailRow.dataset.kw = k.kw;
+        detailRow.dataset.mt = mt;
+
+        const isFirstRow = isFirstAdd && idx === 0;
+        const cbCell = isFirstRow ? `<td class="kw-cb-cell" rowspan="1" style="vertical-align:top;padding-top:6px"><div class="kw-cb"></div></td>` : '';
+        const kwType = k.type || '';
+        const kwBadge = kwType ? `<span class="type-badge type-badge--${kwType.toLowerCase()}">${kwType}</span>` : '';
+        const kwCell = isFirstRow ? `<td class="kw-name-cell" rowspan="1"><div>${k.kw}</div>${kwBadge}</td>` : '';
+
+        detailRow.innerHTML = `
+          ${cbCell}
+          ${kwCell}
+          <td>
+            <div class="sug-cell">
+              <button class="sug-apply" data-mt="${mt}">${SUG}</button>
+            </div>
+          </td>
+          <td>
+            <button class="switch" data-on="false" aria-label="Use default (${mt})">
+              <div class="switch__knob"></div>
+            </button>
+          </td>
+          <td>
+            <div class="bid-cell">
+              <span class="mt-label">${mt}</span>
+              <div class="bid-input"><span class="dollar">$</span><input type="text" placeholder="" aria-label="${mt} bid"></div>
+            </div>
+          </td>
+          <td style="text-align:center">
+            <button class="bid-row-x" title="Remove ${mt}"><svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          </td>`;
+
+        const existingRows = getDetailRows(k.kw);
+        if (existingRows.length) {
+          existingRows[existingRows.length - 1].after(detailRow);
+        } else {
+          tbody.appendChild(detailRow);
+        }
+
+        /* update rowspan on keyword + cb cells */
+        const firstRow = getDetailRows(k.kw)[0];
+        const span = getDetailRows(k.kw).length;
+        const kwNameCell = firstRow && firstRow.querySelector('.kw-name-cell');
+        if (kwNameCell) kwNameCell.rowSpan = span;
+        const cbCell2 = firstRow && firstRow.querySelector('.kw-cb-cell');
+        if (cbCell2) cbCell2.rowSpan = span;
+
+        const sw        = detailRow.querySelector('.switch');
+        const bidWrap   = detailRow.querySelector('.bid-input');
+        const bidInput  = detailRow.querySelector('input');
+        const xBtn      = detailRow.querySelector('.bid-row-x');
+
+        // pre-fill bid from CSV overrides
+        if (overrides?.bids?.[mt]) {
+          bidInput.value = overrides.bids[mt];
+        }
+        const sugCell   = detailRow.querySelector('.sug-cell');
+        let applyBtn    = detailRow.querySelector('.sug-apply');
+
+        function updateSugCell() {
+          const val = parseFloat(bidInput.value);
+          const isStrong = !isNaN(val) && val > sugNum;
+          if (isStrong && applyBtn) {
+            sugCell.innerHTML = '<span class="strong-bid-badge">Strong Bid</span>';
+            applyBtn = null;
+          } else if (!isStrong && !applyBtn) {
+            sugCell.innerHTML = `<button class="sug-apply" data-mt="${mt}">${SUG}</button>`;
+            applyBtn = sugCell.querySelector('.sug-apply');
+            wireApply(applyBtn);
+          }
+        }
+
+        function wireApply(btn) {
+          btn.addEventListener('click', () => {
+            if (sw.dataset.on === 'true') return;
+            bidInput.value = sugNum.toFixed(2);
+            updateSugCell();
+          });
+        }
+        wireApply(applyBtn);
+        bidInput.addEventListener('input', updateSugCell);
+
+        // default to "use default" on unless a specific bid was provided
+        if (!overrides?.bids?.[mt]) {
+          sw.dataset.on = 'true';
+          bidInput.dataset.saved = bidInput.value;
+          bidInput.value = document.getElementById('default-bid-val').value || '1.00';
+          bidInput.disabled = true; bidWrap.classList.add('disabled');
+          if (applyBtn) applyBtn.disabled = true;
+        }
+
+        sw.addEventListener('click', () => {
+          const on = sw.dataset.on !== 'true';
+          sw.dataset.on = String(on);
+          if (on) {
+            bidInput.dataset.saved = bidInput.value;
+            bidInput.value = document.getElementById('default-bid-val').value || '1.00';
+            bidInput.disabled = true; bidWrap.classList.add('disabled');
+            if (applyBtn) applyBtn.disabled = true;
+          } else {
+            bidInput.value = bidInput.dataset.saved ?? '';
+            bidInput.disabled = false; bidWrap.classList.remove('disabled');
+            if (applyBtn) applyBtn.disabled = false;
+          }
+        });
+
+        xBtn.addEventListener('click', () => {
+          existingMts.delete(mt);
+          checkedBids.delete(bidKey(k.kw, mt));
+
+          /* if removing the first row, move cb + kw cells to the next row */
+          const remaining = getDetailRows(k.kw).filter(r => r !== detailRow);
+          const removingKwCell = detailRow.querySelector('.kw-name-cell');
+          const removingCbCell = detailRow.querySelector('.kw-cb-cell');
+          if (remaining.length) {
+            if (removingKwCell) remaining[0].insertBefore(removingKwCell, remaining[0].firstChild);
+            if (removingCbCell) remaining[0].insertBefore(removingCbCell, remaining[0].firstChild);
+          }
+
+          detailRow.remove();
+
+          if (!existingMts.size) {
+            addedKws.delete(k.kw);
+          } else {
+            const rem = getDetailRows(k.kw);
+            const span = rem.length;
+            const kwNameCell = rem[0] && rem[0].querySelector('.kw-name-cell');
+            if (kwNameCell) kwNameCell.rowSpan = span;
+            const cbCell2 = rem[0] && rem[0].querySelector('.kw-cb-cell');
+            if (cbCell2) cbCell2.rowSpan = span;
+          }
+          updateActionsBtn();
+          renderLeftList(document.getElementById('kw-search').value);
+          updateBadge(); updateGroupBorders();
+          filterRightPanel();
+        });
+      });
+
+      if (!skipRerender) {
+        renderLeftList(document.getElementById('kw-search').value);
+        updateBadge(); updateGroupBorders();
+        filterRightPanel();
+      }
+    }
+
+    /* ── Add All ── */
+    document.getElementById('add-all-btn').addEventListener('click', () => {
+      const q = document.getElementById('kw-search').value.toLowerCase();
+      KW_DATA.filter(k => !q || k.kw.includes(q)).forEach(k => { if (!addedKws.has(k.kw)) addKeyword(k, true); });
+      renderLeftList(document.getElementById('kw-search').value);
+      updateBadge(); updateGroupBorders();
+      filterRightPanel();
+    });
+
+    /* ── Remove All ── */
+    document.getElementById('remove-all-btn').addEventListener('click', () => {
+      if (!addedKws.size) return;
+      addedKws.clear();
+      checkedBids.clear();
+      document.getElementById('kw-right-tbody').innerHTML = '';
+      renderLeftList(document.getElementById('kw-search').value);
+      updateBadge(); updateGroupBorders();
+      syncHeaderCheckbox();
+      updateActionsBtn();
+    });
+
+    /* ── Search ── */
+    document.getElementById('kw-search').addEventListener('input', e => {
+      currentPage = 1;
+      renderLeftList(e.target.value);
+      filterRightPanel();
+    });
+
+    /* match type checkboxes only affect what gets added — no display side-effects */
+
+    /* ── Filter menu ── */
+    let strategyDraft = new Set();
+    let typeDraft = new Set();
+    let matchTypeDraft = new Set();
+    const filterMenuPopover = document.getElementById('filter-menu-popover');
+    const filterLevel1 = document.getElementById('filter-level-1');
+    const filterLevel2 = document.getElementById('filter-level-2');
+    const filterLevel3 = document.getElementById('filter-level-3');
+    const filterLevel4 = document.getElementById('filter-level-4');
+    const filtersBtn   = document.getElementById('filters-btn');
+
+    function openFilterMenu() {
+      strategyDraft = new Set(filterState.strategies);
+      typeDraft = new Set(filterState.types);
+      matchTypeDraft = new Set(filterState.matchTypes);
+      buildStrategyOptions();
+      filterLevel1.hidden = false; filterLevel2.hidden = true; filterLevel3.hidden = true; filterLevel4.hidden = true;
+      filterMenuPopover.hidden = false;
+    }
+    function closeFilterMenu() { filterMenuPopover.hidden = true; }
+
+    function buildStrategyOptions() {
+      const list = document.getElementById('strategy-options');
+      list.innerHTML = '';
+      ALL_STRATEGIES.forEach(tag => {
+        const label = document.createElement('label');
+        label.className = 'chip-dd-item';
+        label.innerHTML = `<input type="checkbox" ${strategyDraft.has(tag) ? 'checked' : ''}><span class="chip-mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${tag}`;
+        label.querySelector('input').addEventListener('change', cb => {
+          if (cb.target.checked) strategyDraft.add(tag); else strategyDraft.delete(tag);
+        });
+        list.appendChild(label);
+      });
+    }
+
+    function buildTypeOptions() {
+      const list = document.getElementById('type-options');
+      list.innerHTML = '';
+      ['Recommended', 'Manual'].forEach(type => {
+        const label = document.createElement('label');
+        label.className = 'chip-dd-item';
+        label.innerHTML = `<input type="checkbox" ${typeDraft.has(type) ? 'checked' : ''}><span class="chip-mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${type}`;
+        label.querySelector('input').addEventListener('change', cb => {
+          if (cb.target.checked) typeDraft.add(type); else typeDraft.delete(type);
+        });
+        list.appendChild(label);
+      });
+    }
+
+    function buildMatchTypeOptions() {
+      const list = document.getElementById('matchtype-options');
+      list.innerHTML = '';
+      ['Exact', 'Phrase', 'Broad'].forEach(mt => {
+        const label = document.createElement('label');
+        label.className = 'chip-dd-item';
+        label.innerHTML = `<input type="checkbox" ${matchTypeDraft.has(mt) ? 'checked' : ''}><span class="chip-mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${mt}`;
+        label.querySelector('input').addEventListener('change', cb => {
+          if (cb.target.checked) matchTypeDraft.add(mt); else matchTypeDraft.delete(mt);
+        });
+        list.appendChild(label);
+      });
+    }
+
+    filtersBtn.addEventListener('click', () => { filterMenuPopover.hidden ? openFilterMenu() : closeFilterMenu(); });
+    document.getElementById('filter-open-strategy').addEventListener('click', () => { filterLevel1.hidden = true; filterLevel2.hidden = false; filterLevel3.hidden = true; filterLevel4.hidden = true; });
+    document.getElementById('filter-open-type').addEventListener('click', () => { buildTypeOptions(); filterLevel1.hidden = true; filterLevel3.hidden = false; filterLevel2.hidden = true; filterLevel4.hidden = true; });
+    document.getElementById('filter-open-matchtype').addEventListener('click', () => { buildMatchTypeOptions(); filterLevel1.hidden = true; filterLevel4.hidden = false; filterLevel2.hidden = true; filterLevel3.hidden = true; });
+    document.getElementById('filter-back-btn').addEventListener('click', () => { filterLevel1.hidden = false; filterLevel2.hidden = true; });
+    document.getElementById('filter-back-btn-type').addEventListener('click', () => { filterLevel1.hidden = false; filterLevel3.hidden = true; });
+    document.getElementById('filter-back-btn-matchtype').addEventListener('click', () => { filterLevel1.hidden = false; filterLevel4.hidden = true; });
+    document.getElementById('filter-apply-btn').addEventListener('click', () => {
+      filterState.strategies = new Set(strategyDraft);
+      updateAppliedFilters();
+      currentPage = 1; renderLeftList(document.getElementById('kw-search').value); closeFilterMenu();
+    });
+    document.getElementById('filter-apply-type-btn').addEventListener('click', () => {
+      filterState.types = new Set(typeDraft);
+      updateAppliedFilters();
+      filterRightPanel(); closeFilterMenu();
+    });
+    document.getElementById('filter-apply-matchtype-btn').addEventListener('click', () => {
+      filterState.matchTypes = new Set(matchTypeDraft);
+      updateAppliedFilters();
+      filterRightPanel(); closeFilterMenu();
+    });
+    document.addEventListener('click', e => {
+      if (filterMenuPopover.hidden) return;
+      if (!document.getElementById('filter-menu-wrap').contains(e.target)) closeFilterMenu();
+    });
+
+    function updateAppliedFilters() {
+      const row = document.getElementById('applied-filters-row');
+      const chips = document.getElementById('applied-chips');
+      chips.innerHTML = '';
+
+      if (filterState.strategies.size > 0) {
+        const n = filterState.strategies.size;
+        const summary = n === 1 ? [...filterState.strategies][0] : `${n} selected`;
+        const chip = document.createElement('div');
+        chip.className = 'ac-chip';
+        chip.innerHTML = `<span class="ac-chip-label">Strategy</span><span class="ac-chip-sep"></span><span class="ac-chip-value">${summary}<button class="ac-chip-x" aria-label="Clear"><svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></span>`;
+        chip.querySelector('.ac-chip-x').addEventListener('click', () => {
+          filterState.strategies.clear(); updateAppliedFilters(); currentPage = 1; renderLeftList(document.getElementById('kw-search').value);
+        });
+        chips.appendChild(chip);
+      }
+
+      if (filterState.types.size > 0) {
+        const n = filterState.types.size;
+        const summary = n === 1 ? [...filterState.types][0] : `${n} selected`;
+        const chip = document.createElement('div');
+        chip.className = 'ac-chip';
+        chip.innerHTML = `<span class="ac-chip-label">Type</span><span class="ac-chip-sep"></span><span class="ac-chip-value">${summary}<button class="ac-chip-x" aria-label="Clear"><svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></span>`;
+        chip.querySelector('.ac-chip-x').addEventListener('click', () => {
+          filterState.types.clear(); updateAppliedFilters(); filterRightPanel();
+        });
+        chips.appendChild(chip);
+      }
+
+      if (filterState.matchTypes.size > 0) {
+        const n = filterState.matchTypes.size;
+        const summary = n === 1 ? [...filterState.matchTypes][0] : `${n} selected`;
+        const chip = document.createElement('div');
+        chip.className = 'ac-chip';
+        chip.innerHTML = `<span class="ac-chip-label">Match Type</span><span class="ac-chip-sep"></span><span class="ac-chip-value">${summary}<button class="ac-chip-x" aria-label="Clear"><svg viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></span>`;
+        chip.querySelector('.ac-chip-x').addEventListener('click', () => {
+          filterState.matchTypes.clear(); updateAppliedFilters(); filterRightPanel();
+        });
+        chips.appendChild(chip);
+      }
+
+      const hasAny = filterState.strategies.size > 0 || filterState.types.size > 0 || filterState.matchTypes.size > 0;
+      row.classList.toggle('visible', hasAny);
+      document.getElementById('filter-open-strategy').classList.toggle('has-selection', filterState.strategies.size > 0);
+      document.getElementById('filter-open-type').classList.toggle('has-selection', filterState.types.size > 0);
+      document.getElementById('filter-open-matchtype').classList.toggle('has-selection', filterState.matchTypes.size > 0);
+    }
+
+    document.getElementById('clear-filters-btn').addEventListener('click', () => {
+      strategyDraft.clear(); typeDraft.clear(); matchTypeDraft.clear();
+      filterState.strategies.clear(); filterState.types.clear(); filterState.matchTypes.clear();
+      updateAppliedFilters(); currentPage = 1;
+      renderLeftList(document.getElementById('kw-search').value);
+      filterRightPanel();
+    });
+
+    /* ── Tabs ── */
+    const kwListWrap    = document.getElementById('kw-list-wrap');
+    const kwPagination  = document.getElementById('kw-pagination');
+    const kwCustomPanel = document.getElementById('kw-custom-panel');
+
+    document.querySelectorAll('.kw-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.kw-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isSearch = tab.dataset.tab === 'search';
+        kwListWrap.hidden    = !isSearch;
+        kwPagination.hidden  = !isSearch;
+        kwCustomPanel.hidden =  isSearch;
+      });
+    });
+
+    /* ── File upload ── */
+    const MT_ALIASES = { exact: 'Exact', phrase: 'Phrase', broad: 'Broad' };
+    const uploadError = document.getElementById('upload-error');
+    document.querySelector('.kw-dropzone input[type="file"]').addEventListener('change', function () {
+      const file = this.files[0];
+      uploadError.hidden = true;
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const lines = e.target.result.split(/\r?\n/);
+        // group rows by keyword so we can collect all match types + bids together
+        const kwMap = new Map(); // kw -> { mts: [...], bids: { mt: val } }
+        lines.forEach(line => {
+          const parts = line.split(',').map(s => s.trim());
+          const kw = parts[0];
+          if (!kw || kw.toLowerCase() === 'keyword') return; // skip empty / header
+          const mtRaw = (parts[1] || '').toLowerCase();
+          const bidRaw = parts[2] || '';
+          const mt = MT_ALIASES[mtRaw] || null;
+          if (!kwMap.has(kw)) kwMap.set(kw, { mts: [], bids: {} });
+          const entry = kwMap.get(kw);
+          if (mt && !entry.mts.includes(mt)) {
+            entry.mts.push(mt);
+            if (bidRaw) entry.bids[mt] = parseFloat(bidRaw).toFixed(2);
+          } else if (!mt && !entry._noMtRow) {
+            entry._noMtRow = true; // keyword with no match type — will use checkbox defaults
+            if (bidRaw) entry._defaultBid = parseFloat(bidRaw).toFixed(2);
+          }
+        });
+        // count total bids the file would add
+        const activeMts = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+        let fileBidCount = 0;
+        kwMap.forEach(entry => {
+          fileBidCount += entry.mts.length || activeMts.length;
+        });
+        if (fileBidCount > 250) {
+          uploadError.hidden = false;
+          this.value = '';
+          return;
+        }
+
+        kwMap.forEach((entry, kw) => {
+          const existing = KW_DATA.find(k => k.kw === kw);
+          const k = existing || { kw, tags: [], type: 'Manual' };
+          const overrides = entry.mts.length ? { mts: entry.mts, bids: entry.bids } : null;
+          // if no match type but a bid was given, apply it across all selected match types
+          if (!entry.mts.length && entry._defaultBid) {
+            const mts = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+            const bids = {};
+            mts.forEach(mt => { bids[mt] = entry._defaultBid; });
+            addKeyword(k, true, { mts, bids });
+          } else {
+            addKeyword(k, true, overrides);
+          }
+        });
+        renderLeftList(document.getElementById('kw-search').value);
+        updateBadge(); updateGroupBorders(); filterRightPanel();
+        this.value = ''; // reset so same file can be re-uploaded
+      };
+      reader.readAsText(file);
+    });
+
+    /* ── Custom tab ── */
+    const kwCustomText = document.getElementById('kw-custom-text');
+    const kwEnterBtn   = document.getElementById('kw-enter-btn');
+    kwCustomText.addEventListener('input', () => { const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0); kwEnterBtn.disabled = totalBids >= 250 || !kwCustomText.value.trim(); });
+    kwEnterBtn.addEventListener('click', () => {
+      const VALID_MTS = ['Exact', 'Phrase', 'Broad'];
+      kwCustomText.value.trim().split('\n').forEach(line => {
+        const parts = line.split(',').map(s => s.trim());
+        if (!parts[0]) return;
+        const kw = parts[0];
+        const existing = KW_DATA.find(k => k.kw === kw);
+        const k = existing || { kw, tags: [], type: 'Manual' };
+
+        const rawMt = parts[1];
+        const rawBid = parts[2];
+        const matchedMt = rawMt ? VALID_MTS.find(m => m.toLowerCase() === rawMt.toLowerCase()) : null;
+
+        if (matchedMt) {
+          // specific MT (and optional bid) provided
+          const overrides = { mts: [matchedMt], bids: rawBid ? { [matchedMt]: rawBid } : {} };
+          addKeyword(k, true, overrides);
+        } else {
+          // keyword only — use checked match types, empty bids
+          addKeyword(k, true);
+        }
+      });
+      renderLeftList(document.getElementById('kw-search').value);
+      updateBadge();
+      filterRightPanel();
+      updateGroupBorders();
+      kwCustomText.value = ''; kwEnterBtn.disabled = true;
+    });
+
+    /* ── Checkboxes + Actions ── */
+    const checkedBids = new Set(); // key: `${kw}||${mt}`
+
+    function bidKey(kw, mt) { return `${kw}||${mt}`; }
+    function setCbState(el, on) { el.classList.toggle('checked', on); }
+
+    function updateActionsBtn() {
+      const btn = document.getElementById('actions-btn');
+      const has = checkedBids.size > 0;
+      btn.disabled = !has;
+      btn.classList.toggle('active', has);
+      btn.classList.toggle('chip-btn--muted', !has);
+      if (!has) document.getElementById('actions-popover').hidden = true;
+    }
+
+    function syncHeaderCheckbox() {
+      const tbody = document.getElementById('kw-right-tbody');
+      const allDetail = [...tbody.querySelectorAll('tr.kw-detail-row')];
+      const allOn = allDetail.length > 0 && allDetail.every(r => checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt)));
+      setCbState(document.getElementById('select-all-cb'), allOn);
+    }
+
+    document.getElementById('select-all-cb').addEventListener('click', () => {
+      const tbody = document.getElementById('kw-right-tbody');
+      const allDetail = [...tbody.querySelectorAll('tr.kw-detail-row')];
+      const anyUnchecked = allDetail.some(r => !checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt)));
+      allDetail.forEach(r => {
+        const key = bidKey(r.dataset.kw, r.dataset.mt);
+        if (anyUnchecked) checkedBids.add(key); else checkedBids.delete(key);
+        const cb2 = r.querySelector('.kw-cb');
+        if (cb2) setCbState(cb2, anyUnchecked);
+      });
+      setCbState(document.getElementById('select-all-cb'), anyUnchecked);
+      updateActionsBtn();
+    });
+
+    /* Delegated checkbox clicks on the right-panel tbody */
+    document.getElementById('kw-right-tbody').addEventListener('click', e => {
+      const cb = e.target.closest('.kw-cb');
+      if (!cb) return;
+      const detailRow = cb.closest('tr.kw-detail-row');
+      if (!detailRow) return;
+      const kw = detailRow.dataset.kw;
+      const tbody = document.getElementById('kw-right-tbody');
+      const kwRows = [...tbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kw)}"]`)];
+      const anyUnchecked = kwRows.some(r => !checkedBids.has(bidKey(kw, r.dataset.mt)));
+      kwRows.forEach(r => {
+        const key = bidKey(kw, r.dataset.mt);
+        if (anyUnchecked) checkedBids.add(key); else checkedBids.delete(key);
+      });
+      setCbState(cb, anyUnchecked);
+      syncHeaderCheckbox();
+      updateActionsBtn();
+    });
+
+    /* Actions dropdown */
+    const actionsBtn     = document.getElementById('actions-btn');
+    const actionsPopover = document.getElementById('actions-popover');
+
+    actionsBtn.addEventListener('click', () => {
+      if (actionsBtn.disabled) return;
+      actionsPopover.hidden = !actionsPopover.hidden;
+    });
+
+    document.addEventListener('click', e => {
+      if (!actionsPopover.hidden && !document.getElementById('actions-wrap').contains(e.target)) {
+        actionsPopover.hidden = true;
+      }
+    });
+
+    actionsPopover.addEventListener('click', e => {
+      const item = e.target.closest('[data-action]');
+      if (!item) return;
+      const action = item.dataset.action;
+      const tbody = document.getElementById('kw-right-tbody');
+
+      if (action === 'select-all') {
+        tbody.querySelectorAll('tr.kw-detail-row').forEach(r => {
+          const key = bidKey(r.dataset.kw, r.dataset.mt);
+          checkedBids.add(key);
+          setCbState(r.querySelector('.kw-cb'), true);
+        });
+        syncHeaderCheckbox();
+      } else if (action === 'deselect-all') {
+        checkedBids.clear();
+        tbody.querySelectorAll('.kw-cb').forEach(cb => setCbState(cb, false));
+        syncHeaderCheckbox();
+      } else if (action === 'copy-selected') {
+        const kws = [...new Set([...checkedBids].map(key => key.split('||')[0]))];
+        navigator.clipboard.writeText(kws.join(', '));
+      } else if (action === 'use-default') {
+        const def = document.getElementById('default-bid-val')?.value || '1.00';
+        tbody.querySelectorAll('tr.kw-detail-row').forEach(r => {
+          if (!checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt))) return;
+          const input = r.querySelector('input[type="text"]');
+          const sw = r.querySelector('.switch');
+          if (input && sw) { sw.dataset.on = 'true'; input.value = def; input.disabled = true; r.querySelector('.bid-input')?.classList.add('disabled'); }
+        });
+      } else if (action === 'use-suggested') {
+        tbody.querySelectorAll('tr.kw-detail-row').forEach(r => {
+          if (!checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt))) return;
+          const input = r.querySelector('input[type="text"]');
+          if (input && !input.disabled) input.value = '0.75';
+        });
+      } else if (action === 'enter-bid') {
+        const val = prompt('Enter new bid amount:', '');
+        if (val === null) { actionsPopover.hidden = true; return; }
+        const num = parseFloat(val);
+        if (isNaN(num)) { actionsPopover.hidden = true; return; }
+        tbody.querySelectorAll('tr.kw-detail-row').forEach(r => {
+          if (!checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt))) return;
+          const input = r.querySelector('input[type="text"]');
+          if (input && !input.disabled) input.value = num.toFixed(2);
+        });
+      } else if (action === 'remove') {
+        tbody.querySelectorAll('tr.kw-detail-row').forEach(r => {
+          if (!checkedBids.has(bidKey(r.dataset.kw, r.dataset.mt))) return;
+          checkedBids.delete(bidKey(r.dataset.kw, r.dataset.mt));
+          const kw = r.dataset.kw, mt = r.dataset.mt;
+          const kwSet = addedKws.get(kw);
+          if (kwSet) { kwSet.delete(mt); if (!kwSet.size) addedKws.delete(kw); }
+
+          const beforeRemove = [...tbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kw)}"]`)].filter(x => x !== r);
+          const removingKwCell = r.querySelector('.kw-name-cell');
+          const removingCbCell = r.querySelector('.kw-cb-cell');
+          if (beforeRemove.length) {
+            if (removingKwCell) beforeRemove[0].insertBefore(removingKwCell, beforeRemove[0].firstChild);
+            if (removingCbCell) beforeRemove[0].insertBefore(removingCbCell, beforeRemove[0].firstChild);
+          }
+          r.remove();
+
+          const remaining = [...tbody.querySelectorAll(`tr.kw-detail-row[data-kw="${CSS.escape(kw)}"]`)];
+          const kwNameCell = remaining[0]?.querySelector('.kw-name-cell');
+          if (kwNameCell) kwNameCell.rowSpan = remaining.length;
+          const cbCell2 = remaining[0]?.querySelector('.kw-cb-cell');
+          if (cbCell2) cbCell2.rowSpan = remaining.length;
+        });
+        updateBadge(); updateGroupBorders();
+        renderLeftList(document.getElementById('kw-search').value);
+        syncHeaderCheckbox();
+      }
+
+      updateActionsBtn();
+      actionsPopover.hidden = true;
+    });
+
+    /* ── Column config ── */
+    const COL_DEFS = [
+      { key: 'suggested',  label: 'Suggested Bid', cssClass: 'hide-col-suggested',  default: true },
+      { key: 'useDefault', label: 'Use Default',   cssClass: 'hide-col-usedefault', default: true },
+    ];
+    const colState = { suggested: true, useDefault: true };
+    const DRAG_ICON = `<svg viewBox="0 0 12 12" fill="currentColor"><circle cx="4" cy="2" r="1"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="10" r="1"/><circle cx="8" cy="2" r="1"/><circle cx="8" cy="6" r="1"/><circle cx="8" cy="10" r="1"/></svg>`;
+
+    function applyColState() {
+      const table = document.querySelector('.kw-right-table');
+      COL_DEFS.forEach(def => table.classList.toggle(def.cssClass, !colState[def.key]));
+    }
+
+    function buildColConfig() {
+      const list = document.getElementById('col-config-list');
+      list.innerHTML = '';
+      COL_DEFS.forEach(def => {
+        const row = document.createElement('div');
+        row.className = 'col-config-row';
+        row.innerHTML = `
+          <span class="col-drag-handle">${DRAG_ICON}</span>
+          <span class="col-config-name">${def.label}</span>
+          <button class="switch" data-on="${colState[def.key]}" aria-label="Toggle ${def.label}">
+            <div class="switch__knob"></div>
+          </button>`;
+        row.querySelector('.switch').addEventListener('click', function() {
+          const on = this.dataset.on !== 'true';
+          this.dataset.on = String(on);
+          colState[def.key] = on;
+          applyColState();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    const colConfigBtn     = document.getElementById('col-config-btn');
+    const colConfigPopover = document.getElementById('col-config-popover');
+
+    colConfigBtn.addEventListener('click', () => {
+      const isOpen = !colConfigPopover.hidden;
+      colConfigPopover.hidden = isOpen;
+      colConfigBtn.classList.toggle('open', !isOpen);
+      if (!isOpen) buildColConfig();
+    });
+
+    document.getElementById('col-reset-btn').addEventListener('click', () => {
+      COL_DEFS.forEach(def => { colState[def.key] = def.default; });
+      applyColState();
+      buildColConfig();
+    });
+
+    document.addEventListener('click', e => {
+      if (colConfigPopover.hidden) return;
+      if (!colConfigBtn.closest('.col-config-wrap').contains(e.target)) {
+        colConfigPopover.hidden = true;
+        colConfigBtn.classList.remove('open');
+      }
+    });
+
+    /* ── Export ── */
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const tbody = document.getElementById('kw-right-tbody');
+      const rows = [...tbody.querySelectorAll('tr.kw-detail-row')];
+
+      const csvRows = [['Keyword', 'Match Type', 'Bid Amount']];
+      rows.forEach(row => {
+        const kw = row.dataset.kw;
+        const mt = row.dataset.mt;
+        const sw = row.querySelector('.switch');
+        const useDefault = sw && sw.dataset.on === 'true';
+        const bidInput = row.querySelector('.bid-input input');
+        const bidVal = useDefault
+          ? 'Default'
+          : (bidInput && bidInput.value.trim() ? '$' + bidInput.value.trim() : '');
+        csvRows.push([kw, mt, bidVal]);
+      });
+
+      const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bid_export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    /* ── Default bid sync ── */
+    document.getElementById('default-bid-val').addEventListener('input', function() {
+      const val = this.value;
+      document.querySelectorAll('#kw-right-tbody .switch[data-on="true"]').forEach(sw => {
+        const bidInput = sw.closest('tr')?.querySelector('.bid-input input');
+        if (bidInput) bidInput.value = val;
+      });
+    });
+
+    /* ── Panel collapse ── */
+    (function() {
+      const leftPanel  = document.getElementById('kw-left');
+      const rightPanel = document.getElementById('kw-right');
+
+      function collapseLeft() {
+        leftPanel.classList.add('collapsed');
+      }
+      function expandLeft() {
+        leftPanel.classList.remove('collapsed');
+      }
+      function collapseRight() {
+        rightPanel.classList.add('collapsed');
+      }
+      function expandRight() {
+        rightPanel.classList.remove('collapsed');
+      }
+
+      document.getElementById('kw-left-collapse').addEventListener('click', collapseLeft);
+      document.getElementById('kw-left-expand').addEventListener('click', expandLeft);
+      document.getElementById('kw-right-collapse').addEventListener('click', collapseRight);
+      document.getElementById('kw-right-expand').addEventListener('click', expandRight);
+    })();
+
+    /* ── Init ── */
+    renderLeftList();
+    updateBadge(); updateGroupBorders();
+
+  </script>
+</body>
+</html>

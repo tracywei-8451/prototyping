@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figma — Instore KAP</title>
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root { --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { display: flex; flex-direction: column; background: #1a1a2e; font-family: var(--font); }
+
+    .version-bar {
+      position: relative;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .back-to-library {
+      position: absolute;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px;
+      border-radius: 4px; border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="version-bar">
+    <a class="back-to-library" href="../../index.html">← Library</a>
+    <a class="version-tab" href="index.html">Prototype</a>
+    <a class="version-tab active" href="figma.html">Figma</a>
+  </div>
+
+  <iframe
+    src="https://embed.figma.com/design/bl6Xyp4ExQFDOT7cL9Rv2g/In-Store-KAP?node-id=7-30&t=uJHKqOFoAzIjrh9G-1&embed-host=share"
+    allowfullscreen
+  ></iframe>
+
+</body>
+</html>

@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bid Management — Single Page</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --ink-primary:    #20203c;
+      --ink-darker:     #535665;
+      --ink-dark:       #888b9a;
+      --ink-light:      #b8bec6;
+      --surface-primary:  #ffffff;
+      --surface-light:    #eff2f5;
+      --surface-lighter:  #f8f9fa;
+      --surface-dark:     #e9ecf1;
+      --edge-lighter: #e7eaee;
+      --edge-light:   #dadde1;
+      --edge-primary: #d1d5db;
+      --edge-dark:    #c7cad1;
+      --accent-primary:   #2874c1;
+      --accent-lightest:  #f0f7ff;
+      --accent-lighter:   #c3daf2;
+      --brand-primary:    #8451ec;
+      --brand-lightest:   #f8f8fe;
+      --radius-sm:  4px;
+      --radius-md:  8px;
+      --radius-lg:  16px;
+      --radius-xxl: 32px;
+      --shadow-sm:
+        0 1px 4px rgba(33,35,44,.08),
+        0 0   1px rgba(33,35,44,.04),
+        0 1px 1px 1px rgba(33,35,44,.04);
+      --font: "Limitless Sans", "Inter", -apple-system, system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4286;
+      color: var(--ink-primary);
+      background: var(--surface-light);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "lnum" 1, "pnum" 1;
+    }
+
+    /* ── Version bar ── */
+    .version-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 36px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      z-index: 200;
+    }
+    .back-to-library {
+      position: absolute;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      line-height: 1;
+      transition: color 120ms;
+    }
+    .back-to-library:hover { color: rgba(255,255,255,0.85); }
+
+    .version-tab {
+      display: inline-flex; align-items: center;
+      height: 24px; padding: 0 12px; border-radius: 4px;
+      border: none; background: transparent;
+      color: rgba(255,255,255,0.5); font-family: var(--font);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; text-decoration: none; cursor: pointer;
+    }
+    .version-tab:hover { color: rgba(255,255,255,0.8); }
+    .version-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* ── Page body ── */
+    .page-body {
+      margin-top: 36px;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 960px;
+    }
+
+    /* ── Panel header ── */
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header-left { display: flex; align-items: center; gap: 4px; }
+    .panel-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; line-height: 28px; }
+
+    .icon-btn {
+      border: none; background: transparent; padding: 0;
+      width: 20px; height: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--ink-dark); border-radius: var(--radius-md); flex-shrink: 0;
+    }
+    .icon-btn:hover { color: var(--ink-primary); }
+    .icon-btn svg { width: 16px; height: 16px; display: block; }
+    .icon-btn--accent { color: var(--accent-primary); }
+    .icon-btn--accent:hover { color: #1a5fa8; }
+
+    /* ── Default bid chip ── */
+    .default-bid {
+      display: flex; align-items: center;
+      background: var(--surface-primary);
+      border: 1px solid var(--edge-lighter);
+      border-radius: var(--radius-md);
+      height: 36px;
+    }
+    .default-bid__label {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px; font-size: 14px; font-weight: 500;
+      letter-spacing: -0.14px; white-space: nowrap;
+    }
+    .default-bid__sep { width: 1px; height: 24px; background: var(--edge-lighter); flex-shrink: 0; }
+    .default-bid__value {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 8px; font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+
+    /* ── Radio ── */
+    .form-field { display: flex; flex-direction: column; gap: 8px; }
+    .form-label { font-size: 14px; font-weight: 700; letter-spacing: -0.14px; }
+    .radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .radio-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-circle {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--edge-dark); background: var(--surface-primary);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: border-color 120ms, background 120ms;
+    }
+    .radio-circle::after {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: white; opacity: 0; transition: opacity 120ms;
+    }
+    .radio-input:checked + .radio-circle { background: var(--accent-primary); border-color: var(--accent-primary); }
+    .radio-input:checked + .radio-circle::after { opacity: 1; }
+    .radio-label-text { font-size: 14px; font-weight: 400; letter-spacing: -0.14px; }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--edge-lighter); margin: 0 -32px; }
+
+    /* ── Section ── */
+    .section { display: flex; flex-direction: column; gap: 16px; }
+    .section-title-row { display: flex; align-items: center; justify-content: space-between; }
+    .section-title-left { display: flex; align-items: center; gap: 8px; }
+    .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.12px; line-height: 22px; }
+    .section-desc { font-size: 14px; color: var(--ink-darker); letter-spacing: -0.14px; line-height: 20px; margin-top: 4px; }
+
+    /* ── Badge ── */
+    .badge {
+      background: var(--surface-dark);
+      border-radius: var(--radius-xxl);
+      padding: 4px 8px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: -0.06px; line-height: 16px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; padding: 10px 16px;
+      border-radius: var(--radius-md); cursor: pointer;
+      white-space: nowrap; transition: background 120ms;
+    }
+    .btn-outline {
+      border: 1px solid var(--accent-primary);
+      background: transparent; color: var(--accent-primary);
+    }
+    .btn-outline:hover { background: rgba(40,116,193,.07); }
+    .btn-ghost {
+      border: none; background: transparent; color: var(--accent-primary);
+    }
+    .btn-ghost:hover { background: rgba(40,116,193,.07); }
+    .btn-primary {
+      border: 1px solid var(--accent-primary);
+      background: var(--accent-primary); color: #fff;
+    }
+    .btn-primary:hover { background: #1f5fa8; border-color: #1f5fa8; }
+
+    /* ── Controls row ── */
+    .controls-row { display: flex; align-items: center; justify-content: space-between; }
+    .btn-group { display: flex; gap: 8px; }
+
+    /* ── Search ── */
+    .search-wrap { position: relative; flex: 1; }
+    .search-icon {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; color: var(--ink-dark); pointer-events: none;
+    }
+    .search-input {
+      width: 100%; height: 32px; padding: 6px 12px 6px 32px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      font: inherit; font-size: 14px; color: var(--ink-primary); background: var(--surface-primary);
+    }
+    .search-input::placeholder { color: var(--ink-dark); }
+    .search-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; color: var(--ink-darker);
+      border-bottom: 1px solid var(--edge-dark);
+      padding: 14px 16px; white-space: nowrap; vertical-align: middle;
+    }
+    td { border-bottom: 1px solid var(--edge-lighter); padding: 14px 16px; vertical-align: top; color: var(--ink-darker); }
+
+    /* ── Slim products table ── */
+    .prod-slim td { vertical-align: middle; height: 72px; padding: 0 8px; }
+    .prod-slim th { padding: 14px 8px; }
+
+    .prod-img {
+      width: 32px; height: 32px; border-radius: 4px;
+      background: var(--surface-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .prod-name { font-size: 14px; color: var(--ink-darker); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+    .prod-upc  { font-size: 12px; color: var(--ink-dark); letter-spacing: -0.06px; }
+
+    /* ── Sub-commodities ── */
+    .subcoms-title {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 18px; font-weight: 600; letter-spacing: -0.12px;
+    }
+    .subcom-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .subcom-tag {
+      display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+      border-radius: 12px; border: 1px solid var(--edge-lighter);
+      background: var(--surface-primary); font-size: 12px; font-weight: 600;
+      letter-spacing: -0.06px; color: var(--ink-darker);
+    }
+
+    /* ══════════════════════════════════════
+       TWO-PANEL KEYWORD SELECTOR
+    ══════════════════════════════════════ */
+
+    .kw-panel-wrap {
+      border: 1px solid var(--edge-primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      overflow: hidden;
+      min-height: 480px;
+    }
+
+    /* ── Left panel ── */
+    .kw-left {
+      width: 380px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--edge-primary);
+    }
+
+    /* Tabs */
+    .kw-tabs {
+      height: 56px;
+      background: var(--surface-primary);
+      display: flex;
+      align-items: flex-end;
+      padding: 0 24px;
+      gap: 24px;
+      border-bottom: 1px solid var(--edge-light);
+    }
+    .kw-tab {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 16px;
+      gap: 8px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--ink-darker);
+      cursor: pointer;
+      letter-spacing: -0.14px;
+      white-space: nowrap;
+      transition: color 120ms, border-color 120ms;
+    }
+    .kw-tab.active {
+      font-weight: 700;
+      color: var(--ink-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+    .kw-tab:hover:not(.active) { color: var(--ink-primary); }
+
+    /* Search + filters area */
+    .kw-search-area {
+      background: var(--surface-primary);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-bottom: 1px solid var(--edge-light);
+    }
+
+    /* Strategy chip */
+    .chip-row { display: flex; align-items: center; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 32px; padding: 0 16px;
+      border: 1px solid var(--edge-light); border-radius: var(--radius-md);
+      background: var(--surface-primary); font: inherit; font-size: 14px;
+      font-weight: 600; letter-spacing: -0.14px; color: var(--ink-darker);
+      cursor: pointer; white-space: nowrap;
+    }
+    .chip:hover { background: var(--surface-lighter); }
+    .chip svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .chip-clear {
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--ink-light); background: none; border: none; cursor: default;
+      padding: 0 8px; white-space: nowrap;
+    }
+    .chip-clear.active { color: var(--ink-darker); cursor: pointer; }
+    .chip-clear.active:hover { color: var(--ink-primary); }
+
+    /* Match Type row */
+    .match-type-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .match-type-label-txt {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink-darker);
+      letter-spacing: -0.14px;
+    }
+    .match-type-checks {
+      display: flex;
+      gap: 16px;
+    }
+    .mt-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      color: var(--ink-darker);
+      letter-spacing: -0.14px;
+    }
+    .mt-check input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .mds-check {
+      width: 16px; height: 16px; border-radius: 3px;
+      border: 1.5px solid var(--edge-primary); background: var(--surface-primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .12s, border-color .12s; flex-shrink: 0;
+    }
+    .mds-check svg { width: 10px; height: 10px; display: none; }
+    .mt-check input[type="checkbox"]:checked + .mds-check {
+      background: var(--accent-primary); border-color: var(--accent-primary);
+    }
+    .mt-check input[type="checkbox"]:checked + .mds-check svg { display: block; }
+
+    /* Keyword list table (left) */
+    .kw-list-wrap {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .kw-list-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      overflow: hidden;
+    }
+    .kw-list-table colgroup col:nth-child(1) { width: 56px; }
+    .kw-list-table colgroup col:nth-child(2) { width: 154px; }
+    .kw-list-table colgroup col:nth-child(3) { } /* flex */
+    .kw-list-table colgroup col:nth-child(4) { width: 72px; }
+
+    .kw-list-table th {
+      font-size: 14px; font-weight: 600; color: var(--ink-darker);
+      letter-spacing: -0.14px; padding: 14px 16px;
+      border-bottom: 1px solid var(--edge-dark);
+      white-space: nowrap; background: var(--surface-primary);
+      position: sticky; top: 0; z-index: 2;
+    }
+    .kw-list-table td {
+      font-size: 14px; color: var(--ink-darker);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--edge-lighter);
+      vertical-align: middle;
+    }
+    .kw-list-table th:first-child,
+    .kw-list-table td:first-child { text-align: center; padding: 14px 8px; }
+    .kw-list-table th:last-child,
+    .kw-list-table td:last-child { text-align: right; padding: 12px 12px 12px 4px; }
+
+    .rank-num {
+      font-size: 14px; color: var(--ink-darker); text-align: center;
+    }
+    .kw-name { font-size: 14px; color: var(--ink-primary); }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag {
+      display: inline-flex; align-items: center;
+      background: var(--surface-light); border-radius: var(--radius-sm);
+      padding: 2px 6px; font-size: 12px; line-height: 16px;
+      letter-spacing: -0.06px; white-space: nowrap; color: var(--ink-primary);
+    }
+
+    /* Add button (left panel) */
+    .add-btn {
+      display: inline-block;
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      padding: 0 12px; height: 28px;
+      border: none; border-radius: var(--radius-sm);
+      cursor: pointer; white-space: nowrap; transition: background 120ms;
+      color: var(--accent-primary); background: transparent;
+    }
+    .add-btn:hover { background: rgba(40,116,193,.07); }
+    .add-btn.added {
+      color: var(--ink-light);
+      cursor: default;
+    }
+    .add-btn.added:hover { background: transparent; }
+
+    /* ── Custom tab panel ── */
+    .kw-custom-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px 16px;
+      overflow-y: auto;
+    }
+    .kw-custom-section { display: flex; flex-direction: column; gap: 10px; }
+    .kw-section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 24px;
+    }
+    .kw-section-label {
+      font-size: 14px; font-weight: 600; color: var(--ink-primary);
+      letter-spacing: -0.14px; display: flex; align-items: center; gap: 6px;
+    }
+    .kw-csv-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; padding: 4px 0;
+      font: inherit; font-size: 13px; font-weight: 600;
+      color: var(--accent-primary); cursor: pointer; letter-spacing: -0.06px;
+    }
+    .kw-csv-link:hover { color: #1f5fa8; text-decoration: underline; }
+    .kw-csv-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .kw-dropzone {
+      border: 1px dashed var(--edge-primary);
+      border-radius: var(--radius-md);
+      background: var(--surface-primary);
+      padding: 24px 16px;
+      min-height: 100px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; text-align: center; cursor: pointer;
+      transition: background 120ms, border-color 120ms;
+    }
+    .kw-dropzone:hover,
+    .kw-dropzone.is-dragover {
+      background: var(--accent-lightest);
+      border-color: var(--accent-primary);
+    }
+    .kw-dropzone .filetypes { font-size: 13px; color: var(--ink-dark); }
+    .kw-dropzone .drop-action {
+      font-size: 13px; font-weight: 600; color: var(--accent-primary);
+      background: none; border: none; padding: 0; cursor: pointer;
+    }
+    .kw-dropzone .drop-action:hover { text-decoration: underline; }
+    .kw-textarea {
+      width: 100%; min-height: 110px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      padding: 10px 12px; font: inherit; font-size: 13px;
+      line-height: 1.5; color: var(--ink-primary); resize: vertical;
+      background: var(--surface-primary); outline: none;
+    }
+    .kw-textarea::placeholder { color: var(--ink-dark); }
+    .kw-textarea:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+    .kw-custom-actions {
+      display: flex; justify-content: flex-end;
+      margin-top: auto; padding-top: 4px;
+    }
+    .kw-enter-btn {
+      font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: -0.14px; padding: 8px 16px;
+      border: 1px solid var(--accent-primary); border-radius: var(--radius-md);
+      color: var(--accent-primary); background: var(--surface-primary); cursor: pointer;
+    }
+    .kw-enter-btn:hover:not(:disabled) { background: var(--accent-lightest); }
+    .kw-enter-btn:disabled { border-color: var(--edge-dark); color: var(--ink-light); cursor: default; }
+
+    /* Add All header btn */
+    .add-all-btn {
+      background: none; border: none; font: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--accent-primary); cursor: pointer; padding: 0;
+    }
+    .add-all-btn:hover { color: #1f5fa8; }
+
+    /* ── Right panel ── */
+    .kw-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-lighter);
+    }
+
+    .kw-right-header {
+      background: var(--surface-primary);
+      padding: 0 24px;
+      border-bottom: 1px solid var(--edge-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      flex-shrink: 0;
+    }
+    .kw-right-count {
+      font-size: 14px; font-weight: 700; color: var(--ink-darker); letter-spacing: -0.14px;
+    }
+
+    /* Selected keyword rows (right panel) */
+    .kw-right-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .kw-right-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: var(--surface-primary);
+    }
+    .kw-right-table th {
+      font-size: 14px; font-weight: 600; color: var(--ink-darker);
+      letter-spacing: -0.14px; padding: 14px 16px;
+      border-bottom: 1px solid var(--edge-dark);
+      white-space: nowrap; background: var(--surface-primary);
+      position: sticky; top: 0; z-index: 2;
+    }
+    .kw-right-table td {
+      font-size: 14px; color: var(--ink-darker);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--edge-lighter);
+      vertical-align: top;
+    }
+    /* ── Right panel: match type rows ── */
+    .mt-rows { display: flex; flex-direction: column; gap: 8px; }
+    .mt-row  { display: flex; align-items: center; height: 24px; }
+
+    .mt-bid-label {
+      font-size: 12px; color: var(--ink-darker); letter-spacing: -0.06px; flex-shrink: 0;
+    }
+
+    /* Suggested bid cell */
+    .sug-rows { display: flex; flex-direction: column; gap: 8px; }
+    .sug-row  { display: flex; align-items: center; gap: 6px; height: 24px; }
+    .sug-price { font-size: 14px; color: var(--ink-darker); line-height: 20px; white-space: nowrap; }
+    .sug-apply {
+      font: inherit; font-size: 14px; color: var(--accent-primary);
+      background: none; border: none; padding: 0;
+      cursor: pointer; font-family: inherit;
+    }
+    .sug-apply:hover { color: #1f5fa8; }
+    .sug-apply:disabled { color: var(--ink-light); cursor: default; }
+
+    /* Strong Bid badge */
+    .strong-bid-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #e4f6ed; border-radius: 100px;
+      padding: 0 12px; height: 24px;
+      font-size: 13px; font-weight: 700; letter-spacing: -0.06px;
+      color: #2c7a52; white-space: nowrap;
+    }
+
+    /* Use Default switch column */
+    .switch-rows { display: flex; flex-direction: column; gap: 8px; }
+    .switch-row  { display: flex; align-items: center; height: 24px; }
+    .switch {
+      display: flex; align-items: center;
+      width: 40px; height: 20px; border-radius: 100px;
+      padding: 4px; cursor: pointer; border: none;
+      transition: background 150ms; flex-shrink: 0;
+    }
+    .switch[data-on="false"] { background: var(--ink-light); justify-content: flex-start; }
+    .switch[data-on="true"]  { background: var(--accent-primary); justify-content: flex-end; }
+    .switch__knob {
+      width: 12px; height: 12px; border-radius: 100px;
+      background: white; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    }
+
+    /* Bid amount column */
+    .bid-rows { display: flex; flex-direction: column; gap: 8px; }
+    .bid-row  { display: flex; align-items: center; gap: 6px; height: 24px; }
+    .bid-row .mt-bid-label { flex: 1; }
+    .bid-row-x {
+      background: none; border: none; cursor: pointer; padding: 0;
+      color: var(--ink-light); display: flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; flex-shrink: 0;
+    }
+    .bid-row-x:hover { color: var(--ink-darker); }
+    .bid-row-x svg { width: 10px; height: 10px; display: block; }
+    .bid-input {
+      display: flex; align-items: center;
+      width: 76px; height: 24px; padding: 0 6px;
+      border: 1px solid var(--edge-dark); border-radius: var(--radius-md);
+      background: var(--surface-primary); font: inherit; font-size: 14px;
+      color: var(--ink-dark); flex-shrink: 0;
+    }
+    .bid-input.disabled { background: var(--surface-lighter); }
+    .bid-input .dollar { flex-shrink: 0; margin-right: 1px; font-size: 14px; color: var(--ink-dark); }
+    .bid-input input {
+      border: none; background: transparent; font: inherit; font-size: 14px;
+      color: inherit; width: 100%; padding: 0; min-width: 0;
+    }
+    .bid-input.disabled input { color: var(--ink-light); }
+    .bid-input input:focus { outline: none; }
+    .bid-input:not(.disabled):focus-within { border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(40,116,193,.18); }
+
+    /* Remove row btn */
+    .remove-kw-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--ink-light); padding: 0; display: flex;
+      align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+    }
+    .remove-kw-btn:hover { color: var(--ink-darker); }
+    .remove-kw-btn svg { width: 12px; height: 12px; display: block; }
+
+    /* Remove All btn */
+    .remove-all-btn {
+      background: none; border: none; font: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: -0.14px;
+      color: var(--ink-light); cursor: default; padding: 0;
+    }
+    .remove-all-btn.active { color: var(--accent-primary); cursor: pointer; }
+    .remove-all-btn.active:hover { color: #1f5fa8; }
+
+    [hidden] { display: none !important; }
+
+    /* ── Panel collapse ── */
+    .kw-left, .kw-right { transition: width 200ms ease, flex 200ms ease; }
+
+    .kw-collapse-btn {
+      background: none; border: none; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: var(--radius-sm);
+      color: var(--ink-dark); flex-shrink: 0;
+    }
+    .kw-collapse-btn:hover { background: var(--surface-dark); color: var(--ink-primary); }
+    .kw-collapse-btn svg { width: 16px; height: 16px; display: block; transition: transform 200ms; }
+
+    .kw-left.collapsed {
+      width: 36px;
+      min-width: 36px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .kw-right.collapsed {
+      flex: none;
+      width: 36px;
+      min-width: 36px;
+      overflow: hidden;
+    }
+
+    .kw-collapsed-strip {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .kw-collapsed-strip:hover { background: var(--surface-light); }
+    .kw-collapsed-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 13px; font-weight: 600;
+      color: var(--ink-dark); letter-spacing: -0.06px;
+      white-space: nowrap; user-select: none;
+    }
+    .kw-collapsed-expand {
+      color: var(--ink-light);
+    }
+    .kw-collapsed-expand svg { width: 16px; height: 16px; display: block; }
+
+    .kw-left.collapsed .kw-tabs,
+    .kw-left.collapsed .kw-search-area,
+    .kw-left.collapsed .kw-list-wrap,
+    .kw-left.collapsed .kw-custom-panel { display: none; }
+    .kw-left.collapsed .kw-collapsed-strip { display: flex; }
+
+    .kw-right.collapsed .kw-right-header,
+    .kw-right.collapsed .kw-right-list { display: none; }
+    .kw-right.collapsed .kw-collapsed-strip { display: flex; }
+  </style>
+</head>
+<body>
+
+  <div class="version-bar">
+    <a class="back-to-library" href="../../index.html">← Library</a>
+    <a class="version-tab active" href="index.html">V1</a>
+    <a class="version-tab" href="v2.html">V2</a>
+    <a class="version-tab" href="v3.html">V3</a>
+    <a class="version-tab" href="v4.html">V4</a>
+    <a class="version-tab" href="v5.html">V5</a>
+    <a class="version-tab" href="component.html">Component</a>
+    <a class="version-tab" href="figma.html">Figma</a>
+  </div>
+
+  <div class="page-body">
+    <div class="panel">
+
+      <!-- ── Header ── -->
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h1 class="panel-title">Bid Management</h1>
+          <button class="icon-btn" aria-label="Help">
+            <svg viewBox="0 0 16 16" fill="none">
+              <path d="M7.0382 5.59678C6.86008 5.77207 6.71908 6.05617 6.84678 6.56699C6.94724 6.96884 6.70291 7.37603 6.30106 7.47649C5.89922 7.57695 5.49202 7.33262 5.39156 6.93077C5.14447 5.94234 5.40246 5.102 5.98605 4.52767C6.53447 3.98796 7.30025 3.75 7.99326 3.75C8.64298 3.75 9.32229 3.90938 9.84667 4.37427C10.3873 4.85352 10.6479 5.55426 10.6479 6.3928C10.6479 6.96882 10.4772 7.42801 10.2072 7.79984C9.95421 8.14823 9.63038 8.3939 9.39293 8.57035C8.83804 8.98269 8.74326 9.07956 8.74326 9.31692V9.76213C8.74323 10.1763 8.40742 10.513 7.99321 10.513C7.57899 10.5129 7.24323 10.1771 7.24326 9.76292V9.31694C7.24324 8.27794 7.98116 7.74225 8.40522 7.4344C8.4383 7.41038 8.46948 7.38775 8.49825 7.36638C8.73696 7.18898 8.8893 7.06189 8.99344 6.91847C9.08057 6.79849 9.14793 6.64682 9.14793 6.3928C9.14793 5.86888 8.99431 5.62321 8.85159 5.49669C8.69267 5.35579 8.41965 5.25 7.99326 5.25C7.61016 5.25 7.2515 5.38686 7.0382 5.59678Z" fill="currentColor"/>
+              <path d="M8.75 12C8.75 12.4142 8.41421 12.75 8 12.75C7.58579 12.75 7.25 12.4142 7.25 12C7.25 11.5858 7.58579 11.25 8 11.25C8.41421 11.25 8.75 11.5858 8.75 12Z" fill="currentColor"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1.5 8C1.5 4.41015 4.41015 1.5 8 1.5C11.5899 1.5 14.5 4.41015 14.5 8C14.5 11.5899 11.5899 14.5 8 14.5C4.41015 14.5 1.5 11.5899 1.5 8Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <div class="default-bid" data-bid="1.00">
+          <div class="default-bid__label">Default Bid
+            <button class="icon-btn" aria-label="About default bid">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="default-bid__sep"></div>
+          <div class="default-bid__value">$1.00
+            <button class="icon-btn icon-btn--accent" aria-label="Edit default bid">
+              <svg viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.2732 0.61777C12.4495 -0.205884 11.1141 -0.205929 10.2904 0.61767L1.02351 9.88336C0.728191 10.1786 0.527173 10.555 0.445936 10.9646L0.0236379 13.0941C-0.143031 13.9345 0.597299 14.6748 1.43773 14.5082L3.5672 14.0859C3.97685 14.0047 4.35317 13.8037 4.64846 13.5083L13.9142 4.24139C14.7377 3.41768 14.7377 2.08228 13.9141 1.25863L13.2732 0.61777ZM11.351 1.6784C11.5889 1.44052 11.9746 1.44053 12.2125 1.67843L12.8534 2.31929C13.0913 2.55719 13.0913 2.94288 12.8534 3.1808L12.4294 3.60486L10.927 2.10241L11.351 1.6784ZM9.86623 3.163L2.0841 10.9441C1.99881 11.0294 1.94075 11.1381 1.91728 11.2564L1.58132 12.9505L3.27543 12.6146C3.39375 12.5911 3.50244 12.533 3.58773 12.4477L11.3688 4.66559L9.86623 3.163Z" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Radio group ── -->
+      <div class="form-field">
+        <span class="form-label">How would you like to bid?</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="bid-type" value="products" class="radio-input">
+            <span class="radio-circle"></span>
+            <span class="radio-label-text">Products</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="bid-type" value="keywords" class="radio-input" checked>
+            <span class="radio-circle"></span>
+            <span class="radio-label-text">Keywords</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Slim products section ── -->
+      <div class="section" id="products-section">
+        <div>
+          <div class="section-title-row">
+            <div class="section-title-left">
+              <span class="section-title">Products</span>
+              <span class="badge">5</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-ghost" style="padding:6px 16px;">Copy 5 UPCs</button>
+              <button class="btn btn-outline" style="padding:6px 16px;">Edit UPCs</button>
+            </div>
+          </div>
+          <p class="section-desc">Select UPCs to be featured On-Site.</p>
+        </div>
+        <div class="controls-row">
+          <div class="search-wrap" style="width:358px; flex:none;">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input class="search-input" style="height:40px; padding:10px 16px 10px 40px;" type="text" placeholder="Search UPCs or descriptions">
+          </div>
+        </div>
+        <table class="prod-slim">
+          <colgroup>
+            <col style="width:56px"><col><col style="width:72px">
+            <col style="min-width:110px"><col style="width:60px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Packshot</th><th>Description</th><th>Quantity</th>
+              <th>Sub-Commodity</th><th>Price</th>
+            </tr>
+          </thead>
+          <tbody id="p-slim-tbody"></tbody>
+        </table>
+        <div class="section" style="gap:12px; padding-bottom:16px;">
+          <div class="subcoms-title">Eligible Sub-commodities
+            <button class="icon-btn" aria-label="Help"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="5" r="0.75" fill="currentColor"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          </div>
+          <div class="subcom-tags">
+            <span class="subcom-tag">Drinks &gt; Soda</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Keywords two-panel ── -->
+      <div class="section" id="keywords-section">
+        <div class="section-title-row">
+          <span class="section-title">Keywords</span>
+        </div>
+
+        <div class="kw-panel-wrap">
+
+          <!-- LEFT: keyword browser -->
+          <div class="kw-left">
+
+            <!-- Tabs -->
+            <div class="kw-tabs">
+              <button class="kw-tab active" data-tab="search">Search</button>
+              <button class="kw-tab" data-tab="custom">Custom</button>
+              <button class="kw-collapse-btn" id="collapse-left" style="margin-left:auto;margin-bottom:8px;" title="Collapse">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="kw-collapsed-strip" id="left-strip">
+              <svg class="kw-collapsed-expand" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="kw-collapsed-label">Keyword Browser</span>
+            </div>
+
+            <!-- Search + filters -->
+            <div class="kw-search-area">
+              <div class="search-wrap">
+                <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input class="search-input" type="search" placeholder="Search" id="kw-search">
+              </div>
+              <div class="chip-row">
+                <button class="chip" id="strategy-chip">
+                  Strategy
+                  <svg viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="chip-clear" id="clear-filters-btn">Clear Filters</button>
+              </div>
+              <div class="match-type-row">
+                <span class="match-type-label-txt">Match Type</span>
+                <div class="match-type-checks">
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-exact" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Exact
+                  </label>
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-phrase" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Phrase
+                  </label>
+                  <label class="mt-check">
+                    <input type="checkbox" id="mt-broad" checked>
+                    <span class="mds-check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    Broad
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Keyword list -->
+            <div class="kw-list-wrap">
+              <table class="kw-list-table">
+                <colgroup>
+                  <col style="width:52px">
+                  <col style="width:110px">
+                  <col>
+                  <col style="width:76px">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Keyword</th>
+                    <th>Strategy</th>
+                    <th><button class="add-all-btn" id="add-all-btn">Add All</button></th>
+                  </tr>
+                </thead>
+                <tbody id="kw-list-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Custom panel (hidden until Custom tab active) -->
+            <div class="kw-custom-panel" id="kw-custom-panel" hidden>
+              <div class="kw-custom-section">
+                <div class="kw-section-head">
+                  <span class="kw-section-label">File Upload</span>
+                  <button type="button" class="kw-csv-link" id="kw-csv-btn">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 4v9M6 9l4 4 4-4"/>
+                      <path d="M4 15v1a2 2 0 002 2h8a2 2 0 002-2v-1"/>
+                    </svg>
+                    Download CSV Template
+                  </button>
+                </div>
+                <label class="kw-dropzone" id="kw-dropzone">
+                  <span class="filetypes">Only .csv, .xls and .xlsx files.</span>
+                  <span class="drop-action">Drag and drop or upload file(s)</span>
+                  <input id="kw-file-input" type="file" accept=".csv,.xls,.xlsx" style="position:absolute;opacity:0;width:0;height:0;" />
+                </label>
+              </div>
+              <div class="kw-custom-section">
+                <div class="kw-section-head">
+                  <span class="kw-section-label">Keywords</span>
+                </div>
+                <textarea id="kw-custom-text" class="kw-textarea" rows="5"
+                  placeholder="Keywords should be entered in this format:&#10;keyword, match type (optional), bid amount (optional)&#10;e.g. seasonal, exact, 1.00"></textarea>
+              </div>
+              <div class="kw-custom-actions">
+                <button class="kw-enter-btn" id="kw-enter-btn" type="button" disabled>Enter Keywords</button>
+              </div>
+            </div>
+
+          </div><!-- /kw-left -->
+
+          <!-- RIGHT: selected keywords + bid config -->
+          <div class="kw-right">
+            <div class="kw-collapsed-strip" id="right-strip">
+              <span class="kw-collapsed-label">Selected Keywords</span>
+              <svg class="kw-collapsed-expand" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="kw-right-header">
+              <span class="kw-right-count" id="kw-right-count">0 keywords added</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button class="remove-all-btn" id="remove-all-btn">Remove All</button>
+                <button class="kw-collapse-btn" id="collapse-right" title="Collapse">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selected keyword table -->
+            <div class="kw-right-list" id="kw-right-list" hidden>
+              <table class="kw-right-table">
+                <colgroup>
+                  <col style="width:110px">
+                  <col style="width:100px">
+                  <col style="width:60px">
+                  <col style="width:140px">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Keyword</th>
+                    <th>Suggested Bid</th>
+                    <th>Use Default</th>
+                    <th>Bid Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="kw-right-tbody"></tbody>
+              </table>
+            </div>
+
+          </div><!-- /kw-right -->
+
+        </div><!-- /kw-panel-wrap -->
+      </div><!-- /keywords-section -->
+
+    </div><!-- /panel -->
+  </div>
+
+  <script>
+    /* ── Products ── */
+    const PRODUCTS = [
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$3.19', qty: '2 liter',  subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$2.75', qty: '2 liter',  subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$1.19', qty: '20 fl oz', subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$2.19', qty: '8 pk',     subcom: 'Cola Sodas'      },
+      { name: 'Pepsi Cola® Soda Bottle', upc: '01234567890123', price: '$3.45', qty: '12 pk',    subcom: 'Zero Sugar Soda' },
+    ];
+
+    function packshot() {
+      return `<div class="prod-img"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--ink-light)" stroke-width="1.5"/><path d="M2 10l3-3 2 2 3-4 4 5" stroke="var(--ink-light)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    }
+
+    document.getElementById('p-slim-tbody').replaceChildren(
+      ...PRODUCTS.map(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${packshot()}</td><td><div class="prod-name">${p.name}</div><div class="prod-upc">${p.upc}</div></td><td>${p.qty}</td><td>${p.subcom}</td><td>${p.price}</td>`;
+        return tr;
+      })
+    );
+
+    /* ── Radio toggle ── */
+    document.querySelectorAll('input[name="bid-type"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isKw = r.value === 'keywords';
+        document.getElementById('products-section').hidden = !isKw;
+        document.getElementById('keywords-section').hidden = !isKw;
+      });
+    });
+
+    /* ── Keyword data ── */
+    const KW_DATA = [
+      { kw: 'soft drinks',  tags: ['Drives Clicks', 'High Traffic']               },
+      { kw: 'soda',         tags: ['Defend', 'Previously Boosted']                },
+      { kw: 'fizzy drinks', tags: ['Potential']                                   },
+      { kw: 'beverage',     tags: ['Battleground']                                },
+      { kw: 'sugar free',   tags: ['Defend', 'Previously Boosted', 'High Traffic']},
+      { kw: 'cola',         tags: ['Drives Clicks']                               },
+      { kw: 'diet soda',    tags: ['Competitive', 'High Traffic']                 },
+      { kw: 'sparkling water', tags: ['Complementary']                            },
+      { kw: 'energy drink', tags: ['Competitive']                                 },
+      { kw: 'zero calorie', tags: ['Potential']                                   },
+    ];
+
+    /* ── State ── */
+    const addedKws = new Set(); // kw strings that have been added
+
+    /* ── Left panel: render list ── */
+    const kwListTbody = document.getElementById('kw-list-tbody');
+    const kwSearch    = document.getElementById('kw-search');
+
+    function getActiveMatchTypes() {
+      return ['Exact','Phrase','Broad'].filter((_,i) =>
+        [document.getElementById('mt-exact'), document.getElementById('mt-phrase'), document.getElementById('mt-broad')][i].checked
+      );
+    }
+
+    function renderLeftList(filter = '') {
+      const q = filter.toLowerCase();
+      kwListTbody.innerHTML = '';
+      KW_DATA.forEach((k, i) => {
+        if (q && !k.kw.includes(q)) return;
+        const isAdded = addedKws.has(k.kw);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="rank-num">${i + 1}</td>
+          <td class="kw-name">${k.kw}</td>
+          <td><div class="tag-list">${k.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></td>
+          <td style="text-align:right"><button class="add-btn${isAdded ? ' added' : ''}" data-kw="${k.kw}">${isAdded ? 'Added' : 'Add'}</button></td>`;
+        tr.querySelector('.add-btn').addEventListener('click', function() {
+          if (isAdded) return;
+          addKeyword(k);
+        });
+        kwListTbody.appendChild(tr);
+      });
+    }
+
+    kwSearch.addEventListener('input', () => renderLeftList(kwSearch.value));
+    renderLeftList();
+
+    /* ── Add All ── */
+    document.getElementById('add-all-btn').addEventListener('click', () => {
+      const q = kwSearch.value.toLowerCase();
+      KW_DATA.filter(k => !q || k.kw.includes(q)).forEach(k => {
+        if (!addedKws.has(k.kw)) addKeyword(k, true);
+      });
+      renderLeftList(kwSearch.value);
+      renderRight();
+    });
+
+    /* ── Right panel ── */
+    const kwRightList  = document.getElementById('kw-right-list');
+    const kwRightTbody = document.getElementById('kw-right-tbody');
+    const kwRightCount = document.getElementById('kw-right-count');
+
+    const removeAllBtn = document.getElementById('remove-all-btn');
+
+    function renderRight() {
+      const n = addedKws.size;
+      kwRightCount.textContent = `${n} keyword${n === 1 ? '' : 's'} added`;
+      kwRightList.hidden = n === 0;
+      removeAllBtn.classList.toggle('active', n > 0);
+    }
+
+    removeAllBtn.addEventListener('click', () => {
+      if (!addedKws.size) return;
+      addedKws.clear();
+      kwRightTbody.innerHTML = '';
+      renderLeftList(kwSearch.value);
+      renderRight();
+    });
+
+    function addKeyword(k, skipRerender = false) {
+      if (addedKws.has(k.kw)) return;
+      addedKws.add(k.kw);
+
+      const matchTypes = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+      const SUG = '$0.75';
+      const sugNum = parseFloat(SUG.replace('$', ''));
+
+      const sugRowsHtml = matchTypes.map(mt =>
+        `<div class="sug-row">
+           <span class="sug-price">${SUG}</span>
+           <button class="sug-apply" data-mt="${mt}">Apply</button>
+         </div>`).join('');
+
+      const swRowsHtml = matchTypes.map(mt =>
+        `<div class="switch-row">
+           <button class="switch" data-on="false" data-mt="${mt}" aria-label="Use default (${mt})"><div class="switch__knob"></div></button>
+         </div>`).join('');
+
+      const bidRowsHtml = matchTypes.map(mt =>
+        `<div class="bid-row" data-mt="${mt}">
+           <span class="mt-bid-label">${mt}</span>
+           <div class="bid-input" data-mt="${mt}"><span class="dollar">$</span><input type="text" placeholder="" aria-label="${mt} bid"></div>
+           <button class="bid-row-x" title="Remove ${mt} bid"><svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+         </div>`).join('');
+
+      const tr = document.createElement('tr');
+      tr.dataset.kw = k.kw;
+      tr.innerHTML = `
+        <td style="color:var(--ink-primary); vertical-align:top;">${k.kw}</td>
+        <td><div class="sug-rows">${sugRowsHtml}</div></td>
+        <td><div class="switch-rows">${swRowsHtml}</div></td>
+        <td><div class="bid-rows">${bidRowsHtml}</div></td>`;
+
+      const switches  = [...tr.querySelectorAll('.switch')];
+      const applyBtns = [...tr.querySelectorAll('.sug-apply')];
+      const bidWraps  = [...tr.querySelectorAll('.bid-input')];
+      const bidInputs = [...tr.querySelectorAll('.bid-input input')];
+
+      function wireApplyBtn(i, btn) {
+        btn.addEventListener('click', () => {
+          if (switches[i].dataset.on === 'true') return;
+          bidInputs[i].value = sugNum.toFixed(2);
+          btn.disabled = true;
+          btn.textContent = 'Applied';
+          updateSugRow(i);
+        });
+      }
+
+      function updateSugRow(i) {
+        const sugRow = tr.querySelectorAll('.sug-row')[i];
+        if (!sugRow) return;
+        const val = parseFloat(bidInputs[i].value);
+        const isStrong = !isNaN(val) && val > sugNum;
+        const isNormal = sugRow.querySelector('.sug-price') !== null;
+
+        if (isStrong && isNormal) {
+          // Transition to Strong Bid
+          sugRow.innerHTML = '<span class="strong-bid-badge">Strong Bid</span>';
+          applyBtns[i] = null;
+        } else if (!isStrong && !isNormal) {
+          // Restore normal view
+          sugRow.innerHTML = `<span class="sug-price">${SUG}</span><button class="sug-apply" data-mt="${matchTypes[i]}">Apply</button>`;
+          const newBtn = sugRow.querySelector('.sug-apply');
+          applyBtns[i] = newBtn;
+          wireApplyBtn(i, newBtn);
+        }
+
+        // Keep apply button text fresh when in normal mode
+        if (!isStrong && applyBtns[i]) {
+          const v = parseFloat(bidInputs[i].value);
+          if (isNaN(v) || v !== sugNum) {
+            applyBtns[i].disabled = false;
+            applyBtns[i].textContent = 'Apply';
+          }
+        }
+      }
+
+      switches.forEach((sw, i) => {
+        sw.addEventListener('click', () => {
+          const on = sw.dataset.on !== 'true';
+          sw.dataset.on = String(on);
+          if (on) {
+            bidInputs[i].dataset.saved = bidInputs[i].value;
+            bidInputs[i].value = '1.00';
+            bidInputs[i].disabled = true;
+            bidWraps[i].classList.add('disabled');
+            if (applyBtns[i]) applyBtns[i].disabled = true;
+          } else {
+            bidInputs[i].value = bidInputs[i].dataset.saved ?? '';
+            bidInputs[i].disabled = false;
+            bidWraps[i].classList.remove('disabled');
+            if (applyBtns[i]) applyBtns[i].disabled = false;
+          }
+        });
+      });
+
+      applyBtns.forEach((btn, i) => {
+        wireApplyBtn(i, btn);
+        bidInputs[i].addEventListener('input', () => updateSugRow(i));
+      });
+
+      tr.querySelectorAll('.bid-row-x').forEach((xBtn, i) => {
+        xBtn.addEventListener('click', () => {
+          const bidRow = xBtn.closest('.bid-row');
+          const sugRow = tr.querySelectorAll('.sug-row')[i];
+          const swRow  = tr.querySelectorAll('.switch-row')[i];
+          bidRow.remove();
+          sugRow?.remove();
+          swRow?.remove();
+          if (!tr.querySelectorAll('.bid-row').length) {
+            addedKws.delete(k.kw);
+            tr.remove();
+            renderLeftList(kwSearch.value);
+            renderRight();
+          }
+        });
+      });
+
+      kwRightTbody.appendChild(tr);
+
+      if (!skipRerender) {
+        renderLeftList(kwSearch.value);
+        renderRight();
+      }
+    }
+
+    /* ── Tabs ── */
+    const kwSearchArea  = document.querySelector('.kw-search-area');
+    const kwListWrap    = document.querySelector('.kw-list-wrap');
+    const kwCustomPanel = document.getElementById('kw-custom-panel');
+
+    document.querySelectorAll('.kw-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.kw-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isCustom = tab.dataset.tab === 'custom';
+        kwSearchArea.hidden  = isCustom;
+        kwListWrap.hidden    = isCustom;
+        kwCustomPanel.hidden = !isCustom;
+      });
+    });
+
+    /* ── Custom tab: enable Enter Keywords when textarea has content ── */
+    const kwCustomText = document.getElementById('kw-custom-text');
+    const kwEnterBtn   = document.getElementById('kw-enter-btn');
+
+    kwCustomText.addEventListener('input', () => {
+      kwEnterBtn.disabled = kwCustomText.value.trim() === '';
+    });
+
+    kwEnterBtn.addEventListener('click', () => {
+      const lines = kwCustomText.value.split('\n').map(l => l.trim()).filter(Boolean);
+      lines.forEach(line => {
+        const parts = line.split(',').map(p => p.trim());
+        const kwText = parts[0];
+        if (!kwText) return;
+        const existing = KW_DATA.find(k => k.kw.toLowerCase() === kwText.toLowerCase());
+        if (existing) {
+          addKeyword(existing, true);
+        } else {
+          addKeyword({ kw: kwText, tags: [] }, true);
+        }
+      });
+      renderLeftList(kwSearch.value);
+      renderRight();
+      kwCustomText.value = '';
+      kwEnterBtn.disabled = true;
+    });
+
+    /* ── Custom tab: drag/drop ── */
+    const kwDropzone  = document.getElementById('kw-dropzone');
+    const kwFileInput = document.getElementById('kw-file-input');
+
+    kwDropzone.addEventListener('dragover', e => { e.preventDefault(); kwDropzone.classList.add('is-dragover'); });
+    kwDropzone.addEventListener('dragleave', () => kwDropzone.classList.remove('is-dragover'));
+    kwDropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      kwDropzone.classList.remove('is-dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) ingestCustomFile(file);
+    });
+    kwFileInput.addEventListener('change', e => {
+      if (e.target.files[0]) ingestCustomFile(e.target.files[0]);
+    });
+
+    async function ingestCustomFile(file) {
+      try {
+        const text = await file.text();
+        kwCustomText.value = text.trim();
+        kwEnterBtn.disabled = kwCustomText.value.trim() === '';
+      } catch { /* ignore */ }
+    }
+
+    renderRight();
+
+    /* ── Panel collapse ── */
+    const kwLeft  = document.querySelector('.kw-left');
+    const kwRight = document.querySelector('.kw-right');
+    const leftStrip  = document.getElementById('left-strip');
+    const rightStrip = document.getElementById('right-strip');
+
+    document.getElementById('collapse-left').addEventListener('click', () => {
+      kwLeft.classList.add('collapsed');
+    });
+    leftStrip.addEventListener('click', () => {
+      kwLeft.classList.remove('collapsed');
+    });
+
+    document.getElementById('collapse-right').addEventListener('click', () => {
+      kwRight.classList.add('collapsed');
+      kwLeft.style.width = 'auto';
+      kwLeft.style.flex = '1';
+    });
+    rightStrip.addEventListener('click', () => {
+      kwRight.classList.remove('collapsed');
+      kwLeft.style.width = '';
+      kwLeft.style.flex = '';
+    });
+  </script>
+
+</body>
+</html>

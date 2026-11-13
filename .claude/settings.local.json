@@ -49,7 +49,8 @@
       "Bash(cp /tmp/deck_imgs/2.png /Users/t160029/repo/prototyping/decks/img-creative.png)",
       "Bash(cp /tmp/deck_imgs/6.png /Users/t160029/repo/prototyping/decks/img-keywords.png)",
       "Bash(cp /tmp/deck_imgs/8.png /Users/t160029/repo/prototyping/decks/img-placements.png)",
-      "mcp__figma__create_session"
+      "mcp__figma__create_session",
+      "mcp__figma__use_figma"
     ]
   }
 }
