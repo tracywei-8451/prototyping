@@ -363,6 +363,7 @@
     .kw-left.collapsed {
       width: 32px; min-width: 32px;
     }
+    .kw-left-inner { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
     .kw-left.collapsed .kw-left-inner { display: none; }
     .kw-left-collapse-rail {
       display: none; align-items: center; justify-content: center;
@@ -682,10 +683,10 @@
     .sug-apply:disabled { color: var(--ink-light); cursor: default; }
     .strong-bid-badge {
       display: inline-flex; align-items: center; justify-content: center;
-      background: #e4f6ed; border-radius: 100px;
-      padding: 0 8px; height: 20px;
-      font-size: 12px; font-weight: 700; letter-spacing: -0.06px;
-      color: #2c7a52; white-space: nowrap;
+      background: transparent; border-radius: 100px;
+      padding: 0; height: 20px;
+      font-size: 12px; font-weight: 400; letter-spacing: -0.06px;
+      color: #1a6640; white-space: nowrap;
     }
 
     /* switch */
@@ -721,6 +722,7 @@
     .bid-row-x {
       background: none; border: none; cursor: pointer; padding: 0; color: var(--ink-light);
       display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0;
+      margin: 0 auto;
     }
     .bid-row-x:hover { color: var(--ink-darker); }
     .bid-row-x svg { width: 10px; height: 10px; display: block; }
@@ -788,6 +790,54 @@
     tr.kw-detail-row td.kw-name-cell .type-badge {
       margin-top: 4px; padding: 2px 6px; font-size: 11px;
     }
+
+    /* ── Cap modal ── */
+    .cap-modal-backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9999;
+      background: rgba(33,35,44,0.48);
+    }
+    .cap-modal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10000;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(33,35,44,0.08), 0 2px 4px rgba(33,35,44,0.04), 0 2px 4px rgba(33,35,44,0.08);
+      width: 480px; max-width: calc(100vw - 48px);
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    .cap-modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+    }
+    .cap-modal-title {
+      font-size: 22px; font-weight: 600; color: #20203c;
+      letter-spacing: -0.5px; line-height: 28px;
+    }
+    .cap-modal-close {
+      width: 20px; height: 20px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer; padding: 0;
+      color: var(--ink-darker); border-radius: 4px;
+    }
+    .cap-modal-close:hover { background: var(--surface-secondary); }
+    .cap-modal-body {
+      font-size: 14px; color: var(--ink-darker);
+      letter-spacing: -0.14px; line-height: 20px;
+    }
+    .cap-modal-footer {
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+    }
+    .cap-modal-footer .btn-primary {
+      background: var(--accent-primary); color: #fff; border: none;
+    }
+    .cap-modal-footer .btn-primary:hover { background: #1e63ab; }
+    .cap-modal-footer .btn-cancel {
+      background: none; border: none; color: var(--ink-darker); font-weight: 600;
+    }
+    .cap-modal-footer .btn-cancel:hover { background: var(--surface-secondary); }
 
     /* column hiding via table class — cols shift +1 due to keyword column */
     .kw-right-table.hide-col-suggested th:nth-child(3),
@@ -1249,16 +1299,91 @@
 
     /* ── Keyword data ── */
     const KW_DATA = [
-      { kw: 'soft drinks',     tags: ['Drives Clicks', 'High Traffic'],                type: 'Recommended' },
-      { kw: 'soda',            tags: ['Defend', 'Previously Used'],                    type: 'Recommended' },
-      { kw: 'fizzy drinks',    tags: ['Potential'],                                    type: 'Recommended' },
-      { kw: 'beverage',        tags: ['Battleground'],                                 type: 'Recommended' },
-      { kw: 'sugar free',      tags: ['Defend', 'Previously Used', 'High Traffic'],    type: 'Recommended' },
-      { kw: 'cola',            tags: ['Drives Clicks'],                                type: 'Recommended' },
-      { kw: 'diet soda',       tags: ['Competitive', 'High Traffic'],                  type: 'Recommended' },
-      { kw: 'sparkling water', tags: ['Complementary'],                                type: 'Recommended' },
-      { kw: 'energy drink',    tags: ['Competitive'],                                  type: 'Recommended' },
-      { kw: 'zero calorie',    tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'soft drinks',           tags: ['Drives Clicks', 'High Traffic'],                type: 'Recommended' },
+      { kw: 'soda',                  tags: ['Defend', 'Previously Used'],                    type: 'Recommended' },
+      { kw: 'fizzy drinks',          tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'beverage',              tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'sugar free',            tags: ['Defend', 'Previously Used', 'High Traffic'],    type: 'Recommended' },
+      { kw: 'cola',                  tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'diet soda',             tags: ['Competitive', 'High Traffic'],                  type: 'Recommended' },
+      { kw: 'sparkling water',       tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'energy drink',          tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'zero calorie',          tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'pepsi',                 tags: ['Defend', 'High Traffic'],                       type: 'Recommended' },
+      { kw: 'pepsi cola',            tags: ['Defend', 'Previously Used', 'High Traffic'],    type: 'Recommended' },
+      { kw: 'pepsi zero',            tags: ['Drives Clicks', 'High Traffic'],                type: 'Recommended' },
+      { kw: 'pepsi max',             tags: ['Previously Used'],                              type: 'Recommended' },
+      { kw: 'diet pepsi',            tags: ['Defend', 'Competitive'],                        type: 'Recommended' },
+      { kw: 'pepsi wild cherry',     tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'carbonated beverage',   tags: ['Battleground', 'High Traffic'],                 type: 'Recommended' },
+      { kw: 'carbonated drink',      tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'cola drink',            tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'soda bottle',           tags: ['High Traffic', 'Previously Used'],              type: 'Recommended' },
+      { kw: 'soda can',              tags: ['High Traffic'],                                 type: 'Recommended' },
+      { kw: '12 pack soda',          tags: ['Drives Clicks', 'Previously Used'],             type: 'Recommended' },
+      { kw: '2 liter soda',          tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'soda variety pack',     tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'caffeine free soda',    tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'low calorie soda',      tags: ['Potential', 'Competitive'],                     type: 'Recommended' },
+      { kw: 'no sugar soda',         tags: ['Drives Clicks', 'Competitive'],                 type: 'Recommended' },
+      { kw: 'zero sugar cola',       tags: ['Competitive', 'High Traffic'],                  type: 'Recommended' },
+      { kw: 'cherry cola',           tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'vanilla cola',          tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'citrus soda',           tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'lemon lime soda',       tags: ['Competitive', 'Complementary'],                 type: 'Recommended' },
+      { kw: 'ginger ale',            tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'root beer',             tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'cream soda',            tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'grape soda',            tags: ['Complementary', 'Potential'],                   type: 'Recommended' },
+      { kw: 'orange soda',           tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'fruit punch drink',     tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'sports drink',          tags: ['Competitive', 'High Traffic'],                  type: 'Recommended' },
+      { kw: 'electrolyte drink',     tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'hydration drink',       tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'iced tea',              tags: ['Complementary', 'High Traffic'],                type: 'Recommended' },
+      { kw: 'sweet tea',             tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'lemonade drink',        tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'juice drink',           tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'mixed berry drink',     tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'tropical drink',        tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'flavored water',        tags: ['Competitive', 'Potential'],                     type: 'Recommended' },
+      { kw: 'sparkling flavored water', tags: ['Competitive'],                               type: 'Recommended' },
+      { kw: 'mineral water',         tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'tonic water',           tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'club soda',             tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'seltzer water',         tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'bubbly water',          tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'vitamin water',         tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'bulk soda',             tags: ['Drives Clicks', 'Previously Used'],             type: 'Recommended' },
+      { kw: 'party drinks',          tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'value pack soda',       tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'family pack drinks',    tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'everyday soda',         tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'refreshing drink',      tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'cold beverage',         tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'fountain drink',        tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'premium soda',          tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'craft soda',            tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'natural soda',          tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'organic drink',         tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'health drink',          tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'wellness drink',        tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'non-alcoholic beverage',tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'kids drink',            tags: ['Potential', 'Complementary'],                   type: 'Recommended' },
+      { kw: 'mixer drinks',          tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'mocktail drink',        tags: ['Complementary'],                                type: 'Recommended' },
+      { kw: 'grocery soda',          tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'pantry drinks',         tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'store brand soda',      tags: ['Battleground'],                                 type: 'Recommended' },
+      { kw: 'pop soda',              tags: ['High Traffic'],                                 type: 'Recommended' },
+      { kw: 'cola beverage',         tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'diet beverage',         tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'sugar free beverage',   tags: ['Competitive'],                                  type: 'Recommended' },
+      { kw: 'canned soda',           tags: ['High Traffic'],                                 type: 'Recommended' },
+      { kw: 'bottled soda',          tags: ['High Traffic'],                                 type: 'Recommended' },
+      { kw: 'mini soda cans',        tags: ['Potential'],                                    type: 'Recommended' },
+      { kw: 'soda multipack',        tags: ['Drives Clicks'],                                type: 'Recommended' },
+      { kw: 'sparkling soda',        tags: ['Potential'],                                    type: 'Recommended' },
     ];
 
     const addedKws = new Map(); // kw -> Set<matchType>
@@ -1266,7 +1391,7 @@
     const ALL_STRATEGIES  = [...new Set(KW_DATA.flatMap(k => k.tags))].sort();
     const filterState = { strategies: new Set(), types: new Set(), matchTypes: new Set() };
 
-    const PAGE_SIZE = 5;
+    const PAGE_SIZE = 10;
     let currentPage = 1;
 
     function getActiveMatchTypes() {
@@ -1327,7 +1452,11 @@
       document.getElementById('pg-last').disabled  = currentPage === totalPages;
       const pgNumbers = document.getElementById('pg-numbers');
       pgNumbers.innerHTML = '';
-      for (let p = 1; p <= totalPages; p++) {
+      const WINDOW = 5;
+      let winStart = Math.max(1, currentPage - Math.floor(WINDOW / 2));
+      let winEnd   = Math.min(totalPages, winStart + WINDOW - 1);
+      if (winEnd - winStart < WINDOW - 1) winStart = Math.max(1, winEnd - WINDOW + 1);
+      for (let p = winStart; p <= winEnd; p++) {
         const btn = document.createElement('button');
         btn.className = 'pg-btn' + (p === currentPage ? ' active' : '');
         btn.textContent = p;
@@ -1366,7 +1495,17 @@
           <td style="color:var(--ink-primary)">${k.kw}</td>
           <td><div class="tag-list">${k.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></td>
           <td style="text-align:right"><span class="${addDisabled ? 'cap-tooltip-wrap' : ''}" ${addDisabled ? 'data-tooltip="250 keyword limit reached"' : ''}><button class="${addClass}" data-kw="${k.kw}" ${addDisabled ? 'disabled' : ''}>Add</button></span></td>`;
-        if (!addDisabled) tr.querySelector('.add-btn').addEventListener('click', () => addKeyword(k));
+        if (!addDisabled) tr.querySelector('.add-btn').addEventListener('click', () => {
+          const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+          const activeMts = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+          const existingMts = addedKws.get(k.kw) || new Set();
+          const wouldAdd = activeMts.filter(mt => !existingMts.has(mt)).length;
+          if (totalBids + wouldAdd > 250) {
+            window.showCapModal(() => addKeyword(k));
+          } else {
+            addKeyword(k);
+          }
+        });
         tbody.appendChild(tr);
       });
       renderPagination(filtered.length);
@@ -1426,7 +1565,9 @@
 
       if (!addedKws.has(k.kw)) addedKws.set(k.kw, new Set());
       const existingMts = addedKws.get(k.kw);
-      const newMts = selectedMts.filter(mt => !existingMts.has(mt));
+      const totalBidsBefore = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+      const remaining = Math.max(0, 250 - totalBidsBefore);
+      const newMts = selectedMts.filter(mt => !existingMts.has(mt)).slice(0, remaining);
       if (!newMts.length) {
         if (!skipRerender) { renderLeftList(document.getElementById('kw-search').value); updateBadge(); filterRightPanel(); updateGroupBorders(); }
         return;
@@ -1474,7 +1615,7 @@
               <div class="bid-input"><span class="dollar">$</span><input type="text" placeholder="" aria-label="${mt} bid"></div>
             </div>
           </td>
-          <td style="text-align:center">
+          <td style="text-align:center; padding-right:12px;">
             <button class="bid-row-x" title="Remove ${mt}"><svg viewBox="0 0 10 10" fill="none"><path d="M8 2L2 8M2 2l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
           </td>`;
 
@@ -1509,7 +1650,7 @@
           const val = parseFloat(bidInput.value);
           const isStrong = !isNaN(val) && val > sugNum;
           if (isStrong && applyBtn) {
-            sugCell.innerHTML = '<span class="strong-bid-badge">Strong Bid</span>';
+            sugCell.innerHTML = '<span class="strong-bid-badge">Bid is strong</span>';
             applyBtn = null;
           } else if (!isStrong && !applyBtn) {
             sugCell.innerHTML = `<button class="sug-apply" data-mt="${mt}">${SUG}</button>`;
@@ -1549,6 +1690,7 @@
             bidInput.value = bidInput.dataset.saved ?? '';
             bidInput.disabled = false; bidWrap.classList.remove('disabled');
             if (applyBtn) applyBtn.disabled = false;
+            updateSugCell();
           }
         });
 
@@ -1594,10 +1736,24 @@
     /* ── Add All ── */
     document.getElementById('add-all-btn').addEventListener('click', () => {
       const q = document.getElementById('kw-search').value.toLowerCase();
-      KW_DATA.filter(k => !q || k.kw.includes(q)).forEach(k => { if (!addedKws.has(k.kw)) addKeyword(k, true); });
-      renderLeftList(document.getElementById('kw-search').value);
-      updateBadge(); updateGroupBorders();
-      filterRightPanel();
+      const candidates = KW_DATA.filter(k => !q || k.kw.includes(q));
+      const activeMts = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+      const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+      const wouldAdd = candidates.reduce((sum, k) => {
+        const existingMts = addedKws.get(k.kw) || new Set();
+        return sum + activeMts.filter(mt => !existingMts.has(mt)).length;
+      }, 0);
+      const doAddAll = () => {
+        candidates.forEach(k => addKeyword(k, true));
+        renderLeftList(document.getElementById('kw-search').value);
+        updateBadge(); updateGroupBorders();
+        filterRightPanel();
+      };
+      if (totalBids + wouldAdd > 250) {
+        window.showCapModal(doAddAll);
+      } else {
+        doAddAll();
+      }
     });
 
     /* ── Remove All ── */
@@ -1851,31 +2007,45 @@
     kwCustomText.addEventListener('input', () => { const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0); kwEnterBtn.disabled = totalBids >= 250 || !kwCustomText.value.trim(); });
     kwEnterBtn.addEventListener('click', () => {
       const VALID_MTS = ['Exact', 'Phrase', 'Broad'];
-      kwCustomText.value.trim().split('\n').forEach(line => {
+      const lines = kwCustomText.value.trim().split('\n').filter(l => l.trim());
+      const activeMts = getActiveMatchTypes().length ? getActiveMatchTypes() : ['Exact','Phrase','Broad'];
+      const totalBids = [...addedKws.values()].reduce((a, s) => a + s.size, 0);
+      const wouldAdd = lines.reduce((sum, line) => {
         const parts = line.split(',').map(s => s.trim());
-        if (!parts[0]) return;
+        if (!parts[0]) return sum;
         const kw = parts[0];
-        const existing = KW_DATA.find(k => k.kw === kw);
-        const k = existing || { kw, tags: [], type: 'Manual' };
-
         const rawMt = parts[1];
-        const rawBid = parts[2];
         const matchedMt = rawMt ? VALID_MTS.find(m => m.toLowerCase() === rawMt.toLowerCase()) : null;
-
-        if (matchedMt) {
-          // specific MT (and optional bid) provided
-          const overrides = { mts: [matchedMt], bids: rawBid ? { [matchedMt]: rawBid } : {} };
-          addKeyword(k, true, overrides);
-        } else {
-          // keyword only — use checked match types, empty bids
-          addKeyword(k, true);
-        }
-      });
-      renderLeftList(document.getElementById('kw-search').value);
-      updateBadge();
-      filterRightPanel();
-      updateGroupBorders();
-      kwCustomText.value = ''; kwEnterBtn.disabled = true;
+        const mts = matchedMt ? [matchedMt] : activeMts;
+        const existingMts = addedKws.get(kw) || new Set();
+        return sum + mts.filter(mt => !existingMts.has(mt)).length;
+      }, 0);
+      const doEnter = () => {
+        lines.forEach(line => {
+          const parts = line.split(',').map(s => s.trim());
+          if (!parts[0]) return;
+          const kw = parts[0];
+          const existing = KW_DATA.find(k => k.kw === kw);
+          const k = existing || { kw, tags: [], type: 'Manual' };
+          const rawMt = parts[1];
+          const rawBid = parts[2];
+          const matchedMt = rawMt ? VALID_MTS.find(m => m.toLowerCase() === rawMt.toLowerCase()) : null;
+          if (matchedMt) {
+            const overrides = { mts: [matchedMt], bids: rawBid ? { [matchedMt]: rawBid } : {} };
+            addKeyword(k, true, overrides);
+          } else {
+            addKeyword(k, true);
+          }
+        });
+        renderLeftList(document.getElementById('kw-search').value);
+        updateBadge(); filterRightPanel(); updateGroupBorders();
+        kwCustomText.value = ''; kwEnterBtn.disabled = true;
+      };
+      if (totalBids + wouldAdd > 250) {
+        window.showCapModal(doEnter);
+      } else {
+        doEnter();
+      }
     });
 
     /* ── Checkboxes + Actions ── */
@@ -2148,6 +2318,46 @@
     renderLeftList();
     updateBadge(); updateGroupBorders();
 
+    /* ── Cap modal logic ── */
+    (function() {
+      let pendingAction = null;
+
+      function showCapModal(onContinue) {
+        pendingAction = onContinue;
+        document.getElementById('cap-modal-backdrop').style.display = 'flex';
+      }
+
+      function hideCapModal() {
+        document.getElementById('cap-modal-backdrop').style.display = 'none';
+        pendingAction = null;
+      }
+
+      document.addEventListener('click', e => {
+        if (e.target.id === 'cap-modal-continue') { const cb = pendingAction; hideCapModal(); if (cb) cb(); }
+        if (e.target.id === 'cap-modal-cancel' || e.target.id === 'cap-modal-close' || e.target.id === 'cap-modal-backdrop') hideCapModal();
+        if (e.target.closest('#cap-modal-close') && !e.target.id) hideCapModal();
+      });
+
+      window.showCapModal = showCapModal;
+    })();
   </script>
+
+  <div id="cap-modal-backdrop" style="display:none">
+    <div class="cap-modal" role="dialog" aria-modal="true">
+      <div class="cap-modal-header">
+        <span class="cap-modal-title">Keyword limit reached</span>
+        <button class="cap-modal-close" id="cap-modal-close" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="cap-modal-body">
+        Adding these keywords will exceed the 250 bid limit. Would you like to continue and add keywords up to the limit?
+      </div>
+      <div class="cap-modal-footer">
+        <button class="btn btn-cancel" id="cap-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="cap-modal-continue">Continue</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
